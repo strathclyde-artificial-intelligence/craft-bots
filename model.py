@@ -61,10 +61,11 @@ class World:
         self.map = []
         self.edges = []
         self.actors = []
+        self.resources = []
         self.create_nodes_prm()
         self.tick = 0
 
-    def create_nodes_prm(self, cast_dist=60, min_dist=30, connect_dist=75, max_nodes=30, max_attempts=50, deviation=15):
+    def create_nodes_prm(self, cast_dist=80, min_dist=40, connect_dist=75, max_nodes=50, max_attempts=100, deviation=15):
         self.nodes = [Node(self.width/2, self.height/2)]
         attempts = 0
         curr_x = self.nodes[0].x
@@ -208,3 +209,24 @@ class Actor:
                 self.state = 0
                 self.progress = -1
                 self.target = None
+
+
+class Resource:
+    def __init__(self, world, location, colour=0):
+        self.world = world
+        self.colour = colour
+        self.location = location
+
+        self.world.resources.append(self)
+
+    def get_colour_string(self):
+        if self.colour == 0:
+            return "red"
+        elif self.colour == 1:
+            return "blue"
+        elif self.colour == 2:
+            return "orange"
+        elif self.colour == 3:
+            return "black"
+        elif self.colour == 4:
+            return "green"

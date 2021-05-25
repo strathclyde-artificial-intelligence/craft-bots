@@ -1,23 +1,46 @@
 import tkinter as tk
-
+import model
 
 class GUI(tk.Frame):
-    def __init__(self, world, width=350, height=350, padding=0, master=None):
-        self.padding = max(0, padding)
+    def __init__(self, world, width=350, height=350, padding=7, master=None, node_size=7):
+        self.node_size = node_size
+        self.padding = max(self.node_size, padding)
         self.width = width
         self.height = height
         super().__init__(master)
         self.master = master
         self.world = world
         self.graph = tk.Canvas(self, bg="black", height=self.height + self.padding * 2, width=self.width + self.padding * 2)
+        self.graph.create_rectangle(self.padding - self.node_size, self.padding - self.node_size, self.width + self.padding + self.node_size,
+                                    self.height + self.padding + self.node_size, fill="grey", width=0)
         self.graph.create_rectangle(self.padding, self.padding, self.width + self.padding,
-                                    self.height + self.padding, fill="white")
+                                    self.height + self.padding, fill="white", width=0)
         self.update_graph()
         self.actors = []
         for actor in self.world.actors:
             self.graph.create_oval(actor.node.x + self.padding - 3, actor.node.y + self.padding - 3, 
-                                   actor.node.x + self.padding + 3, actor.node.y + self.padding + 3, fill="red")
+                                   actor.node.x + self.padding + 3, actor.node.y + self.padding + 3, fill="grey")
             self.actors.append((actor, self.graph.find_all()[-1:][0]))
+        for resource in self.world.resources:
+            if isinstance(resource.location, model.Node):
+                node_x = resource.location.x + self.padding
+                node_y = resource.location.y + self.padding
+                if resource.colour == 0:
+                    node_x -= 3
+                    node_y -= 14
+                elif resource.colour == 1:
+                    node_x += 0
+                    node_y -= 8
+                elif resource.colour == 2:
+                    node_x += 4
+                    node_y -= 12
+                elif resource.colour == 3:
+                    node_x += 6
+                    node_y -= 6
+                elif resource.colour == 4:
+                    node_x += 12
+                    node_y -= 4
+                self.draw_resource_sprite(node_x, node_y, resource.get_colour_string())
         self.update_actors()
         self.graph.pack()
         self.pack()
@@ -32,7 +55,7 @@ class GUI(tk.Frame):
         for node in self.world.nodes:
             x = node.x + self.padding
             y = node.y + self.padding
-            self.graph.create_oval(x - 7, y - 7, x + 7, y + 7, fill="black")
+            self.graph.create_oval(x - self.node_size, y - self.node_size, x + self.node_size, y + self.node_size, fill="white")
 
     def update_actors(self):
         for actor_pair in self.actors:
@@ -48,3 +71,10 @@ class GUI(tk.Frame):
                 dx = new_x + self.padding - 3 - self.graph.coords(actor_pair[1])[0]
                 dy = new_y + self.padding - 3 - self.graph.coords(actor_pair[1])[1]
                 self.graph.move(actor_pair[1], dx, dy)
+
+    def update_resources(self):
+        pass
+
+    def draw_resource_sprite(self, x, y, colour):
+        return self.graph.create_polygon(x, y, x, y-1, x+1, y-1, x+1, y-2, x+2, y-2, x+2, y-4, x+2, y-2, x+3, y-2, x+3,
+                                         y-1, x+4, y-1, x+4, y, x, y, fill=colour, outline=colour, width=1)
