@@ -44,7 +44,7 @@ class Node:
         self.mines = []
 
     def __repr__(self):
-        return "Node()"
+        return "Node" + self.__str__()
 
     def __str__(self):
         return "(" + str(self.x) + ", " + str(self.y) + ")"
@@ -54,7 +54,9 @@ class Node:
 
 
 class World:
-    def __init__(self):
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
         self.nodes = []
         self.map = []
         self.edges = []
@@ -62,11 +64,11 @@ class World:
         self.create_nodes_prm()
         self.tick = 0
 
-    def create_nodes_prm(self, cast_dist=20, min_dist=10, connect_dist=25, max_nodes=30, max_attempts=50, deviation=5):
-        self.nodes = [Node(50, 50)]
+    def create_nodes_prm(self, cast_dist=60, min_dist=30, connect_dist=75, max_nodes=30, max_attempts=50, deviation=15):
+        self.nodes = [Node(self.width/2, self.height/2)]
         attempts = 0
-        curr_x = 50
-        curr_y = 50
+        curr_x = self.nodes[0].x
+        curr_y = self.nodes[0].y
         for i in range(max_nodes):
             ok = False
             while not ok:
@@ -77,7 +79,7 @@ class World:
                 new_y = m.floor(curr_y + rand_deviation + cast_dist * m.sin(rand_angle))
                 for node in self.nodes:
                     if (node.x == new_x and node.y == new_y) or m.dist((new_x, new_y), (node.x, node.y)) <= min_dist or\
-                            new_x < 0 or new_x > 100 or new_y < 0 or new_y > 100:
+                            new_x < 0 or new_x > self.width or new_y < 0 or new_y > self.height:
                         ok = False
                         break
                 no_new_edges = True
