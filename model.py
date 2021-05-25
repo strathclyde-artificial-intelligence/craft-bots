@@ -29,6 +29,9 @@ class Edge:
     def length(self):
         return m.dist((self.node_a.x, self.node_a.y), (self.node_b.x, self.node_b.y))
 
+    def connects(self, node):
+        return node == self.node_a or node == self.node_b
+
 
 class Node:
     def __init__(self, x, y):
@@ -133,11 +136,22 @@ class Actor:
         self.node.actors.append(self)
         self.world.actors.append(self)
 
+    def move_to(self, target_node):
+        moved = False
+        index = 0
+        while not moved:
+            if index == self.node.edges.__len__():
+                return False
+            if self.node.edges[index].connects(target_node):
+                self.node.actors.remove(self)
+                self.node = target_node
+                self.node.actors.append(self)
+                return True
+            index += 1
+
     def move_rand(self):
         target_edge = self.node.edges[r.randint(0, self.node.edges.__len__() - 1)]
-        self.node.actors.remove(self)
         if target_edge.node_a == self.node:
-            self.node = target_edge.node_b
+            self.move_to(target_edge.node_b)
         else:
-            self.node = target_edge.node_a
-        self.node.actors.append(self)
+            self.move_to(target_edge.node_a)
