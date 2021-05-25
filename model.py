@@ -2,6 +2,8 @@ import random as r
 import math as m
 import numpy.random as nr
 
+ACTOR_SPEED = 1
+
 
 class Edge:
     def __init__(self, node_a, node_b):
@@ -27,7 +29,7 @@ class Edge:
         return "(" + str(self.node_a) + ", " + str(self.node_b) + ", " + str(self.length()) + ")"
 
     def length(self):
-        return m.dist((self.node_a.x, self.node_a.y), (self.node_b.x, self.node_b.y))
+        return m.ceil(m.dist((self.node_a.x, self.node_a.y), (self.node_b.x, self.node_b.y)))
 
     def connects(self, node):
         return node == self.node_a or node == self.node_b
@@ -57,9 +59,10 @@ class World:
         self.map = []
         self.edges = []
         self.actors = []
-        self.create_nodes_prm(max_nodes=30, min_dist=10, cast_dist=20, connect_dist=25)
+        self.create_nodes_prm()
+        self.tick = 0
 
-    def create_nodes_prm(self, cast_dist=15, min_dist=5, connect_dist=20, max_nodes=10, max_attempts=50, deviation=5):
+    def create_nodes_prm(self, cast_dist=20, min_dist=10, connect_dist=25, max_nodes=30, max_attempts=50, deviation=5):
         self.nodes = [Node(50, 50)]
         attempts = 0
         curr_x = 50
@@ -128,15 +131,29 @@ class World:
     def print_edges(self):
         print(self.edges)
 
+    def run_tick(self):
+        for actor in self.actors:
+            actor.update()
+        self.tick += 1
+        # print("Tick: " + str(self.tick))
+
 
 class Actor:
+    """
+    States:
+    0 - Idle
+    1 - Moving
+    """
     def __init__(self, world):
         self.world = world
         self.node = self.world.nodes[0]
         self.node.actors.append(self)
         self.world.actors.append(self)
+        self.state = 0
+        self.progress = -1
+        self.target = None
 
-    def move_to(self, target_node):
+    def warp_to(self, target_node):
         moved = False
         index = 0
         while not moved:
@@ -149,9 +166,43 @@ class Actor:
                 return True
             index += 1
 
-    def move_rand(self):
+    def warp_rand(self):
         target_edge = self.node.edges[r.randint(0, self.node.edges.__len__() - 1)]
         if target_edge.node_a == self.node:
-            self.move_to(target_edge.node_b)
+            self.warp_to(target_edge.node_b)
         else:
-            self.move_to(target_edge.node_a)
+            self.warp_to(target_edge.node_a)
+
+    def travel_to(self, target_node):
+        if self.state:
+            print("Error: Must be idle to begin travelling to another node!")
+            return False
+        moved = False
+        index = 0
+        while not moved:
+            if index == self.node.edges.__len__():
+                return False
+            if self.node.edges[index].connects(target_node):
+                self.target = (self.node.edges[index], target_node)
+                self.state = 1
+                self.progress = 0
+                return True
+            index += 1
+
+    def travel_rand(self):
+        target_edge = self.node.edges[r.randint(0, self.node.edges.__len__() - 1)]
+        if target_edge.node_a == self.node:
+            self.travel_to(target_edge.node_b)
+        else:
+            self.travel_to(target_edge.node_a)
+
+    def update(self):
+        if self.state == 1:
+            self.progress += ACTOR_SPEED
+            if self.target[0].length() <= self.progress:
+                self.node.actors.remove(self)
+                self.node = self.target[1]
+                self.node.actors.append(self)
+                self.state = 0
+                self.progress = -1
+                self.target = None

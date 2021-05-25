@@ -1,6 +1,10 @@
+import math
+
 import view
 import model
 
+
+TICK_HZ = 30
 
 if __name__ == '__main__':
     world = model.World()
@@ -10,12 +14,14 @@ if __name__ == '__main__':
     app = view.GUI(world, master=root)
 
     def keep_moving():
-        actor.move_rand()
+        if not actor.state:
+            actor.travel_rand()
         app.after(500, keep_moving)
 
     def refresh():
+        world.run_tick()
         app.update_actors()
-        app.after(30, refresh)
+        app.after(math.ceil(1000/TICK_HZ), refresh)
 
     refresh()
     keep_moving()
