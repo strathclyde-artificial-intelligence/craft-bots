@@ -17,7 +17,6 @@ class GUI(tk.Frame):
         self.pack()
 
     def update_graph(self):
-        self.graph.delete("all")
         for edge in self.world.edges:
             x1 = edge.node_a.x * 3 + 25
             y1 = edge.node_a.y * 3 + 25
