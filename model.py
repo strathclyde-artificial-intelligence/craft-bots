@@ -41,13 +41,13 @@ class Node:
         self.y = y
         self.edges = []
         self.actors = []
-        self.mines = []
+        self.resources = []
 
     def __repr__(self):
-        return "Node" + self.__str__()
+        return "Node(" + str(self.x) + ", " + str(self.y) + ")"
 
     def __str__(self):
-        return "(" + str(self.x) + ", " + str(self.y) + ")"
+        return "Node(" + str(self.x) + ", " + str(self.y) + ")"
 
     def add_edge(self, edge):
         self.edges.append(edge)
@@ -65,7 +65,7 @@ class World:
         self.create_nodes_prm()
         self.tick = 0
 
-    def create_nodes_prm(self, cast_dist=80, min_dist=40, connect_dist=75, max_nodes=50, max_attempts=100, deviation=15):
+    def create_nodes_prm(self, cast_dist=80, min_dist=40, connect_dist=75, max_nodes=2, max_attempts=100, deviation=15):
         self.nodes = [Node(self.width/2, self.height/2)]
         attempts = 0
         curr_x = self.nodes[0].x
@@ -155,6 +155,7 @@ class Actor:
         self.state = 0
         self.progress = -1
         self.target = None
+        self.inventory = []
 
     def warp_to(self, target_node):
         moved = False
@@ -210,13 +211,43 @@ class Actor:
                 self.progress = -1
                 self.target = None
 
+    def pick_up_resource(self, resource):
+        if self.state == 0 and resource.location is self.node:
+            if resource.colour == 3 and self.inventory:
+                return False
+            resource.location = self
+            self.inventory.append(resource)
+            self.node.resources.remove(resource)
+            return True
+        return False
+
+    def drop_resource(self, resource):
+        if self.state == 0 and self.inventory.__contains__(resource):
+            resource.location == self.node
+            self.inventory.remove(resource)
+            self.node.resources.append(resource)
+            return True
+        return False
+
+    def drop_everything(self):
+        if self.state == 0:
+            for resource in self.inventory:
+                resource.location = self.node
+                self.inventory.remove(resource)
+                self.node.resources.append(resource)
+            return True
+        return False
+
 
 class Resource:
     def __init__(self, world, location, colour=0):
         self.world = world
         self.colour = colour
         self.location = location
-
+        if isinstance(self.location, Actor):
+            location.inventory.append(self)
+        if isinstance(self.location, Node):
+            location.resources.append(self)
         self.world.resources.append(self)
 
     def get_colour_string(self):

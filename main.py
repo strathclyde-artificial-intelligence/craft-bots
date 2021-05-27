@@ -1,6 +1,7 @@
 import math
 import view
 import model
+import random as r
 
 
 TICK_HZ = 60
@@ -30,13 +31,17 @@ def init_gui(world):
     return view.GUI(world, width=WIDTH, height=HEIGHT, padding=PADDING, node_size=NODE_SIZE, master=root)
     
 
-def keep_moving(actors, sim_gui):
+def keep_moving(actors, sim_gui, world):
     for actor in actors:
         if not actor.state:
+            if actor.inventory and world.tick > 200:
+                actor.drop_everything()
+            elif not actor.inventory and world.tick > 200 and actor.node.resources:
+                actor.pick_up_resource(actor.node.resources[r.randint(0, actor.node.resources.__len__() - 1)])
             actor.travel_rand()
 
     def call_keep_moving():
-        keep_moving(actors, sim_gui)
+        keep_moving(actors, sim_gui, world)
     sim_gui.after(500, call_keep_moving)
 
 
@@ -53,5 +58,5 @@ if __name__ == '__main__':
     new_world = init_scenario()
     gui = init_gui(new_world)
     refresh(new_world, gui)
-    keep_moving(new_world.actors, gui)
+    keep_moving(new_world.actors, gui, new_world)
     gui.mainloop()

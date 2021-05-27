@@ -1,6 +1,7 @@
 import tkinter as tk
 import model
 
+
 class GUI(tk.Frame):
     def __init__(self, world, width=350, height=350, padding=7, master=None, node_size=7):
         self.node_size = node_size
@@ -68,6 +69,8 @@ class GUI(tk.Frame):
 
     def update_resources(self):
         for resource_pair in self.resources:
+
+            # print(resource_pair[0].location)
             if isinstance(resource_pair[0].location, model.Node):
                 self.draw_res_on_node(resource_pair[0].location, resource_pair[0], resource_pair[1])
             if isinstance(resource_pair[0].location, model.Actor):
