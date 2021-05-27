@@ -21,26 +21,20 @@ class GUI(tk.Frame):
             self.graph.create_oval(actor.node.x + self.padding - 3, actor.node.y + self.padding - 3, 
                                    actor.node.x + self.padding + 3, actor.node.y + self.padding + 3, fill="grey")
             self.actors.append((actor, self.graph.find_all()[-1:][0]))
+        self.resources = []
         for resource in self.world.resources:
             if isinstance(resource.location, model.Node):
                 node_x = resource.location.x + self.padding
                 node_y = resource.location.y + self.padding
-                if resource.colour == 0:
-                    node_x -= 3
-                    node_y -= 14
-                elif resource.colour == 1:
-                    node_x += 0
-                    node_y -= 8
-                elif resource.colour == 2:
-                    node_x += 4
-                    node_y -= 12
-                elif resource.colour == 3:
-                    node_x += 6
-                    node_y -= 6
-                elif resource.colour == 4:
-                    node_x += 12
-                    node_y -= 4
-                self.draw_resource_sprite(node_x, node_y, resource.get_colour_string())
+                self.draw_res_on_node(resource.location, resource,
+                                      self.draw_resource_sprite(node_x, node_y, resource.get_colour_string()))
+            if isinstance(resource.location, model.Actor):
+                actor_id = self.get_sprite_id_of(resource.location)
+                actor_x = self.graph.coords(actor_id)[0] + self.padding
+                actor_y = self.graph.coords(actor_id)[1] + self.padding
+                self.draw_res_on_actor(resource.location, self.draw_resource_sprite(actor_x, actor_y,
+                                                                                    resource.get_colour_string()))
+            self.resources.append((resource, self.graph.find_all()[-1:][0]))
         self.update_actors()
         self.graph.pack()
         self.pack()
@@ -73,8 +67,53 @@ class GUI(tk.Frame):
                 self.graph.move(actor_pair[1], dx, dy)
 
     def update_resources(self):
-        pass
+        for resource_pair in self.resources:
+            if isinstance(resource_pair[0].location, model.Node):
+                self.draw_res_on_node(resource_pair[0].location, resource_pair[0], resource_pair[1])
+            if isinstance(resource_pair[0].location, model.Actor):
+                self.draw_res_on_actor(resource_pair[0].location, resource_pair[1])
+
+    def update_model(self):
+        self.update_actors()
+        self.update_resources()
 
     def draw_resource_sprite(self, x, y, colour):
         return self.graph.create_polygon(x, y, x, y-1, x+1, y-1, x+1, y-2, x+2, y-2, x+2, y-4, x+2, y-2, x+3, y-2, x+3,
                                          y-1, x+4, y-1, x+4, y, x, y, fill=colour, outline=colour, width=1)
+
+    def draw_res_on_node(self, node, resource, sprite_id):
+        node_x = node.x
+        node_y = node.y
+        if resource.colour == 0:
+            node_x -= 3
+            node_y -= 14
+        elif resource.colour == 1:
+            node_x += 0
+            node_y -= 8
+        elif resource.colour == 2:
+            node_x += 4
+            node_y -= 12
+        elif resource.colour == 3:
+            node_x += 6
+            node_y -= 6
+        elif resource.colour == 4:
+            node_x += 12
+            node_y -= 4
+        self.move_sprite_to(sprite_id, node_x + self.padding, node_y + self.padding)
+
+    def draw_res_on_actor(self, actor, sprite_id):
+        coord = self.get_coord_of(actor)
+        self.move_sprite_to(sprite_id, coord[0], coord[1])
+
+    def move_sprite_to(self, sprite_id, x, y):
+        self.graph.move(sprite_id, x - self.graph.coords(sprite_id)[0], y - self.graph.coords(sprite_id)[1])
+
+    def get_sprite_id_of(self, item):
+        if isinstance(item, model.Actor):
+            for actor_pair in self.actors:
+                if actor_pair[0] is item:
+                    return actor_pair[1]
+            return -1
+
+    def get_coord_of(self, item):
+        return self.graph.coords(self.get_sprite_id_of(item))
