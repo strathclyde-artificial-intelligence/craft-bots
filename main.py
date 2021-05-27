@@ -14,14 +14,21 @@ NODE_SIZE = 20
 
 def init_scenario():
     world = model.World(WIDTH, HEIGHT)
-    actors = []
-    for _ in range(5):
-        actors.append(model.Actor(world))
-    model.Resource(world, world.actors[0], 0)
-    model.Resource(world, world.actors[1], 1)
-    model.Resource(world, world.actors[2], 2)
-    model.Resource(world, world.actors[3], 3)
-    model.Resource(world, world.actors[4], 4)
+    model.Actor(world)
+    # actors = []
+    # for _ in range(5):
+    #     actors.append(model.Actor(world))
+    # model.Resource(world, world.nodes[0], 0)
+    # model.Resource(world, world.nodes[0], 1)
+    # model.Resource(world, world.nodes[0], 2)
+    # model.Resource(world, world.nodes[0], 3)
+    # model.Resource(world, world.nodes[0], 4)
+    model.Mine(world, world.nodes[0], colour=0)
+    model.Mine(world, world.nodes[0], colour=1)
+    model.Mine(world, world.nodes[0], colour=2)
+    model.Mine(world, world.nodes[0], colour=3)
+    model.Mine(world, world.nodes[0], colour=4)
+
     return world
        
         
@@ -32,13 +39,14 @@ def init_gui(world):
     
 
 def keep_moving(actors, sim_gui, world):
-    for actor in actors:
-        if not actor.state:
-            if actor.inventory and world.tick > 200:
-                actor.drop_everything()
-            elif not actor.inventory and world.tick > 200 and actor.node.resources:
-                actor.pick_up_resource(actor.node.resources[r.randint(0, actor.node.resources.__len__() - 1)])
-            actor.travel_rand()
+    actors[0].mine_at(world.mines[r.randint(0, world.mines.__len__() - 1)])
+    # for actor in actors:
+    #     if not actor.state:
+    #         if actor.inventory and world.tick > 200:
+    #             actor.drop_everything()
+    #         elif not actor.inventory and world.tick > 200 and actor.node.resources:
+    #             actor.pick_up_resource(actor.node.resources[r.randint(0, actor.node.resources.__len__() - 1)])
+    #         actor.travel_rand()
 
     def call_keep_moving():
         keep_moving(actors, sim_gui, world)

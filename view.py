@@ -36,6 +36,9 @@ class GUI(tk.Frame):
                 self.draw_res_on_actor(resource.location, self.draw_resource_sprite(actor_x, actor_y,
                                                                                     resource.get_colour_string()))
             self.resources.append((resource, self.graph.find_all()[-1:][0]))
+        self.mines = []
+        for mine in self.world.mines:
+            self.mines.append((mine, self.draw_mine(mine.node.x, mine.node.y, mine.get_colour_string())))
         self.update_actors()
         self.graph.pack()
         self.pack()
@@ -68,13 +71,24 @@ class GUI(tk.Frame):
                 self.graph.move(actor_pair[1], dx, dy)
 
     def update_resources(self):
+        for resource in self.world.resources:
+            accounted = False
+            for resource_pair in self.resources:
+                if resource_pair[0] == resource:
+                    accounted = True
+            if not accounted:
+                print("uh oh")
+                node_x = resource.location.x + self.padding
+                node_y = resource.location.y + self.padding
+                self.draw_res_on_node(resource.location, resource,
+                                      self.draw_resource_sprite(node_x, node_y, resource.get_colour_string()))
+                self.resources.append((resource, self.graph.find_all()[-1:][0]))
         for resource_pair in self.resources:
-
-            # print(resource_pair[0].location)
             if isinstance(resource_pair[0].location, model.Node):
                 self.draw_res_on_node(resource_pair[0].location, resource_pair[0], resource_pair[1])
             if isinstance(resource_pair[0].location, model.Actor):
                 self.draw_res_on_actor(resource_pair[0].location, resource_pair[1])
+
 
     def update_model(self):
         self.update_actors()
@@ -120,3 +134,23 @@ class GUI(tk.Frame):
 
     def get_coord_of(self, item):
         return self.graph.coords(self.get_sprite_id_of(item))
+
+    def draw_mine(self, node_x, node_y, colour):
+        x = node_x + self.padding
+        y = node_y + self.padding
+        if colour == "red":
+            x += 14
+            y += 2
+        elif colour == "blue":
+            x += 12
+            y += 10
+        elif colour == "orange":
+            x += 8
+            y += 4
+        elif colour == "black":
+            x += 6
+            y += 10
+        elif colour == "green":
+            x += 2
+            y += 14
+        return self.graph.create_oval(x - 2, y - 2, x + 2, y + 2, fill=colour, outline=colour, width=1)

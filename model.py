@@ -3,7 +3,8 @@ import math as m
 import numpy.random as nr
 
 ACTOR_SPEED = 1
-
+MINE_SPEED = 3
+MINE_EFFORT = 100
 
 class Edge:
     def __init__(self, node_a, node_b):
@@ -42,6 +43,7 @@ class Node:
         self.edges = []
         self.actors = []
         self.resources = []
+        self.mines = []
 
     def __repr__(self):
         return "Node(" + str(self.x) + ", " + str(self.y) + ")"
@@ -62,6 +64,7 @@ class World:
         self.edges = []
         self.actors = []
         self.resources = []
+        self.mines = []
         self.create_nodes_prm()
         self.tick = 0
 
@@ -146,6 +149,7 @@ class Actor:
     States:
     0 - Idle
     1 - Moving
+    2 - Mining
     """
     def __init__(self, world):
         self.world = world
@@ -210,6 +214,13 @@ class Actor:
                 self.state = 0
                 self.progress = -1
                 self.target = None
+        if self.state == 2:
+            self.progress += MINE_SPEED
+            if self.progress >= MINE_EFFORT:
+                self.progress = -1
+                self.state = 0
+                self.target.mine()
+                self.target = None
 
     def pick_up_resource(self, resource):
         if self.state == 0 and resource.location is self.node:
@@ -238,6 +249,12 @@ class Actor:
             return True
         return False
 
+    def mine_at(self, mine):
+        if not self.state and mine.node == self.node:
+            self.state = 2
+            self.target = mine
+            self.progress = 0
+
 
 class Resource:
     def __init__(self, world, location, colour=0):
@@ -249,6 +266,31 @@ class Resource:
         if isinstance(self.location, Node):
             location.resources.append(self)
         self.world.resources.append(self)
+
+    def get_colour_string(self):
+        if self.colour == 0:
+            return "red"
+        elif self.colour == 1:
+            return "blue"
+        elif self.colour == 2:
+            return "orange"
+        elif self.colour == 3:
+            return "black"
+        elif self.colour == 4:
+            return "green"
+
+
+class Mine:
+    def __init__(self, world, node, colour=0):
+        self.world = world
+        self.node = node
+        self.colour = colour
+
+        self.world.mines.append(self)
+        self.node.mines.append(self)
+
+    def mine(self):
+        Resource(self.world, self.node, self.colour)
 
     def get_colour_string(self):
         if self.colour == 0:
