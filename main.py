@@ -16,11 +16,11 @@ def init_scenario():
     actors = []
     for _ in range(5):
         actors.append(model.Actor(world))
-    model.Resource(world, world.nodes[0], 0)
-    model.Resource(world, world.nodes[0], 1)
-    model.Resource(world, world.nodes[0], 2)
-    model.Resource(world, world.nodes[0], 3)
-    model.Resource(world, world.nodes[0], 4)
+    model.Resource(world, world.actors[0], 0)
+    model.Resource(world, world.actors[1], 1)
+    model.Resource(world, world.actors[2], 2)
+    model.Resource(world, world.actors[3], 3)
+    model.Resource(world, world.actors[4], 4)
     return world
        
         
@@ -42,7 +42,7 @@ def keep_moving(actors, sim_gui):
 
 def refresh(world, sim_gui):
     world.run_tick()
-    sim_gui.update_actors()
+    sim_gui.update_model()
 
     def call_refresh():
         refresh(world, sim_gui)
