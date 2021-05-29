@@ -39,6 +39,12 @@ class GUI(tk.Frame):
         self.mines = []
         for mine in self.world.mines:
             self.mines.append((mine, self.draw_mine(mine.node.x, mine.node.y, mine.get_colour_string())))
+        self.sites = []
+        for site in self.world.sites:
+            self.sites.append((site, self.draw_site(site.node.x, site.node.y, site.get_colour_string())))
+        self.buildings = []
+        for building in self.world.buildings:
+            self.buildings.append((building, self.draw_building(building.node.x, building.node.y, building.get_colour_string())))
         self.update_actors()
         self.graph.pack()
         self.pack()
@@ -71,13 +77,16 @@ class GUI(tk.Frame):
                 self.graph.move(actor_pair[1], dx, dy)
 
     def update_resources(self):
+        for resource_pair in self.resources:
+            if resource_pair[0].used:
+                self.graph.delete(resource_pair[1])
+                self.resources.remove(resource_pair)
         for resource in self.world.resources:
             accounted = False
             for resource_pair in self.resources:
                 if resource_pair[0] == resource:
                     accounted = True
             if not accounted:
-                print("uh oh")
                 node_x = resource.location.x + self.padding
                 node_y = resource.location.y + self.padding
                 self.draw_res_on_node(resource.location, resource,
@@ -89,10 +98,39 @@ class GUI(tk.Frame):
             if isinstance(resource_pair[0].location, model.Actor):
                 self.draw_res_on_actor(resource_pair[0].location, resource_pair[1])
 
-
     def update_model(self):
         self.update_actors()
         self.update_resources()
+        self.update_sites()
+        self.update_buildings()
+        
+    def update_sites(self):
+        for site_pair in self.sites:
+            if site_pair[0].progress == 100:
+                self.graph.delete(site_pair[1])
+                self.sites.remove(site_pair)
+        for site in self.world.sites:
+            accounted = False
+            for site_pair in self.sites:
+                if site_pair[0] == site:
+                    accounted = True
+            if not accounted:
+                node_x = site.node.x
+                node_y = site.node.y
+                self.draw_site(node_x, node_y, site.get_colour_string())
+                self.sites.append((site, self.graph.find_all()[-1:][0]))
+    
+    def update_buildings(self):
+        for building in self.world.buildings:
+            accounted = False
+            for building_pair in self.buildings:
+                if building_pair[0] == building:
+                    accounted = True
+            if not accounted:
+                node_x = building.node.x
+                node_y = building.node.y
+                self.draw_building(node_x, node_y, building.get_colour_string())
+                self.buildings.append((building, self.graph.find_all()[-1:][0]))
 
     def draw_resource_sprite(self, x, y, colour):
         return self.graph.create_polygon(x, y, x, y-1, x+1, y-1, x+1, y-2, x+2, y-2, x+2, y-4, x+2, y-2, x+3, y-2, x+3,
@@ -154,3 +192,44 @@ class GUI(tk.Frame):
             x += 2
             y += 14
         return self.graph.create_oval(x - 2, y - 2, x + 2, y + 2, fill=colour, outline=colour, width=1)
+    
+    def draw_site(self, node_x, node_y, colour):
+        x = node_x + self.padding
+        y = node_y + self.padding
+        if colour == "red":
+            x -= 10
+            y -= 8
+        elif colour == "blue":
+            x -= 16
+            y -= 2
+        elif colour == "orange":
+            x -= 10
+            y += 4
+        elif colour == "black":
+            x -= 16
+            y += 8
+        elif colour == "green":
+            x -= 8
+            y += 12
+        return self.graph.create_polygon(x, y, x, y - 4, x + 1, y - 4, x + 1, y - 1, x + 3, y - 1, x + 3, y - 2,
+                                         x + 4, y - 2, x + 4, y, x, y, fill=colour, outline=colour, width=1)
+    
+    def draw_building(self, node_x, node_y, colour):
+        x = node_x + self.padding
+        y = node_y + self.padding
+        if colour == "red":
+            x -= 8
+            y -= 10
+        elif colour == "blue":
+            x -= 14
+            y -= 4
+        elif colour == "orange":
+            x -= 8
+            y += 2
+        elif colour == "black":
+            x -= 14
+            y += 6
+        elif colour == "green":
+            x -= 6
+            y += 10
+        return self.graph.create_rectangle(x - 2, y - 2, x + 2, y + 2, fill=colour, outline=colour, width=1)
