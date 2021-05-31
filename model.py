@@ -87,6 +87,9 @@ class World:
         self.create_nodes_prm()
         self.tick = 0
         self.cycle_length = CYCLE_LENGTH
+        self.tasks = self.generate_tasks()
+        for task in self.tasks:
+            print(task)
 
     def create_nodes_prm(self, cast_dist=80, min_dist=40, connect_dist=100, max_nodes=2, max_attempts=100, deviation=0):
         self.nodes = [Node(self.width/2, self.height/2)]
@@ -155,7 +158,7 @@ class World:
                 if not self.edges.__contains__(Edge(current_node, edge[0])):
                     self.edges.append(Edge(current_node, edge[0]))
 
-    def _nodes(self):
+    def print_nodes(self):
         print(self.nodes)
 
     def print_edges(self):
@@ -166,8 +169,20 @@ class World:
             actor.update()
         for resource in self.resources:
             resource.update()
+        tasks_complete = True
+        for task in self.tasks:
+            if not task.complete():
+                tasks_complete = False
+        if tasks_complete:
+            print("The tasks have been complete")
         self.tick += 1
         # print("Tick: " + str(self.tick))
+
+    def generate_tasks(self):
+        tasks = []
+        for index in range(3):
+            tasks.append(Task(self.nodes[r.randint(0, self.nodes.__len__() - 1)], r.randint(0, 4), r.randint(1, 10)))
+        return tasks
 
 
 class Actor:
@@ -210,7 +225,7 @@ class Actor:
 
     def travel_to(self, target_node):
         if self.state:
-            #print("Error: Must be idle to begin travelling to another node!")
+            # print("Error: Must be idle to begin travelling to another node!")
             return False
         moved = False
         index = 0
@@ -477,6 +492,42 @@ class Building:
         self.world.buildings.append(self)
         self.node.buildings.append(self)
         
+    def get_colour_string(self):
+        if self.colour == 0:
+            return "red"
+        elif self.colour == 1:
+            return "blue"
+        elif self.colour == 2:
+            return "orange"
+        elif self.colour == 3:
+            return "black"
+        elif self.colour == 4:
+            return "green"
+
+
+class Task:
+    def __init__(self, node, colour, amount):
+        self.node = node
+        self.colour = colour
+        self.amount = amount
+
+    def __repr__(self):
+        return "Task(" + str(self.amount) + ", " + self.get_colour_string() + ", " + str(self.node) + ")"
+
+    def __str__(self):
+        if self.amount == 1:
+            return "Task to build 1 " + self.get_colour_string() + " building at " + str(self.node)
+        return "Task to build " + str(self.amount) + " " + self.get_colour_string() + " buildings at " + str(self.node)
+
+    def complete(self):
+        current_amount = 0
+        for building in self.node.buildings:
+            if building.colour == self.colour:
+                current_amount += 1
+                if current_amount >= self.amount:
+                    return True
+        return False
+
     def get_colour_string(self):
         if self.colour == 0:
             return "red"
