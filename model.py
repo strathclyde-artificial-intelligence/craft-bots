@@ -7,6 +7,10 @@ MINE_SPEED = 3
 MINE_EFFORT = 100
 BUILD_SPEED = 3
 BUILD_EFFORT = 100
+CYCLE_LENGTH = 1200
+RED_COLLECTION_INTERVALS = [0, 600]
+BLUE_EXTRA_EFFORT_MULTIPLIER = 12
+GREEN_DECAY_TIME = 300
 
 
 class Edge:
@@ -82,6 +86,7 @@ class World:
         self.buildings = []
         self.create_nodes_prm()
         self.tick = 0
+        self.cycle_length = CYCLE_LENGTH
 
     def create_nodes_prm(self, cast_dist=80, min_dist=40, connect_dist=100, max_nodes=2, max_attempts=100, deviation=0):
         self.nodes = [Node(self.width/2, self.height/2)]
@@ -159,6 +164,8 @@ class World:
     def run_tick(self):
         for actor in self.actors:
             actor.update()
+        for resource in self.resources:
+            resource.update()
         self.tick += 1
         # print("Tick: " + str(self.tick))
 
@@ -171,9 +178,9 @@ class Actor:
     2 - Mining
     3 - Building
     """
-    def __init__(self, world):
+    def __init__(self, world, node):
         self.world = world
-        self.node = self.world.nodes[0]
+        self.node = node
         self.node.actors.append(self)
         self.world.actors.append(self)
         self.state = 0
@@ -236,7 +243,27 @@ class Actor:
                 self.progress = -1
                 self.target = None
         if self.state == 2:
-            self.progress += MINE_SPEED
+            if self.target.colour == 0:
+                index = 0
+                bad_time = True
+                while index < RED_COLLECTION_INTERVALS.__len__():
+                    if RED_COLLECTION_INTERVALS[index] <= self.world.tick % self.world.cycle_length <= \
+                            RED_COLLECTION_INTERVALS[index + 1]:
+                        self.progress += MINE_SPEED
+                        bad_time = False
+                        break
+                    index += 2
+            elif self.target.colour == 1:
+                self.progress += MINE_SPEED / BLUE_EXTRA_EFFORT_MULTIPLIER
+            elif self.target.colour == 2:
+                num_of_miners = 0
+                for actor in self.node.actors:
+                    if actor.target == self.target:
+                        num_of_miners += 1
+                if num_of_miners >= 2:
+                    self.progress += MINE_SPEED
+            else:
+                self.progress += MINE_SPEED
             if self.progress >= MINE_EFFORT:
                 self.progress = -1
                 self.state = 0
@@ -247,7 +274,8 @@ class Actor:
 
     def pick_up_resource(self, resource):
         if self.state == 0 and resource.location is self.node:
-            if resource.colour == 3 and self.inventory:
+            if resource.colour == 3 and self.inventory or self.inventory and self.inventory[0].colour == 3:
+                print("can hold one black and nothing else")
                 return False
             resource.location = self
             self.inventory.append(resource)
@@ -301,6 +329,8 @@ class Resource:
         if isinstance(self.location, Node):
             location.resources.append(self)
         self.world.resources.append(self)
+        if self.colour == 4:
+            self.tick_created = self.world.tick
         self.used = False
 
     def get_colour_string(self):
@@ -314,6 +344,15 @@ class Resource:
             return "black"
         elif self.colour == 4:
             return "green"
+
+    def update(self):
+        if self.colour == 4 and self.world.tick - self.tick_created >= GREEN_DECAY_TIME:
+            if isinstance(self.location, Node):
+                self.location.resources.remove(self)
+            else:
+                self.location.inventory.remove(self)
+            self.used = True
+            self.world.resources.remove(self)
 
 
 class Mine:

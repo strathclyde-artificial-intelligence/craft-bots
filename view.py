@@ -14,7 +14,7 @@ class GUI(tk.Frame):
         self.graph = tk.Canvas(self, bg="black", height=self.height + self.padding * 2, width=self.width + self.padding * 2)
         self.graph.create_rectangle(self.padding - self.node_size, self.padding - self.node_size, self.width + self.padding + self.node_size,
                                     self.height + self.padding + self.node_size, fill="grey", width=0)
-        self.graph.create_rectangle(self.padding, self.padding, self.width + self.padding,
+        self.background = self.graph.create_rectangle(self.padding, self.padding, self.width + self.padding,
                                     self.height + self.padding, fill="white", width=0)
         self.update_graph()
         self.actors = []
@@ -103,6 +103,10 @@ class GUI(tk.Frame):
         self.update_resources()
         self.update_sites()
         self.update_buildings()
+        if self.world.tick % self.world.cycle_length > self.world.cycle_length / 2:
+            self.graph.itemconfig(self.background, fill="dark grey")
+        else:
+            self.graph.itemconfig(self.background, fill="white")
         
     def update_sites(self):
         for site_pair in self.sites:

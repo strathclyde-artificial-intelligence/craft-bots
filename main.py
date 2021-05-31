@@ -14,7 +14,7 @@ NODE_SIZE = 20
 
 def init_scenario():
     world = model.World(WIDTH, HEIGHT)
-    model.Actor(world)
+    model.Actor(world, world.nodes[0])
     # actors = []
     # for _ in range(5):
     #     actors.append(model.Actor(world))
@@ -22,9 +22,9 @@ def init_scenario():
     # model.Resource(world, world.nodes[0], 1)
     # model.Resource(world, world.nodes[0], 2)
     # model.Resource(world, world.nodes[0], 3)
-    # model.Resource(world, world.nodes[0], 4)
-    model.Mine(world, world.nodes[0], colour=0)
-    # model.Mine(world, world.nodes[0], colour=1)
+    model.Resource(world, world.nodes[0], 4)
+    # model.Mine(world, world.nodes[0], colour=0)
+    # model.Mine(world, world.nodes[1], colour=1)
     # model.Mine(world, world.nodes[0], colour=2)
     # model.Mine(world, world.nodes[0], colour=3)
     # model.Mine(world, world.nodes[0], colour=4)
@@ -48,37 +48,33 @@ def init_gui(world):
     return view.GUI(world, width=WIDTH, height=HEIGHT, padding=PADDING, node_size=NODE_SIZE, master=root)
     
 
-def keep_moving(actors, sim_gui, world):
-    actor = actors[0]
+def overseer(actors, sim_gui, world):
+    actor1 = actors[0]
+    if world.tick < 100:
+        return
     if not world.tick % TICK_HZ:
         #print(world.edges)
         print("hello")
-        if actor.node == world.nodes[0]:
+        if actor1.node == world.nodes[0]:
             print("at node 0")
-            if actor.inventory:
-                print("moving to node 1")
-                actor.travel_to(world.nodes[1])
-            elif not actor.node.resources:
-                print("mining")
-                actor.mine_at(world.mines[0])
-            elif not actor.inventory:
-                print("collecting")
-                actor.pick_up_resource(world.resources[0])
+            if actor1.node.resources:
+                actor1.pick_up_resource(actor1.node.resources[0])
 
         else:
             print("at node 1")
-            if not actor.node.sites:
+            if not actor1.node.sites:
                 print("making site")
-                actor.start_site(0)
-            elif actor.node.sites[0].max_progress() > actor.node.sites[0].progress:
+                actor1.start_site(0)
+            elif actor1.node.sites[0].max_progress() > actor1.node.sites[0].progress:
                 print("building")
-                actor.build_at(actor.node.sites[0])
-            elif actor.inventory:
+                actor1.build_at(actor1.node.sites[0])
+            elif actor1.inventory:
                 print("depositing")
-                actor.deposit(world.sites[0], world.resources[0])
+                actor1.deposit(world.sites[0], world.resources[0])
             else:
                 print("moving to node 0")
-                actor.travel_to(world.nodes[0])
+                actor1.travel_to(world.nodes[0])
+
     # actors[0].mine_at(world.mines[r.randint(0, world.mines.__len__() - 1)])
     # for actor in actors:
     #     if not actor.state:
@@ -90,7 +86,7 @@ def keep_moving(actors, sim_gui, world):
 
 
 def refresh(world, sim_gui):
-    keep_moving(world.actors, sim_gui, world)
+    overseer(world.actors, sim_gui, world)
     world.run_tick()
     sim_gui.update_model()
 
@@ -103,5 +99,5 @@ if __name__ == '__main__':
     new_world = init_scenario()
     gui = init_gui(new_world)
     refresh(new_world, gui)
-    keep_moving(new_world.actors, gui, new_world)
+    overseer(new_world.actors, gui, new_world)
     gui.mainloop()
