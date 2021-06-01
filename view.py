@@ -1,5 +1,6 @@
 import tkinter as tk
-import model
+from node import Node
+from actor import Actor
 
 
 class GUI(tk.Frame):
@@ -18,18 +19,19 @@ class GUI(tk.Frame):
                                     self.height + self.padding, fill="white", width=0)
         self.update_graph()
         self.actors = []
-        for actor in self.world.actors:
+        for actor in self.world.get_all_actors():
             self.graph.create_oval(actor.node.x + self.padding - 3, actor.node.y + self.padding - 3, 
                                    actor.node.x + self.padding + 3, actor.node.y + self.padding + 3, fill="grey")
             self.actors.append((actor, self.graph.find_all()[-1:][0]))
         self.resources = []
-        for resource in self.world.resources:
-            if isinstance(resource.location, model.Node):
+        for resource in self.world.get_all_resources():
+            if isinstance(resource.location, Node):
+                print(resource)
                 node_x = resource.location.x + self.padding
                 node_y = resource.location.y + self.padding
                 self.draw_res_on_node(resource.location, resource,
                                       self.draw_resource_sprite(node_x, node_y, resource.get_colour_string()))
-            if isinstance(resource.location, model.Actor):
+            if isinstance(resource.location, Actor):
                 actor_id = self.get_sprite_id_of(resource.location)
                 actor_x = self.graph.coords(actor_id)[0] + self.padding
                 actor_y = self.graph.coords(actor_id)[1] + self.padding
@@ -37,20 +39,21 @@ class GUI(tk.Frame):
                                                                                     resource.get_colour_string()))
             self.resources.append((resource, self.graph.find_all()[-1:][0]))
         self.mines = []
-        for mine in self.world.mines:
-            self.mines.append((mine, self.draw_mine(mine.node.x, mine.node.y, mine.get_colour_string())))
+        for mine in self.world.get_all_mines():
+            self.mines.append((mine, self.draw_mine(mine.node.x, mine.node.y, world.get_colour_string(mine.colour))))
         self.sites = []
-        for site in self.world.sites:
+        for site in self.world.get_all_sites():
             self.sites.append((site, self.draw_site(site.node.x, site.node.y, site.get_colour_string())))
         self.buildings = []
-        for building in self.world.buildings:
-            self.buildings.append((building, self.draw_building(building.node.x, building.node.y, building.get_colour_string())))
+        for building in self.world.get_all_buildings():
+            self.buildings.append((building, self.draw_building(building.node.x, building.node.y,
+                                                                self.world.get_colour_string(building.colour))))
         self.update_actors()
         self.graph.pack()
         self.pack()
 
     def update_graph(self):
-        for edge in self.world.edges:
+        for edge in self.world.get_all_edges():
             x1 = edge.node_a.x + self.padding
             y1 = edge.node_a.y + self.padding
             x2 = edge.node_b.x + self.padding
@@ -81,7 +84,7 @@ class GUI(tk.Frame):
             if resource_pair[0].used:
                 self.graph.delete(resource_pair[1])
                 self.resources.remove(resource_pair)
-        for resource in self.world.resources:
+        for resource in self.world.get_all_resources():
             accounted = False
             for resource_pair in self.resources:
                 if resource_pair[0] == resource:
@@ -93,9 +96,9 @@ class GUI(tk.Frame):
                                       self.draw_resource_sprite(node_x, node_y, resource.get_colour_string()))
                 self.resources.append((resource, self.graph.find_all()[-1:][0]))
         for resource_pair in self.resources:
-            if isinstance(resource_pair[0].location, model.Node):
+            if isinstance(resource_pair[0].location, Node):
                 self.draw_res_on_node(resource_pair[0].location, resource_pair[0], resource_pair[1])
-            if isinstance(resource_pair[0].location, model.Actor):
+            if isinstance(resource_pair[0].location, Actor):
                 self.draw_res_on_actor(resource_pair[0].location, resource_pair[1])
 
     def update_model(self):
@@ -103,7 +106,7 @@ class GUI(tk.Frame):
         self.update_resources()
         self.update_sites()
         self.update_buildings()
-        if self.world.tick % self.world.cycle_length > self.world.cycle_length / 2:
+        if self.world.tick % self.world.modifiers["CYCLE_LENGTH"] > self.world.modifiers["CYCLE_LENGTH"] / 2:
             self.graph.itemconfig(self.background, fill="dark grey")
         else:
             self.graph.itemconfig(self.background, fill="white")
@@ -113,7 +116,7 @@ class GUI(tk.Frame):
             if site_pair[0].progress == 100:
                 self.graph.delete(site_pair[1])
                 self.sites.remove(site_pair)
-        for site in self.world.sites:
+        for site in self.world.get_all_sites():
             accounted = False
             for site_pair in self.sites:
                 if site_pair[0] == site:
@@ -125,7 +128,7 @@ class GUI(tk.Frame):
                 self.sites.append((site, self.graph.find_all()[-1:][0]))
     
     def update_buildings(self):
-        for building in self.world.buildings:
+        for building in self.world.get_all_buildings():
             accounted = False
             for building_pair in self.buildings:
                 if building_pair[0] == building:
@@ -168,7 +171,7 @@ class GUI(tk.Frame):
         self.graph.move(sprite_id, x - self.graph.coords(sprite_id)[0], y - self.graph.coords(sprite_id)[1])
 
     def get_sprite_id_of(self, item):
-        if isinstance(item, model.Actor):
+        if isinstance(item, Actor):
             for actor_pair in self.actors:
                 if actor_pair[0] is item:
                     return actor_pair[1]
