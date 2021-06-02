@@ -58,13 +58,15 @@ class Site:
                     actor.target = None
         if self.progress >= self.world.modifiers["BUILD_EFFORT"]:
             self.world.add_building(self.node, self.colour)
-            # for actor in self.node.actors:
-            #     if actor.target == self:
-            #         actor.state = 0
-            #         actor.target = None
             self.node.sites.remove(self)
-            self.world.sites.remove(self)
+            self.ignore_me()
             del self
 
     def max_progress(self):
         return sum(self.deposited_resources) / sum(self.needed_resources) * self.world.modifiers["BUILD_EFFORT"]
+
+    def ignore_me(self):
+        for actor in self.node.actors:
+            if actor.target == self:
+                actor.state = 0
+                actor.target = None
