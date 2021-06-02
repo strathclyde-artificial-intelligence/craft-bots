@@ -9,7 +9,7 @@ from resource import Resource
 from site import Site
 from building import Building
 from mine import Mine
-
+import craft_bots
 
 TICK_HZ = 60
 
@@ -103,7 +103,8 @@ def refresh(world, sim_gui):
 
 
 if __name__ == '__main__':
-    new_world = init_scenario()
-    gui = init_gui(new_world)
-    refresh(new_world, gui)
-    gui.mainloop()
+    craft_bots.start_simulation()
+    # new_world = init_scenario()
+    # gui = init_gui(new_world)
+    # refresh(new_world, gui)
+    # gui.mainloop()
