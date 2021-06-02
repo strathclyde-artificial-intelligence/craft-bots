@@ -17,24 +17,51 @@ class GUI(tk.Frame):
                                     self.height + self.padding + self.node_size, fill="grey", width=0)
         self.background = self.graph.create_rectangle(self.padding, self.padding, self.width + self.padding,
                                     self.height + self.padding, fill="white", width=0)
+        avg_node_x = 0
+        avg_node_y = 0
+        min_x = self.width + 1
+        max_x = 0
+        min_y = self.height + 1
+        max_y = 0
+        for node in self.world.nodes:
+            avg_node_x += node.x
+            avg_node_y += node.y
+            min_x = min(node.x, min_x)
+            min_y = min(node.y, min_y)
+            max_x = max(node.x, max_x)
+            max_y = max(node.y, max_y)
+        avg_node_x /= self.world.nodes.__len__()
+        avg_node_y /= self.world.nodes.__len__()
+        self.centre_offset_x = avg_node_x - (self.width / 2)
+        self.centre_offset_y = avg_node_y - (self.height / 2)
+
+        if min_x - self.centre_offset_x < 0:
+            self.centre_offset_x = min_x
+        if max_x - self.centre_offset_x > self.width:
+            self.centre_offset_x = max_x - self.width
+        if min_y - self.centre_offset_y < 0:
+            self.centre_offset_y = min_y
+        if max_y - self.centre_offset_y > self.height:
+            self.centre_offset_y = max_y - self.height
+
         self.update_graph()
         self.actors = []
         for actor in self.world.get_all_actors():
-            self.graph.create_oval(actor.node.x + self.padding - 3, actor.node.y + self.padding - 3, 
-                                   actor.node.x + self.padding + 3, actor.node.y + self.padding + 3, fill="grey")
+            self.graph.create_oval(actor.node.x + self.padding - self.centre_offset_x - 3, actor.node.y + self.padding - self.centre_offset_y - 3,
+                                   actor.node.x + self.padding - self.centre_offset_x + 3, actor.node.y + self.padding - self.centre_offset_y + 3, fill="grey")
             self.actors.append((actor, self.graph.find_all()[-1:][0]))
         self.resources = []
         for resource in self.world.get_all_resources():
             if isinstance(resource.location, Node):
                 print(resource)
-                node_x = resource.location.x + self.padding
-                node_y = resource.location.y + self.padding
+                node_x = resource.location.x + self.padding - self.centre_offset_x
+                node_y = resource.location.y + self.padding - self.centre_offset_y
                 self.draw_res_on_node(resource.location, resource,
                                       self.draw_resource_sprite(node_x, node_y, resource.get_colour_string()))
             if isinstance(resource.location, Actor):
                 actor_id = self.get_sprite_id_of(resource.location)
-                actor_x = self.graph.coords(actor_id)[0] + self.padding
-                actor_y = self.graph.coords(actor_id)[1] + self.padding
+                actor_x = self.graph.coords(actor_id)[0] + self.padding - self.centre_offset_x
+                actor_y = self.graph.coords(actor_id)[1] + self.padding - self.centre_offset_y
                 self.draw_res_on_actor(resource.location, self.draw_resource_sprite(actor_x, actor_y,
                                                                                     resource.get_colour_string()))
             self.resources.append((resource, self.graph.find_all()[-1:][0]))
@@ -54,29 +81,29 @@ class GUI(tk.Frame):
 
     def update_graph(self):
         for edge in self.world.get_all_edges():
-            x1 = edge.node_a.x + self.padding
-            y1 = edge.node_a.y + self.padding
-            x2 = edge.node_b.x + self.padding
-            y2 = edge.node_b.y + self.padding
+            x1 = edge.node_a.x + self.padding - self.centre_offset_x
+            y1 = edge.node_a.y + self.padding - self.centre_offset_y
+            x2 = edge.node_b.x + self.padding - self.centre_offset_x
+            y2 = edge.node_b.y + self.padding - self.centre_offset_y
             self.graph.create_line(x1, y1, x2, y2, fill="blue")
         for node in self.world.nodes:
-            x = node.x + self.padding
-            y = node.y + self.padding
+            x = node.x + self.padding - self.centre_offset_x
+            y = node.y + self.padding - self.centre_offset_y
             self.graph.create_oval(x - self.node_size, y - self.node_size, x + self.node_size, y + self.node_size, fill="white")
 
     def update_actors(self):
         for actor_pair in self.actors:
             if actor_pair[0].state == 0:
-                dx = actor_pair[0].node.x + self.padding - 3 - self.graph.coords(actor_pair[1])[0]
-                dy = actor_pair[0].node.y + self.padding - 3 - self.graph.coords(actor_pair[1])[1]
+                dx = actor_pair[0].node.x + self.padding - self.centre_offset_x - 3 - self.graph.coords(actor_pair[1])[0]
+                dy = actor_pair[0].node.y + self.padding - self.centre_offset_y - 3 - self.graph.coords(actor_pair[1])[1]
                 self.graph.move(actor_pair[1], dx, dy)
             if actor_pair[0].state == 1:
                 new_x = (actor_pair[0].target[1].x - actor_pair[0].node.x) \
                         * (actor_pair[0].progress / actor_pair[0].target[0].length()) + actor_pair[0].node.x
                 new_y = (actor_pair[0].target[1].y - actor_pair[0].node.y) \
                     * (actor_pair[0].progress / actor_pair[0].target[0].length()) + actor_pair[0].node.y
-                dx = new_x + self.padding - 3 - self.graph.coords(actor_pair[1])[0]
-                dy = new_y + self.padding - 3 - self.graph.coords(actor_pair[1])[1]
+                dx = new_x + self.padding - self.centre_offset_x - 3 - self.graph.coords(actor_pair[1])[0]
+                dy = new_y + self.padding - self.centre_offset_y - 3 - self.graph.coords(actor_pair[1])[1]
                 self.graph.move(actor_pair[1], dx, dy)
 
     def update_resources(self):
@@ -90,8 +117,8 @@ class GUI(tk.Frame):
                 if resource_pair[0] == resource:
                     accounted = True
             if not accounted:
-                node_x = resource.location.x + self.padding
-                node_y = resource.location.y + self.padding
+                node_x = resource.location.x + self.padding - self.centre_offset_x
+                node_y = resource.location.y + self.padding - self.centre_offset_y
                 self.draw_res_on_node(resource.location, resource,
                                       self.draw_resource_sprite(node_x, node_y, resource.get_colour_string()))
                 self.resources.append((resource, self.graph.find_all()[-1:][0]))
@@ -161,7 +188,7 @@ class GUI(tk.Frame):
         elif resource.colour == 4:
             node_x += 12
             node_y -= 4
-        self.move_sprite_to(sprite_id, node_x + self.padding, node_y + self.padding)
+        self.move_sprite_to(sprite_id, node_x + self.padding - self.centre_offset_x, node_y + self.padding - self.centre_offset_y)
 
     def draw_res_on_actor(self, actor, sprite_id):
         coord = self.get_coord_of(actor)
@@ -181,8 +208,8 @@ class GUI(tk.Frame):
         return self.graph.coords(self.get_sprite_id_of(item))
 
     def draw_mine(self, node_x, node_y, colour):
-        x = node_x + self.padding
-        y = node_y + self.padding
+        x = node_x + self.padding - self.centre_offset_x
+        y = node_y + self.padding - self.centre_offset_y
         if colour == "red":
             x += 14
             y += 2
@@ -201,8 +228,8 @@ class GUI(tk.Frame):
         return self.graph.create_oval(x - 2, y - 2, x + 2, y + 2, fill=colour, outline=colour, width=1)
     
     def draw_site(self, node_x, node_y, colour):
-        x = node_x + self.padding
-        y = node_y + self.padding
+        x = node_x + self.padding - self.centre_offset_x
+        y = node_y + self.padding - self.centre_offset_y
         if colour == "red":
             x -= 10
             y -= 8
@@ -222,8 +249,8 @@ class GUI(tk.Frame):
                                          x + 4, y - 2, x + 4, y, x, y, fill=colour, outline=colour, width=1)
     
     def draw_building(self, node_x, node_y, colour):
-        x = node_x + self.padding
-        y = node_y + self.padding
+        x = node_x + self.padding - self.centre_offset_x
+        y = node_y + self.padding - self.centre_offset_y
         if colour == "red":
             x -= 8
             y -= 10
