@@ -9,6 +9,7 @@ class Node:
         self.mines = []
         self.sites = []
         self.buildings = []
+        self.id = self.world.get_new_id()
 
     def __repr__(self):
         return "Node(" + str(self.x) + ", " + str(self.x) + ")"
@@ -26,3 +27,10 @@ class Node:
 
     def add_edge(self, edge):
         self.edges.append(edge)
+
+    def shares_edge_with(self, other_node):
+        for edge in self.edges:
+            if edge.connects(other_node):
+                return self.edges.index(edge)
+        return -1
+
