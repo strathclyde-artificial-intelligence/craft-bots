@@ -7,6 +7,7 @@ class Resource:
         if self.colour == 4:
             self.tick_created = self.world.tick
         self.used = False
+        self.id = self.world.get_new_id()
 
     def get_colour_string(self):
         if self.colour == 0:
