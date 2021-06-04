@@ -29,3 +29,10 @@ class Edge:
 
     def connects(self, node):
         return node == self.node_a or node == self.node_b
+
+    def get_other_node(self, node):
+        if self.node_a == node:
+            return self.node_b
+        elif self.node_b == node:
+            return self.node_a
+        return None
