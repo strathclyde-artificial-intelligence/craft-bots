@@ -8,6 +8,9 @@ class Mine:
 
         self.node.mines.append(self)
 
+    def __repr__(self):
+        return "Mine(" + str(self.id) + ")"
+
     def provide(self):
         self.progress = 0
         self.world.add_resource(self.node, self.colour)

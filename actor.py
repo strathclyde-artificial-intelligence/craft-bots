@@ -27,6 +27,9 @@ class Actor:
         self.target = None
         self.resources = []
 
+    def __repr__(self):
+        return "Actor(" + str(self.id) + ")"
+
     def warp_to(self, target_node):
         """
         "Warps" the actor instantly to the selected node. This method is for testing purposes only and should not be
