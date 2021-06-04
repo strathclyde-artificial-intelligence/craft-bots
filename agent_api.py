@@ -22,47 +22,59 @@ class AgentAPI:
         return self.send_command(1, actor_id)
 
     def pick_up_resource(self, actor_id, resource_id):
-        pass
+        return self.send_command(2, actor_id, resource_id)
 
     def drop_resource(self, actor_id, resource_id):
-        pass
+        return self.send_command(3, actor_id, resource_id)
 
     def drop_all_resources(self, actor_id):
-        pass
+        return self.send_command(4, actor_id)
 
     def mine_at(self, actor_id, mine_id):
-        pass
+        return self.send_command(5, actor_id, mine_id)
 
     def start_site(self, actor_id, site_type):
-        pass
+        return self.send_command(6, actor_id, site_type)
 
     def build_at(self, actor_id, site_id):
-        pass
+        return self.send_command(7, actor_id, site_id)
 
-    def deposit_resources(self, actor_id, resource_id):
-        pass
+    def deposit_resources(self, actor_id, resource_id, site_id):
+        return self.send_command(8, actor_id, site_id, resource_id)
 
     def get_adjacent_nodes(self, node_id):
-        pass
+        return self.send_command(9, node_id)
 
     def get_actors_at(self, node_id):
-        pass
+        return self.send_command(10, node_id)
 
     def get_all_actors(self):
-        return self.send_command(10)
+        return self.send_command(11)
 
     def get_resources_at(self, node_id):
-        pass
+        return self.send_command(12, node_id)
+
+    def get_all_mines(self):
+        return self.send_command(13)
 
     def get_mines_at(self, node_id):
-        pass
+        return self.send_command(14, node_id)
+
+    def get_all_resources(self):
+        return self.send_command(15)
 
     def get_sites_at(self, node_id):
-        pass
+        return self.send_command(16, node_id)
+
+    def get_all_sites(self):
+        return self.send_command(17)
 
     def get_buildings_at(self, node_id):
-        pass
+        return self.send_command(18, node_id)
+
+    def get_all_buildings(self):
+        return self.send_command(19)
 
     def get_tasks(self):
-        pass
+        return self.send_command(20)
 
