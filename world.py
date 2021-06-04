@@ -33,7 +33,9 @@ class World:
         
         self.nodes = []
         self.tick = 0
-        self.next_id = -1
+        self.last_id = -1
+        self.command_queue = []
+        self.command_results = []
         
         self.create_nodes_prm()
         self.tasks = self.generate_tasks()
@@ -76,10 +78,19 @@ class World:
     def run_tick(self):
         self.update_all_actors()
         self.update_all_resources()
+        self.run_agent_commands()
         if self.tasks_complete():
             print("The tasks have been completed")
         self.tick += 1
-        
+
+    def run_agent_commands(self):
+        if self.command_queue:
+            current_commands = self.command_queue[:]
+            self.command_queue = []
+            self.command_results = []
+            for command in current_commands:
+                self.command_results.append((command.id, command.perform()))
+
     def update_all_actors(self):
         for actor in self.get_all_actors():
             actor.update()
@@ -138,6 +149,13 @@ class World:
         for node in self.nodes:
             actors.extend(node.actors)
         return actors
+
+    def get_all_actor_ids(self):
+        actor_ids = []
+        for node in self.nodes:
+            for actor in node.actors:
+                actor_ids.append(actor.id)
+        return actor_ids
     
     def get_all_resources(self):
         resources = []
@@ -164,3 +182,32 @@ class World:
                 if not edges.__contains__(edge):
                     edges.append(edge)
         return edges
+
+    def get_new_id(self):
+        self.last_id += 1
+        return self.last_id
+
+    def get_by_id(self, entity_id, entity_type=None, target_node=None):
+        if target_node is None:
+            target_node = self.nodes
+        else:
+            target_node = [target_node]
+        for node in target_node:
+            if node.id == entity_id and entity_type == "Node" or None:
+                return node
+            for actor in node.actors:
+                if actor.id == entity_id and entity_type == "Actor" or None:
+                    return actor
+            for resource in node.resources:
+                if resource.id == entity_id and entity_type == "Resource" or None:
+                    return resource
+            for mine in node.mines:
+                if mine.id == entity_id and entity_type == "Mine" or None:
+                    return mine
+            for site in node.sites:
+                if site.id == entity_id and entity_type == "Site" or None:
+                    return site
+            for building in node.buildings:
+                if building.id == entity_id and entity_type == "Building" or None:
+                    return building
+        return None
