@@ -6,6 +6,7 @@ class Site:
         self.deposited_resources = [0, 0, 0, 0, 0]
         self.needed_resources = self.get_needed_resources()
         self.progress = 0
+        self.id = self.world.get_new_id()
 
         self.node.sites.append(self)
 
