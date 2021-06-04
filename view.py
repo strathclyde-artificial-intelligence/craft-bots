@@ -53,7 +53,6 @@ class GUI(tk.Frame):
         self.resources = []
         for resource in self.world.get_all_resources():
             if isinstance(resource.location, Node):
-                print(resource)
                 node_x = resource.location.x + self.padding - self.centre_offset_x
                 node_y = resource.location.y + self.padding - self.centre_offset_y
                 self.draw_res_on_node(resource.location, resource,
