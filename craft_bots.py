@@ -37,7 +37,6 @@ def start_simulation(agent=None, use_gui=True, scenario=default_scenario):
 
         def sim_stop():
             stop_sim_ticking()
-            agent.stop = True
         gui = init_gui(world, sim_stop)
         refresh_gui(gui)
         gui.mainloop()
@@ -62,6 +61,7 @@ def refresh_world(world, agent):
     world.run_tick()
     if world.command_results:
         agent.receive_results(world.command_results)
+        world.command_results = []
     agent.api.num_of_current_commands = 0
 
 
