@@ -23,6 +23,7 @@ class Actor:
         self.node.actors.append(self)
         self.state = 0
         self.progress = -1
+        self.id = self.world.get_new_id()
         self.target = None
         self.resources = []
 
@@ -67,18 +68,13 @@ class Actor:
         if self.state:
             # print("Error: Must be idle to begin travelling to another node!")
             return False
-        moved = False
-        index = 0
-        while not moved:
-            if index == self.node.edges.__len__():
-                print("Error: Could not find connected edge")
-                return False
-            if self.node.edges[index].connects(target_node):
-                self.target = (self.node.edges[index], target_node)
-                self.state = 1
-                self.progress = 0
-                return True
-            index += 1
+        node_index = self.node.shares_edge_with(target_node)
+        if node_index != -1:
+            self.target = (self.node.edges[node_index], target_node)
+            self.state = 1
+            self.progress = 0
+            return True
+        return False
 
     def travel_rand(self):
         """
