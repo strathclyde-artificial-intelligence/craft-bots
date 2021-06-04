@@ -34,3 +34,8 @@ class Node:
                 return self.edges.index(edge)
         return -1
 
+    def get_adjacent_nodes(self):
+        nodes = []
+        for edge in self.edges:
+            nodes.append(edge.get_other_node(self))
+        return nodes
