@@ -4,6 +4,7 @@ class Mine:
         self.node = node
         self.colour = colour
         self.progress = 0
+        self.id = self.world.get_new_id()
 
         self.node.mines.append(self)
 
