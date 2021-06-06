@@ -150,7 +150,7 @@ class GUI(tk.Frame):
             if not accounted:
                 node_x = site.node.x
                 node_y = site.node.y
-                self.draw_site(node_x, node_y, site.get_colour_string())
+                self.draw_site(node_x, node_y, self.world.get_colour_string(site.colour))
                 self.sites.append((site, self.graph.find_all()[-1:][0]))
     
     def update_buildings(self):
