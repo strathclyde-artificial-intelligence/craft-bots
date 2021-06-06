@@ -28,7 +28,10 @@ class Actor:
         self.resources = []
 
     def __repr__(self):
-        return "Actor(" + str(self.id) + ")"
+        return "Actor(" + str(self.id) + ", " + str(self.node) + ")"
+
+    def __str__(self):
+        return self.__repr__()
 
     def warp_to(self, target_node):
         """
@@ -206,3 +209,30 @@ class Actor:
         :return: True if successful and False otherwise
         """
         return site.deposit_resources(resource)
+
+    def cancel_action(self):
+        if self.state == 1:
+            self.progress = self.target[0].length() - self.progress
+            return_node = self.node
+            self.node.actors.remove(self)
+            self.node = self.target[1]
+            self.node.actors.append(self)
+            self.target_node[1] = return_node
+            return True
+        elif self.state == 2:
+            num_of_helpers = -1
+            if self.target.colour == 2:
+                num_of_helpers = -2
+            for actor in self.node.actors:
+                if actor.target == self.target:
+                    num_of_helpers += 1
+            if num_of_helpers <= 0:
+                self.target.progress = 0
+            self.target = None
+            self.state = 0
+            return True
+        elif self.state == 3:
+            self.target = None
+            self.state = 0
+            return True
+        return False
