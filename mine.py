@@ -9,7 +9,17 @@ class Mine:
         self.node.mines.append(self)
 
     def __repr__(self):
-        return "Mine(" + str(self.id) + ")"
+        return "Mine(" + str(self.id) + ", " + self.world.get_colour_string(self.colour) + ", " + str(
+            self.node) + ")"
+
+    def __str__(self):
+        return self.__repr__()
+
+    def __eq__(self, other):
+        return isinstance(other, Mine) and self.id == other.id
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def provide(self):
         self.progress = 0
@@ -37,7 +47,9 @@ class Mine:
             for actor in self.node.actors:
                 if actor.target == self:
                     num_of_miners += 1
-            if num_of_miners < 2:
+            if num_of_miners > 1:
+                self.progress += self.world.modifiers["MINE_SPEED"]
+            else:
                 return
 
         # If mine is blue, slow down mining speed
