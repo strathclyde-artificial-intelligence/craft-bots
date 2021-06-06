@@ -40,6 +40,7 @@ class Command:
             actor = self.world.get_by_id(self.args[0], entity_type="Actor")
             site = self.world.get_by_id(self.args[1], entity_type="Site")
             resource = self.world.get_by_id(self.args[2], entity_type="Resource")
+            print(resource)
             return actor.deposit(site, resource)
         elif self.function_id == 9 and self.args.__len__() == 1:
             node = self.world.get_by_id(self.args[0], entity_type="Node")
@@ -71,5 +72,12 @@ class Command:
             return self.world.get_all_buildings()
         elif self.function_id == 20 and self.args.__len__() == 0:
             return self.world.tasks
+        elif self.function_id == 21 and self.args.__len__() == 0:
+            return self.world.nodes
+        elif self.function_id == 22 and self.args.__len__() == 0:
+            return None
+        elif self.function_id == 23 and self.args.__len__() == 1:
+            actor = self.world.get_by_id(self.args[0], entity_type="Actor")
+            return actor.cancel_action()
         else:
             return False

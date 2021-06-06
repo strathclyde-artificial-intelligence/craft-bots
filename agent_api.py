@@ -39,7 +39,7 @@ class AgentAPI:
     def build_at(self, actor_id, site_id):
         return self.send_command(7, actor_id, site_id)
 
-    def deposit_resources(self, actor_id, resource_id, site_id):
+    def deposit_resources(self, actor_id, site_id, resource_id):
         return self.send_command(8, actor_id, site_id, resource_id)
 
     def get_adjacent_nodes(self, node_id):
@@ -78,3 +78,11 @@ class AgentAPI:
     def get_tasks(self):
         return self.send_command(20)
 
+    def get_all_nodes(self):
+        return self.send_command(21)
+
+    def no_commands(self):
+        return self.send_command(22)
+
+    def cancel_action(self, actor_id):
+        return self.send_command(23, actor_id)
