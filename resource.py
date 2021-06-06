@@ -9,6 +9,13 @@ class Resource:
         self.used = False
         self.id = self.world.get_new_id()
 
+    def __repr__(self):
+        return "Resource(" + str(self.id) + ", " + self.world.get_colour_string(self.colour) + ", " + str(
+            self.location) + ")"
+
+    def __str__(self):
+        return self.__repr__()
+
     def get_colour_string(self):
         if self.colour == 0:
             return "red"

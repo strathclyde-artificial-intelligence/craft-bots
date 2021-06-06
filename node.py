@@ -12,10 +12,10 @@ class Node:
         self.id = self.world.get_new_id()
 
     def __repr__(self):
-        return "Node(" + str(self.x) + ", " + str(self.x) + ")"
+        return "Node(" + str(self.id) + ")"
 
     def __str__(self):
-        return "Node(" + str(self.x) + ", " + str(self.x) + ")"
+        return "Node(" + str(self.id) + ")"
 
     def __eq__(self, other):
         if isinstance(other, Node):

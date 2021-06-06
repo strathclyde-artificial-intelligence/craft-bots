@@ -11,7 +11,7 @@ class Site:
         self.node.sites.append(self)
 
     def __repr__(self):
-        return "Site(" + str(self.node.x) + ", " + str(self.node.y) + ")"
+        return "Site(" + str(self.id) + ", " + str(self.node) + ")"
 
     def __str__(self):
         return self.__repr__()
@@ -43,7 +43,6 @@ class Site:
                 resource.used = True
                 self.deposited_resources[resource.colour] += 1
                 resource.location.resources.remove(resource)
-                self.world.resources.remove(resource)
                 resource.used = True
                 return True
         return False
