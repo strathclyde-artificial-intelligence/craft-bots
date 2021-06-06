@@ -12,11 +12,11 @@ from task import Task
 
 class World:
 
-    def __init__(self, build_speed=3, build_effort=100, mine_speed=3, mine_effort=100, green_decay_time=300,
+    def __init__(self, build_speed=3, build_effort=100, mine_speed=3, mine_effort=100, green_decay_time=1200,
                  blue_extra_effort=12, cycle_length=1200, red_collection_intervals=None, actor_speed=1,
-                 width=600, height=600):
+                 width=600, height=600, max_nodes=50):
         if red_collection_intervals is None:
-            red_collection_intervals = [0, 600]
+            red_collection_intervals = [300, 600, 900, 1200]
         self.modifiers = {
             "BUILD_SPEED": build_speed,
             "BUILD_EFFORT": build_effort,
@@ -37,7 +37,7 @@ class World:
         self.command_queue = []
         self.command_results = []
         
-        self.create_nodes_prm()
+        self.create_nodes_prm(max_nodes=max_nodes)
         self.tasks = self.generate_tasks()
 
     def create_nodes_prm(self, cast_dist=80, min_dist=40, connect_dist=100, max_nodes=50, max_attempts=100, deviation=0):
@@ -198,6 +198,9 @@ class World:
             for actor in node.actors:
                 if actor.id == entity_id and entity_type == "Actor" or None:
                     return actor
+                for resource in actor.resources:
+                    if resource.id == entity_id and entity_type == "Resource" or None:
+                        return resource
             for resource in node.resources:
                 if resource.id == entity_id and entity_type == "Resource" or None:
                     return resource
