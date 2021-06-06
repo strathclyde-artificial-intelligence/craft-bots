@@ -27,4 +27,3 @@ class TestAgent:
             for actor in self.actors:
                 if not actor.state:
                     self.api.move_rand(actor.id)
-        time.sleep(1)
