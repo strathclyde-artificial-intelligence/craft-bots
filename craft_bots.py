@@ -25,7 +25,7 @@ def default_scenario(world):
 
 
 def start_simulation(agent=None, use_gui=True, scenario=default_scenario):
-    world = World(green_decay_time=120)
+    world = World()
     scenario(world)
     if agent is not None:
         agent.api = AgentAPI(world)
