@@ -1,5 +1,4 @@
-import agent_api
-
+from agents import agent_api
 
 class HumanAgent:
     def __init__(self):
