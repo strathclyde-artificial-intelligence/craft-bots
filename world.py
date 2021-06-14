@@ -65,7 +65,7 @@ class World:
                     new_edges = []
                     for node in self.nodes:
                         if m.dist((new_x, new_y), (node.x, node.y)) <= connect_dist:
-                            new_edges.append(Edge(new_node, node))
+                            new_edges.append(Edge(self, new_node, node))
                             no_new_edges = False
                     if not no_new_edges:
                         self.nodes.append(new_node)
@@ -74,6 +74,34 @@ class World:
                 attempts += 1
                 if attempts >= max_attempts:
                     break
+
+    def get_world_info(self):
+        actors = {}
+        nodes = {}
+        edges = {}
+        resources = {}
+        mines = {}
+        sites = {}
+        buildings = {}
+        tasks = {}
+        for actor in self.get_all_actors():
+            actors.__setitem__(actor.id, actor.fields)
+        for edge in self.get_all_edges():
+            edges.__setitem__(edge.id, edge.fields)
+        for node in self.nodes:
+            nodes.__setitem__(node.id, node.fields)
+        for resource in self.get_all_resources():
+            resources.__setitem__(resource.id, resource.fields)
+        for mine in self.get_all_mines():
+            mines.__setitem__(mine.id, mine.fields)
+        for site in self.get_all_sites():
+            sites.__setitem__(site.id, site.fields)
+        for building in self.get_all_buildings():
+            buildings.__setitem__(building.id, building.fields)
+        for task in self.tasks:
+            tasks.__setitem__(task.id, task.fields)
+        return {"tick": self.tick, "actors": actors, "nodes": nodes, "edges": edges, "resources": resources, "mines": mines,
+                "sites": sites, "buildings": buildings, "tasks": tasks}
 
     def run_tick(self):
         self.update_all_actors()
@@ -108,7 +136,8 @@ class World:
     def generate_tasks(self):
         tasks = []
         for index in range(3):
-            tasks.append(Task(self.nodes[r.randint(0, self.nodes.__len__() - 1)], r.randint(0, 4), r.randint(1, 10)))
+            tasks.append(Task(self.nodes[r.randint(0, self.nodes.__len__() - 1)], r.randint(0, 4), r.randint(1, 10),
+                              self.get_new_id()))
         return tasks
 
     def add_actor(self, node):
