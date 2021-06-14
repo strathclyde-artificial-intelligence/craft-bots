@@ -6,7 +6,9 @@ class Mine:
         self.progress = 0
         self.id = self.world.get_new_id()
 
-        self.node.mines.append(self)
+        self.node.append_mine(self)
+
+        self.fields = {"node": self.node.id, "colour": self.colour, "id": self.id, "progress": self.progress}
 
     def __repr__(self):
         return "Mine(" + str(self.id) + ", " + self.world.get_colour_string(self.colour) + ", " + str(
@@ -22,7 +24,7 @@ class Mine:
         return not self.__eq__(other)
 
     def provide(self):
-        self.progress = 0
+        self.set_progress(0)
         self.world.add_resource(self.node, self.colour)
 
     def mine(self):
@@ -34,12 +36,12 @@ class Mine:
                 if self.world.modifiers["RED_COLLECTION_INTERVALS"][index] <= self.world.tick % \
                         self.world.modifiers["CYCLE_LENGTH"] <= \
                         self.world.modifiers["RED_COLLECTION_INTERVALS"][index + 1]:
-                    self.progress += self.world.modifiers["MINE_SPEED"]
+                    self.set_progress(self.progress + self.world.modifiers["MINE_SPEED"])
                     bad_time = False
                     break
                 index += 2
             if bad_time:
-                return
+                return False
 
         # If mine is orange, make sure 2+ actors are currently mining
         elif self.colour == 2:
@@ -48,15 +50,16 @@ class Mine:
                 if actor.target == self:
                     num_of_miners += 1
             if num_of_miners > 1:
-                self.progress += self.world.modifiers["MINE_SPEED"]
+                self.set_progress(self.progress + self.world.modifiers["MINE_SPEED"])
             else:
-                return
+                return False
 
         # If mine is blue, slow down mining speed
         elif self.colour == 1:
-            self.progress += self.world.modifiers["MINE_SPEED"] / self.world.modifiers["BLUE_EXTRA_EFFORT"]
+            self.set_progress(self.progress + (self.world.modifiers["MINE_SPEED"] /
+                                               self.world.modifiers["BLUE_EXTRA_EFFORT"]))
         else:
-            self.progress += self.world.modifiers["MINE_SPEED"]
+            self.set_progress(self.progress + self.world.modifiers["MINE_SPEED"])
 
         # Check if mining yields resources, and stop mining
         if self.progress >= self.world.modifiers["MINE_EFFORT"]:
@@ -67,5 +70,8 @@ class Mine:
     def ignore_me(self):
         for actor in self.node.actors:
             if actor.target == self:
-                actor.state = 0
-                actor.target = None
+                actor.go_idle()
+
+    def set_progress(self, progress):
+        self.progress = progress
+        self.fields.__setitem__("progress", progress)

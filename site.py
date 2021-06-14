@@ -1,14 +1,26 @@
 class Site:
+    
+    NEEDED_RESOURCES = [
+        [0, 2, 0, 2, 2],
+        [1, 4, 1, 0, 0],
+        [1, 3, 0, 0, 1],
+        [4, 2, 0, 2, 0],
+        [0, 0, 2, 2, 3]
+    ]
+    
     def __init__(self, world, node, colour=0):
         self.world = world
         self.node = node
         self.colour = colour
         self.deposited_resources = [0, 0, 0, 0, 0]
-        self.needed_resources = self.get_needed_resources()
+        self.needed_resources = Site.NEEDED_RESOURCES[colour]
         self.progress = 0
         self.id = self.world.get_new_id()
 
-        self.node.sites.append(self)
+        self.node.append_site(self)
+        
+        self.fields = {"node": self.node.id, "colour": self.colour, "deposited_resources": self.deposited_resources,
+                       "needed_resources": self.needed_resources, "progress": self.progress, "id": self.id}
 
     def __repr__(self):
         return "Site(" + str(self.id) + ", " + str(self.node) + ")"
@@ -25,40 +37,28 @@ class Site:
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    def get_needed_resources(self):
-        if self.colour == 0:
-            return [5, 0, 0, 0, 0]
-        elif self.colour == 1:
-            return [0, 5, 0, 0, 0]
-        elif self.colour == 2:
-            return [0, 0, 5, 0, 0]
-        elif self.colour == 3:
-            return [0, 0, 0, 5, 0]
-        elif self.colour == 4:
-            return [0, 0, 0, 0, 5]
-
     def deposit_resources(self, resource):
         if resource.location == self.node or resource.location.node == self.node:
             if self.deposited_resources[resource.colour] < self.needed_resources[resource.colour]:
-                resource.used = True
+                resource.set_used(True)
                 self.deposited_resources[resource.colour] += 1
-                resource.location.resources.remove(resource)
-                resource.used = True
+                self.fields.__setitem__("deposited_resources", self.deposited_resources)
+                resource.location.remove_resource(resource)
+                resource.set_used(True)
                 return True
         return False
 
     def build(self):
         max_progress = sum(self.deposited_resources) / sum(self.needed_resources) * self.world.modifiers["BUILD_EFFORT"]
-        self.progress = min(self.progress + self.world.modifiers["BUILD_SPEED"], max_progress)
+        self.set_progress(min(self.progress + self.world.modifiers["BUILD_SPEED"], max_progress))
 
         if self.progress == max_progress:
             for actor in self.node.actors:
                 if actor.target == self:
-                    actor.state = 0
-                    actor.target = None
+                    actor.go_idle()
         if self.progress >= self.world.modifiers["BUILD_EFFORT"]:
             self.world.add_building(self.node, self.colour)
-            self.node.sites.remove(self)
+            self.node.remove_site(self)
             self.ignore_me()
             del self
 
@@ -68,5 +68,8 @@ class Site:
     def ignore_me(self):
         for actor in self.node.actors:
             if actor.target == self:
-                actor.state = 0
-                actor.target = None
+                actor.go_idle()
+
+    def set_progress(self, progress):
+        self.progress = progress
+        self.fields.__setitem__("progress", progress)

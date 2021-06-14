@@ -1,8 +1,11 @@
 class Task:
-    def __init__(self, node, colour, amount):
+    def __init__(self, node, colour, amount, id):
         self.node = node
         self.colour = colour
         self.amount = amount
+        self.id = id
+
+        self.fields = {"node": node.id, "colour": colour, "amount": amount, "id": id, "complete": False}
 
     def __repr__(self):
         return "Task(" + str(self.amount) + ", " + self.get_colour_string() + ", " + str(self.node) + ")"
@@ -18,6 +21,7 @@ class Task:
             if building.colour == self.colour:
                 current_amount += 1
                 if current_amount >= self.amount:
+                    self.fields.__setitem__("complete", True)
                     return True
         return False
 

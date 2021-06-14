@@ -2,13 +2,12 @@ import random as r
 
 
 class Actor:
-    """
-    States:
-    0 - Idle
-    1 - Moving
-    2 - Mining
-    3 - Building
-    """
+    
+    IDLE = 0
+    MOVING = 1
+    MINING = 2
+    BUILDING = 3
+    
     def __init__(self, world, node):
         """
         The actor of the world. With this object, your agent will be able to manipulate the world.
@@ -20,49 +19,22 @@ class Actor:
         """
         self.world = world
         self.node = node
-        self.node.actors.append(self)
         self.state = 0
         self.progress = -1
         self.id = self.world.get_new_id()
         self.target = None
         self.resources = []
 
+        self.node.append_actor(self)
+
+        self.fields = {"node": self.node.id, "state": self.state, "progress": self.progress, "id": self.id,
+                       "target": None, "resources": []}
+
     def __repr__(self):
         return "Actor(" + str(self.id) + ", " + str(self.node) + ")"
 
     def __str__(self):
         return self.__repr__()
-
-    def warp_to(self, target_node):
-        """
-        "Warps" the actor instantly to the selected node. This method is for testing purposes only and should not be
-        used in a competition setting.
-        :param target_node: Node object to warp the actor to. Must share an edge with node the actor is currently in
-        :return: True if successful and False otherwise
-        """
-        moved = False
-        index = 0
-        while not moved:
-            if index == self.node.edges.__len__():
-                return False
-            if self.node.edges[index].connects(target_node):
-                self.node.actors.remove(self)
-                self.node = target_node
-                self.node.actors.append(self)
-                return True
-            index += 1
-
-    def warp_rand(self):
-        """
-        "Warps" the actor instantly to a random node that shares an edge with its current node.
-        This method is for testing purposes only and should not be used in a competition setting.
-        :return: True if successful and False otherwise
-        """
-        target_edge = self.node.edges[r.randint(0, self.node.edges.__len__() - 1)]
-        if target_edge.node_a == self.node:
-            return self.warp_to(target_edge.node_b)
-        else:
-            return self.warp_to(target_edge.node_a)
 
     def travel_to(self, target_node):
         """
@@ -76,9 +48,9 @@ class Actor:
             return False
         node_index = self.node.shares_edge_with(target_node)
         if node_index != -1:
-            self.target = (self.node.edges[node_index], target_node)
-            self.state = 1
-            self.progress = 0
+            self.set_target((self.node.edges[node_index], target_node))
+            self.set_state(1)
+            self.set_progress(0)
             return True
         return False
 
@@ -99,14 +71,14 @@ class Actor:
         state.
         """
         if self.state == 1:
-            self.progress += self.world.modifiers["ACTOR_SPEED"]
+            self.set_progress(self.progress + self.world.modifiers["ACTOR_SPEED"])
             if self.target[0].length() <= self.progress:
-                self.node.actors.remove(self)
-                self.node = self.target[1]
-                self.node.actors.append(self)
-                self.state = 0
-                self.progress = -1
-                self.target = None
+                self.node.remove_actor(self)
+                self.set_node(self.target[1])
+                self.node.append_actor(self)
+                self.set_state(0)
+                self.set_progress(-1)
+                self.set_target(None)
         if self.state == 2:
             self.target.mine()
         if self.state == 3:
@@ -124,9 +96,9 @@ class Actor:
             if resource.colour == 3 and self.resources or self.resources and self.resources[0].colour == 3:
                 print("can hold one black and nothing else")
                 return False
-            resource.location = self
-            self.resources.append(resource)
-            self.node.resources.remove(resource)
+            resource.set_location(self)
+            self.append_resource(resource)
+            self.node.remove_resource(resource)
             return True
         return False
 
@@ -138,9 +110,9 @@ class Actor:
         :return: True if successful and False otherwise
         """
         if self.state == 0 and self.resources.__contains__(resource):
-            resource.location = self.node
-            self.resources.remove(resource)
-            self.node.resources.append(resource)
+            resource.set_location(self.node)
+            self.remove_resource(resource)
+            self.node.append_resource(resource)
             return True
         return False
 
@@ -152,23 +124,23 @@ class Actor:
         """
         if self.state == 0:
             for resource in self.resources:
-                resource.location = self.node
-                self.resources.remove(resource)
-                self.node.resources.append(resource)
+                resource.set_location(self.node)
+                self.remove_resource(resource)
+                self.node.append_resource(resource)
             return True
         return False
 
-    def mine_at(self, mine):
+    def dig_at(self, mine):
         """
-        Tells the actor to start mining at the selected mine. Actor must be idle to start mining and the mine should
+        Tells the actor to start digging at the selected mine. Actor must be idle to start digging and the mine should
         be at the same node as the actor. When the actor is updated via update(), the actor makes progress towards
-        mining.
-        :param mine: The mine object the actor should start mining at.
+        digging.
+        :param mine: The mine object the actor should start digging at.
         :return: True if successful and otherwise False
         """
         if not self.state and mine.node == self.node:
-            self.state = 2
-            self.target = mine
+            self.set_state(2)
+            self.set_target(mine)
             return True
         return False
 
@@ -194,8 +166,8 @@ class Actor:
         :return: True if successful and otherwise False
         """
         if not self.state and self.node == site.node:
-            self.state = 3
-            self.target = site
+            self.set_state(3)
+            self.set_target(site)
             return True
         return False
 
@@ -212,27 +184,55 @@ class Actor:
 
     def cancel_action(self):
         if self.state == 1:
-            self.progress = self.target[0].length() - self.progress
+            self.set_progress(self.target[0].length() - self.progress)
             return_node = self.node
-            self.node.actors.remove(self)
-            self.node = self.target[1]
-            self.node.actors.append(self)
-            self.target_node[1] = return_node
+            self.node.remove_actor(self)
+            self.set_node(self.target[1])
+            self.node.append_actor(self)
+            self.set_target((self.target[0], return_node))
             return True
         elif self.state == 2:
-            num_of_helpers = -1
-            if self.target.colour == 2:
-                num_of_helpers = -2
+            num_of_helpers = -2 if self.target.colour == 2 else -1
             for actor in self.node.actors:
                 if actor.target == self.target:
                     num_of_helpers += 1
+
             if num_of_helpers <= 0:
-                self.target.progress = 0
-            self.target = None
-            self.state = 0
+                self.target.set_progress(0)
+            self.go_idle()
             return True
         elif self.state == 3:
-            self.target = None
-            self.state = 0
+            self.go_idle()
             return True
         return False
+
+    def go_idle(self):
+        self.set_target(None)
+        self.set_state(0)
+
+    def set_node(self, node):
+        self.node = node
+        self.fields.__setitem__("node", node.id)
+    
+    def set_state(self, state):
+        self.state = state
+        self.fields.__setitem__("state", state)
+    
+    def set_progress(self, progress):
+        self.progress = progress
+        self.fields.__setitem__("progress", progress)
+    
+    def set_target(self, target):
+        self.target = target
+        if isinstance(target, tuple):
+            self.fields.__setitem__("target", (target[0].id, target[1].id))
+        else:
+            self.fields.__setitem__("target", None if target is None else target.id)
+    
+    def append_resource(self, resource):
+        self.resources.append(resource)
+        self.fields.get("resources").append(resource.id)
+        
+    def remove_resource(self, resource):
+        self.resources.remove(resource)
+        self.fields.get("resources").remove(resource.id)

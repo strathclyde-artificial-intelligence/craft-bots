@@ -2,11 +2,15 @@ import math as m
 
 
 class Edge:
-    def __init__(self, node_a, node_b):
+    def __init__(self, world, node_a, node_b):
         self.node_a = node_a
         self.node_b = node_b
+
+        self.id = world.get_new_id()
         self.node_a.edges.append(self)
         self.node_b.edges.append(self)
+
+        self.fields = {"node_a": self.node_a.id, "node_b": self.node_b.id, "id": self.id, "length": self.length()}
 
     def __eq__(self, other):
         if isinstance(other, Edge):
