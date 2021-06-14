@@ -47,3 +47,10 @@ class AgentAPI:
 
     def cancel_action(self, actor_id):
         return self.send_command(Command.CANCEL_ACTION, actor_id)
+
+    def get_by_id(self, entity_id, entity_type=None, target_node=None):
+        result = self.world.get_by_id(entity_id, entity_type=entity_type, target_node=target_node)
+        return None if result is None else result.fields
+
+    def get_field(self, entity_id, field, entity_type=None, target_node=None):
+        return self.world.get_field(entity_id, field, entity_type=entity_type, target_node=target_node)
