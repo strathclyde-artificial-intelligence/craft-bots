@@ -54,81 +54,68 @@ class Bogo:
             if actor["state"] == 0:
                 for task in self.tasks:
                     if (not task["complete"]) and task["node"] == actor["node"]:
+
+                        # Check if there are enough buildings / sites to complete the task
                         num_of_sites_and_builds = 0
-                        for site_id in self.world_info["nodes"][actor["node"]]["sites"]:
-                            if self.world_info["sites"][site_id]["colour"] == task["colour"]:
+                        for site_id in self.api.get_field(actor["node"], "sites"):
+                            if self.api.get_field(site_id, "colour") == task["colour"]:
                                 num_of_sites_and_builds += 1
-                        for building_id in self.world_info["nodes"][actor["node"]]["buildings"]:
-                            if self.world_info["buildings"][building_id]["colour"] == task["colour"]:
+                        for building_id in self.api.get_field(actor["node"], "buildings"):
+                            if self.api.get_field(building_id, "colour") == task["colour"]:
                                 num_of_sites_and_builds += 1
-                        for _ in range(task["amount"] - num_of_sites_and_builds):
+                        if task["amount"] > num_of_sites_and_builds:
                             self.api.start_site(actor["id"], task["colour"])
+
+                        # Deposit resources if needed and possible, and then build
                         for resource_id in actor["resources"]:
-                            resource_colour = self.world_info["resources"][resource_id]["colour"]
-                            for site_id in self.world_info["nodes"][actor["node"]]["sites"]:
-                                site = self.world_info["sites"][site_id]
-                                if site["deposited_resources"][resource_colour] < \
-                                        site["needed_resources"][resource_colour]:
+                            resource_colour = self.api.get_field(resource_id, "colour", entity_type="Resource")
+                            print(resource_id)
+                            for site_id in self.api.get_field(actor["node"], "sites"):
+                                site = self.api.get_by_id(site_id)
+                                if site["deposited_resources"][resource_colour] < site["needed_resources"][resource_colour]:
                                     self.api.deposit_resources(actor["id"], site_id, resource_id)
                                     self.api.build_at(actor["id"], site_id)
-                if self.world_info["nodes"][actor["node"]]["resources"]:
-                    target_resource_id = self.world_info["nodes"][actor["node"]]["resources"][0]
-                    if actor["resources"] and self.world_info["resources"][actor["resources"][0]]["colour"] == 3:
+
+                # If at a node with resources, pick them up if possible, if not, then drop currently held resources and
+                # pick up resources, then move to a random node.
+                if self.api.get_field(actor["node"], "resources"):
+                    target_resource_id = self.api.get_field(actor["node"], "resources")[0]
+                    actor_resource_id = self.api.get_field(actor["id"], "resources")
+                    if actor_resource_id:
+                        actor_resource_id = actor_resource_id[0]
+                    else:
+                        actor_resource_id = -1
+                    if actor["resources"] and self.api.get_field(actor_resource_id, "colour") == 3:
                         self.api.drop_all_resources(actor["id"])
                         self.api.pick_up_resource(actor["id"], self.world_info["nodes"][actor["node"]]["resources"][0])
                         self.api.move_rand(actor["id"])
-                    elif self.world_info["resources"][target_resource_id]["colour"] == 3:
+                    elif self.api.get_field(target_resource_id, "colour") == 3:
                         self.api.drop_all_resources(actor["id"])
                         self.api.pick_up_resource(actor["id"], self.world_info["nodes"][actor["node"]]["resources"][0])
                         self.api.move_rand(actor["id"])
                     else:
                         self.api.pick_up_resource(actor["id"], target_resource_id)
                         self.api.move_rand(actor["id"])
-                if self.world_info["nodes"][actor["node"]]["mines"]:
-                    target_mine = self.world_info["nodes"][actor["node"]]["mines"][random.randint(0, self.world_info["nodes"][actor["node"]]["mines"].__len__() - 1)]
+
+                # If at a node with a mine, mine at the mine
+                if self.api.get_field(actor["node"], "mines"):
+                    target_mine = self.api.get_field(actor["node"], "mines")[random.randint(0, self.api.get_field(actor["node"], "mines").__len__() - 1)]
                     self.api.dig_at(actor["id"], target_mine)
                     if self.world_info["mines"][target_mine]["colour"] == 2:
                         self.orange_ticks[actor_index] = self.world_info["tick"]
+
+                # Move randomly if there is nothing else to do
                 self.api.move_rand(actor["id"])
+
+            # If waiting at an orange mine for too long, ignore it and move on
             elif actor["state"] == 2:
                 actor_target_id = actor["target"]
-                if actor["state"] == 2 and self.world_info["mines"][actor_target_id]["colour"] == 2 and \
-                        self.world_info["mines"][actor_target_id]["progress"] == 0:
+                if actor["state"] == 2 and self.api.get_field(actor_target_id, "colour") == 2 and \
+                        self.api.get_field(actor_target_id, "progress") == 0:
                     if self.orange_ticks[actor_index] + 1200 < self.world_info["tick"]:
                         self.api.cancel_action(actor["id"])
                         self.api.move_rand(actor["id"])
             actor_index += 1
         self.api.no_commands()
 
-        """
-                    if actor.node.resources:
-                        if actor.resources and actor.resources[0].colour == 3:
-                            self.api.drop_all_resources(actor.id)
-                            self.api.pick_up_resource(actor.id, actor.node.resources[0].id)
-                            self.api.move_rand(actor.id)
-                            return
-                        elif actor.node.resources[0].colour == 3:
-                            self.api.drop_all_resources(actor.id)
-                            self.api.pick_up_resource(actor.id, actor.node.resources[0].id)
-                            self.api.move_rand(actor.id)
-                        else:
-                            self.api.pick_up_resource(actor.id, actor.node.resources[0].id)
-                            self.api.move_rand(actor.id)
-                            return
-                    if actor.node.mines:
-                        target_mine = actor.node.mines[random.randint(0, actor.node.mines.__len__() - 1)]
-                        self.api.dig_at(actor.id, target_mine.id)
-                        if target_mine.colour == 2:
-                            self.orange_ticks[actor_index] = actor.world.tick
-                        return
-                    self.api.move_rand(actor.id)
-                    return
-                else:
-                    if actor.state == 2 and actor.target.colour == 2 and actor.target.progress == 0:
-                        if self.orange_ticks[actor_index] + 1200 < actor.world.tick:
-                            self.api.cancel_action(actor.id)
-                            self.api.move_rand(actor.id)
-                            return
-            actor_index += 1
-        self.api.no_commands()
-        """
+
