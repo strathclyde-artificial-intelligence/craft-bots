@@ -23,41 +23,61 @@ class Command:
         if self.function_id == Command.MOVE_TO and self.args.__len__() == 2:
             actor = self.world.get_by_id(self.args[0], entity_type="Actor")
             target_node = self.world.get_by_id(self.args[1], entity_type="Node")
-            return actor.travel_to(target_node)
+            if actor is not None and target_node is not None:
+                return actor.travel_to(target_node)
+            return False
         elif self.function_id == Command.MOVE_RAND and self.args.__len__() == 1:
             actor = self.world.get_by_id(self.args[0], entity_type="Actor")
-            return actor.travel_rand()
+            if actor is not None:
+                return actor.travel_rand()
+            return False
         elif self.function_id == Command.PICK_UP_RESOURCE and self.args.__len__() == 2:
             actor = self.world.get_by_id(self.args[0], entity_type="Actor")
             resource = self.world.get_by_id(self.args[1], entity_type="Resource")
-            return actor.pick_up_resource(resource)
+            if actor is not None and resource is not None:
+                return actor.pick_up_resource(resource)
+            return False
         elif self.function_id == Command.DROP_RESOURCE and self.args.__len__() == 2:
             actor = self.world.get_by_id(self.args[0], entity_type="Actor")
             resource = self.world.get_by_id(self.args[1], entity_type="Resource")
-            return actor.drop_resource(resource)
+            if actor is not None and resource is not None:
+                return actor.drop_resource(resource)
+            return False
         elif self.function_id == Command.DROP_ALL_RESOURCES and self.args.__len__() == 1:
             actor = self.world.get_by_id(self.args[0], entity_type="Actor")
-            return actor.drop_everything()
+            if actor is not None:
+                return actor.drop_everything()
+            return False
         elif self.function_id == Command.DIG_AT and self.args.__len__() == 2:
             actor = self.world.get_by_id(self.args[0], entity_type="Actor")
             mine = self.world.get_by_id(self.args[1], entity_type="Mine")
-            return actor.dig_at(mine)
+            if actor is not None and mine is not None:
+                return actor.dig_at(mine)
+            return False
         elif self.function_id == Command.START_SITE and self.args.__len__() == 2:
             actor = self.world.get_by_id(self.args[0], entity_type="Actor")
-            return actor.start_site(self.args[1])
+            if actor is not None:
+                return actor.start_site(self.args[1])
+            return False
         elif self.function_id == Command.BUILD_AT and self.args.__len__() == 2:
             actor = self.world.get_by_id(self.args[0], entity_type="Actor")
             site = self.world.get_by_id(self.args[1], entity_type="Site")
-            return actor.build_at(site)
+            if actor is not None and site is not None:
+                return actor.build_at(site)
+            return False
         elif self.function_id == Command.DEPOSIT_RESOURCES and self.args.__len__() == 3:
             actor = self.world.get_by_id(self.args[0], entity_type="Actor")
             site = self.world.get_by_id(self.args[1], entity_type="Site")
             resource = self.world.get_by_id(self.args[2], entity_type="Resource")
-            return actor.deposit(site, resource)
+            if actor is not None and site is not None and resource is not None:
+                return actor.deposit(site, resource)
+            return False
         elif self.function_id == Command.NO_COMMAND and self.args.__len__() == 0:
             return None
         elif self.function_id == Command.CANCEL_ACTION and self.args.__len__() == 1:
             actor = self.world.get_by_id(self.args[0], entity_type="Actor")
-            return actor.cancel_action()
+            if actor is not None:
+                return actor.cancel_action()
+            return False
         else:
             return False

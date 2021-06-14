@@ -222,31 +222,34 @@ class World:
         else:
             target_node = [target_node]
         for node in target_node:
-            if node.id == entity_id and entity_type == "Node" or None:
+            if node.id == entity_id and (entity_type == "Node" or entity_type is None):
                 return node
             for actor in node.actors:
-                if actor.id == entity_id and entity_type == "Actor" or None:
+                if actor.id == entity_id and (entity_type == "Actor" or entity_type is None):
                     return actor
                 for resource in actor.resources:
-                    if resource.id == entity_id and entity_type == "Resource" or None:
+                    if resource.id == entity_id and (entity_type == "Resource" or entity_type is None):
                         return resource
             for resource in node.resources:
-                if resource.id == entity_id and entity_type == "Resource" or None:
+                if resource.id == entity_id and (entity_type == "Resource" or entity_type is None):
                     return resource
             for mine in node.mines:
-                if mine.id == entity_id and entity_type == "Mine" or None:
+                if mine.id == entity_id and (entity_type == "Mine" or entity_type is None):
                     return mine
             for site in node.sites:
-                if site.id == entity_id and entity_type == "Site" or None:
+                if site.id == entity_id and (entity_type == "Site" or entity_type is None):
                     return site
             for building in node.buildings:
-                if building.id == entity_id and entity_type == "Building" or None:
+                if building.id == entity_id and (entity_type == "Building" or entity_type is None):
                     return building
             for edge in node.edges:
-                if edge.id == entity_id and entity_type == "Edge" or None:
+                if edge.id == entity_id and (entity_type == "Edge" or entity_type is None):
                     return edge
         return None
 
     def get_field(self, entity_id, field, entity_type=None, target_node=None):
         entity = self.get_by_id(entity_id, entity_type=entity_type, target_node=target_node)
-        return entity.fields.get(field)
+        if entity is None:
+            return None
+        else:
+            return entity.fields.get(field)

@@ -69,7 +69,7 @@ class GUI(tk.Frame):
             self.mines.append((mine, self.draw_mine(mine.node.x, mine.node.y, world.get_colour_string(mine.colour))))
         self.sites = []
         for site in self.world.get_all_sites():
-            self.sites.append((site, self.draw_site(site.node.x, site.node.y, site.get_colour_string())))
+            self.sites.append((site, self.draw_site(site.node.x, site.node.y, self.world.get_colour_string(site.colour))))
         self.buildings = []
         for building in self.world.get_all_buildings():
             self.buildings.append((building, self.draw_building(building.node.x, building.node.y,
@@ -116,10 +116,18 @@ class GUI(tk.Frame):
                 if resource_pair[0] == resource:
                     accounted = True
             if not accounted:
-                node_x = resource.location.x + self.padding - self.centre_offset_x
-                node_y = resource.location.y + self.padding - self.centre_offset_y
-                self.draw_res_on_node(resource.location, resource,
-                                      self.draw_resource_sprite(node_x, node_y, self.world.get_colour_string(resource.colour)))
+                if isinstance(resource.location, Actor):
+                    node_x = resource.location.node.x + self.padding - self.centre_offset_x
+                    node_y = resource.location.node.y + self.padding - self.centre_offset_y
+                    self.draw_res_on_actor(resource.location,
+                                           self.draw_resource_sprite(node_x, node_y,
+                                                                     self.world.get_colour_string(resource.colour)))
+                else:
+                    node_x = resource.location.x + self.padding - self.centre_offset_x
+                    node_y = resource.location.y + self.padding - self.centre_offset_y
+                    self.draw_res_on_node(resource.location, resource,
+                                          self.draw_resource_sprite(node_x, node_y,
+                                                                    self.world.get_colour_string(resource.colour)))
                 self.resources.append((resource, self.graph.find_all()[-1:][0]))
         for resource_pair in self.resources:
             if isinstance(resource_pair[0].location, Node):

@@ -9,7 +9,8 @@ class Resource:
 
         self.location.append_resource(self)
 
-        self.fields = {"id": self.id, "location": self.location.id, "tick_created": self.tick_created, "used": self.used}
+        self.fields = {"id": self.id, "location": self.location.id, "tick_created": self.tick_created,
+                       "used": self.used, "colour": colour}
 
     def __repr__(self):
         return "Resource(" + str(self.id) + ", " + self.world.get_colour_string(self.colour) + ", " + str(
