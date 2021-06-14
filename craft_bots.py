@@ -29,9 +29,11 @@ def start_simulation(agent=None, use_gui=True, scenario=default_scenario):
     scenario(world)
     if agent is not None:
         agent.api = AgentAPI(world)
+        agent.world_info = world.get_world_info()
     else:
         agent = BlankAgent()
         agent.api = AgentAPI(world)
+        agent.world_info = world.get_world_info()
     if use_gui:
         stop_sim_ticking = call_repeatedly(1 / TICK_HZ, refresh_world, world, agent)
 
@@ -82,6 +84,7 @@ def init_gui(world, stop_sim):
         stop_sim()
         root.destroy()
 
+    root.title("CraftBots")
     root.protocol("WM_DELETE_WINDOW", on_close)
     root.geometry(str(WIDTH + PADDING * 2) + "x" + str(HEIGHT + PADDING * 2))
     return view.GUI(world, width=WIDTH, height=HEIGHT, padding=PADDING, node_size=NODE_SIZE, master=root)
