@@ -80,7 +80,7 @@ class HumanAgent:
                     self.api.drop_resource(int(args[1]), int(args[2]))
                     return
                 elif args[0] == "mine_at":
-                    self.api.mine_at(int(args[1]), int(args[2]))
+                    self.api.dig_at(int(args[1]), int(args[2]))
                     return
                 elif args[0] == "start_site":
                     self.api.start_site(int(args[1]), int(args[2]))
