@@ -119,7 +119,7 @@ class GUI(tk.Frame):
                 node_x = resource.location.x + self.padding - self.centre_offset_x
                 node_y = resource.location.y + self.padding - self.centre_offset_y
                 self.draw_res_on_node(resource.location, resource,
-                                      self.draw_resource_sprite(node_x, node_y, resource.get_colour_string()))
+                                      self.draw_resource_sprite(node_x, node_y, self.world.get_colour_string(resource.colour)))
                 self.resources.append((resource, self.graph.find_all()[-1:][0]))
         for resource_pair in self.resources:
             if isinstance(resource_pair[0].location, Node):
@@ -162,7 +162,7 @@ class GUI(tk.Frame):
             if not accounted:
                 node_x = building.node.x
                 node_y = building.node.y
-                self.draw_building(node_x, node_y, building.get_colour_string())
+                self.draw_building(node_x, node_y, self.world.get_colour_string(building.colour))
                 self.buildings.append((building, self.graph.find_all()[-1:][0]))
 
     def draw_resource_sprite(self, x, y, colour):
