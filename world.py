@@ -242,4 +242,11 @@ class World:
             for building in node.buildings:
                 if building.id == entity_id and entity_type == "Building" or None:
                     return building
+            for edge in node.edges:
+                if edge.id == entity_id and entity_type == "Edge" or None:
+                    return edge
         return None
+
+    def get_field(self, entity_id, field, entity_type=None, target_node=None):
+        entity = self.get_by_id(entity_id, entity_type=entity_type, target_node=target_node)
+        return entity.fields.get(field)
