@@ -1,6 +1,6 @@
 from world import World
-from agent_api import AgentAPI
-from blank_agent import BlankAgent
+from agents.agent_api import AgentAPI
+from agents.blank_agent import BlankAgent
 import view
 import threading
 import random as r
