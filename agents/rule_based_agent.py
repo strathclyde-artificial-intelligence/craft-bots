@@ -1,8 +1,8 @@
-from agents.agent_api import AgentAPI
-from actor import Actor
-from node import Node
-from resource import Resource
-from task import Task
+from api.agent_api import AgentAPI
+from entities.actor import Actor
+from entities.node import Node
+from entities.resource import Resource
+from entities.task import Task
 
 class RBA:
 

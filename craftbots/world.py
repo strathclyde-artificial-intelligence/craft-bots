@@ -1,13 +1,13 @@
 import random as r
 import math as m
-from node import Node
-from edge import Edge
-from actor import Actor
-from resource import Resource
-from site import Site
-from building import Building
-from mine import Mine
-from task import Task
+from entities.node import Node
+from entities.edge import Edge
+from entities.actor import Actor
+from entities.resource import Resource
+from entities.site import Site
+from entities.building import Building
+from entities.mine import Mine
+from entities.task import Task
 
 
 class World:
@@ -249,7 +249,4 @@ class World:
 
     def get_field(self, entity_id, field, entity_type=None, target_node=None):
         entity = self.get_by_id(entity_id, entity_type=entity_type, target_node=target_node)
-        if entity is None:
-            return None
-        else:
-            return entity.fields.get(field)
+        return None if entity is None else entity.fields.get(field)

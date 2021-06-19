@@ -5,12 +5,14 @@ class Edge:
     def __init__(self, world, node_a, node_b):
         self.node_a = node_a
         self.node_b = node_b
+        self.world = world
 
         self.id = world.get_new_id()
-        self.node_a.edges.append(self)
-        self.node_b.edges.append(self)
+        self.node_a.append_edge(self)
+        self.node_b.append_edge(self)
 
-        self.fields = {"node_a": self.node_a.id, "node_b": self.node_b.id, "id": self.id, "length": self.length()}
+        self.fields = {"node_a": self.node_a.id, "node_b": self.node_b.id, "id": self.id, "length": self.length(),
+                       "get_other_node": self.get_other_node_id}
 
     def __eq__(self, other):
         if isinstance(other, Edge):
@@ -39,4 +41,12 @@ class Edge:
             return self.node_b
         elif self.node_b == node:
             return self.node_a
+        return None
+
+    def get_other_node_id(self, node_id):
+        node = self.world.get_by_id(node_id, entity_type="Node")
+        if node is not None:
+            other_node = self.get_other_node(node)
+            if other_node is not None:
+                return other_node.id
         return None

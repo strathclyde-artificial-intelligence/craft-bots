@@ -1,6 +1,6 @@
 import tkinter as tk
-from node import Node
-from actor import Actor
+from entities.node import Node
+from entities.actor import Actor
 
 
 class GUI(tk.Frame):

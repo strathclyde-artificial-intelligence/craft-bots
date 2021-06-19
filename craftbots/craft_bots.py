@@ -1,7 +1,7 @@
-from world import World
-from agents.agent_api import AgentAPI
+from craftbots.world import World
+from api.agent_api import AgentAPI
 from agents.blank_agent import BlankAgent
-import view
+import craftbots.view as view
 import threading
 import random as r
 import math

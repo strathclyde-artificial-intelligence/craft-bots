@@ -1,7 +1,4 @@
-
-import craft_bots
-import test_agent
-from agents import human_agent
+from craftbots import craft_bots
 from agents import bogo
 
 if __name__ == '__main__':

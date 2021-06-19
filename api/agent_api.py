@@ -1,4 +1,4 @@
-from command import Command
+from api.command import Command
 
 
 class AgentAPI:
@@ -50,10 +50,7 @@ class AgentAPI:
 
     def get_by_id(self, entity_id, entity_type=None, target_node=None):
         result = self.world.get_by_id(entity_id, entity_type=entity_type, target_node=target_node)
-        if result is None:
-            return None
-        else:
-            return result.fields
+        return None if result is None else result.fields
 
     def get_field(self, entity_id, field, entity_type=None, target_node=None):
         return self.world.get_field(entity_id, field, entity_type=entity_type, target_node=target_node)
