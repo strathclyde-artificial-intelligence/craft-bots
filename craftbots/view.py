@@ -47,8 +47,7 @@ class GUI(tk.Frame):
         self.update_graph()
         self.actors = []
         for actor in self.world.get_all_actors():
-            self.graph.create_oval(actor.node.x + self.padding - self.centre_offset_x - 3, actor.node.y + self.padding - self.centre_offset_y - 3,
-                                   actor.node.x + self.padding - self.centre_offset_x + 3, actor.node.y + self.padding - self.centre_offset_y + 3, fill="grey")
+            self.draw_actor(actor.node.x, actor.node.y)
             self.actors.append((actor, self.graph.find_all()[-1:][0]))
         self.resources = []
         for resource in self.world.get_all_resources():
@@ -91,6 +90,14 @@ class GUI(tk.Frame):
             self.graph.create_oval(x - self.node_size, y - self.node_size, x + self.node_size, y + self.node_size, fill="white")
 
     def update_actors(self):
+        for actor in self.world.get_all_actors():
+            accounted = False
+            for actor_pair in self.actors:
+                if actor_pair[0] == actor:
+                    accounted = True
+            if not accounted:
+                self.draw_actor(actor.node.x, actor.node.y)
+                self.actors.append((actor, self.graph.find_all()[-1:][0]))
         for actor_pair in self.actors:
             if actor_pair[0].state == 0:
                 dx = actor_pair[0].node.x + self.padding - self.centre_offset_x - 3 - self.graph.coords(actor_pair[1])[0]
@@ -274,3 +281,9 @@ class GUI(tk.Frame):
             x -= 6
             y += 10
         return self.graph.create_rectangle(x - 2, y - 2, x + 2, y + 2, fill=colour, outline=colour, width=1)
+    
+    def draw_actor(self, node_x, node_y):
+        self.graph.create_oval(node_x + self.padding - self.centre_offset_x - 3,
+                               node_y + self.padding - self.centre_offset_y - 3,
+                               node_x + self.padding - self.centre_offset_x + 3,
+                               node_y + self.padding - self.centre_offset_y + 3, fill="grey")
