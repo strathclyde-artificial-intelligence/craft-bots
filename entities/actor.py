@@ -72,7 +72,7 @@ class Actor:
         """
         if self.state == 1:
             speed_mod = (self.world.building_modifiers[0] * 0.05) + 1
-            self.set_progress(self.progress + (self.world.modifiers["ACTOR_SPEED"] * speed_mod))
+            self.set_progress(self.progress + (self.world.modifiers["ACTOR_MOVE_SPEED"] * speed_mod))
             if self.target[0].length() <= self.progress:
                 self.node.remove_actor(self)
                 self.set_node(self.target[1])
@@ -98,7 +98,8 @@ class Actor:
             if resource.colour == 3 and self.resources or self.resources and self.resources[0].colour == 3:
                 print("Can hold one black and nothing else")
                 return False
-            if self.resources.__len__() >= self.world.modifiers["ACTOR_INVENTORY_SIZE"] + \
+            if self.resources.__len__() >= self.world.modifiers["INVENTORY_SIZE"] \
+                    * self.world.modifiers["BLACK_BUILDING_MODIFIER_STRENGTH"] + \
                     self.world.building_modifiers[3]:
                 print("Inventory full, cannot pick up other resources until something is dropped")
                 return False
@@ -201,7 +202,7 @@ class Actor:
             self.set_target((self.target[0], return_node))
             return True
         elif self.state == 2:
-            num_of_helpers = -2 if self.target.colour == 2 else -1
+            num_of_helpers = -1 * self.world.modifiers["ORANGE_ACTORS_TO_MINE"] if self.target.colour == 2 else -1
             for actor in self.node.actors:
                 if actor.target == self.target:
                     num_of_helpers += 1

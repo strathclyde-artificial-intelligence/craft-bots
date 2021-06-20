@@ -12,11 +12,13 @@ from entities.task import Task
 
 class World:
 
-    def __init__(self, build_speed=3, build_effort=100, mine_speed=3, mine_effort=100, green_decay_time=1200,
+    def __init__(self, modifiers, world_gen_modifiers, build_speed=3, build_effort=100, mine_speed=3, mine_effort=100, green_decay_time=1200,
                  blue_extra_effort=12, cycle_length=1200, red_collection_intervals=None, actor_speed=1,
                  width=600, height=600, max_nodes=50, actor_inventory_size=7):
+        """
         if red_collection_intervals is None:
             red_collection_intervals = [300, 600, 900, 1200]
+
         self.modifiers = {
             "BUILD_SPEED": build_speed,
             "BUILD_EFFORT": build_effort,
@@ -31,7 +33,9 @@ class World:
             "HEIGHT": height,
             "ACTOR_INVENTORY_SIZE": actor_inventory_size
         }
-
+        """
+        self.modifiers = modifiers
+        self.world_gen_modifiers = world_gen_modifiers
         """
         0 - Actor Speed
         1 - Actor Mining Speed
@@ -46,27 +50,27 @@ class World:
         self.command_queue = []
         self.command_results = []
         
-        self.create_nodes_prm(max_nodes=max_nodes)
-        self.tasks = []
-        # self.tasks = self.generate_tasks()
+        self.create_nodes_prm()
+        self.tasks = self.generate_tasks()
 
-    def create_nodes_prm(self, cast_dist=80, min_dist=40, connect_dist=100, max_nodes=50, max_attempts=100, deviation=0):
-        self.nodes = [Node(self, self.modifiers["WIDTH"]/2, self.modifiers["HEIGHT"]/2)]
+    def create_nodes_prm(self):
+        self.nodes = [Node(self, self.world_gen_modifiers["WIDTH"]/2, self.world_gen_modifiers["HEIGHT"]/2)]
         attempts = 0
         curr_x = self.nodes[0].x
         curr_y = self.nodes[0].y
-        for i in range(max_nodes - 1):
+        for i in range(self.world_gen_modifiers["MAX_NODES"] - 1):
             ok = False
             while not ok:
                 ok = True
                 rand_angle = r.randint(0, 360)
-                rand_deviation = r.randint(-1 * deviation, deviation)
-                new_x = m.floor(curr_x + rand_deviation + cast_dist * m.cos(rand_angle))
-                new_y = m.floor(curr_y + rand_deviation + cast_dist * m.sin(rand_angle))
+                rand_deviation = r.randint(-1 * self.world_gen_modifiers["RANDOM_DEVIATION"],
+                                           self.world_gen_modifiers["RANDOM_DEVIATION"])
+                new_x = m.floor(curr_x + rand_deviation + self.world_gen_modifiers["CAST_DISTANCE"] * m.cos(rand_angle))
+                new_y = m.floor(curr_y + rand_deviation + self.world_gen_modifiers["CAST_DISTANCE"] * m.sin(rand_angle))
                 for node in self.nodes:
-                    if m.dist((new_x, new_y), (node.x, node.y)) <= min_dist or\
-                            new_x < 0 or new_x > self.modifiers["WIDTH"] or new_y < 0 \
-                            or new_y > self.modifiers["HEIGHT"]:
+                    if m.dist((new_x, new_y), (node.x, node.y)) <= self.world_gen_modifiers["MIN_DISTANCE"] or\
+                            new_x < 0 or new_x > self.world_gen_modifiers["WIDTH"] or new_y < 0 \
+                            or new_y > self.world_gen_modifiers["HEIGHT"]:
                         ok = False
                         break
                 no_new_edges = True
@@ -74,7 +78,7 @@ class World:
                     new_node = Node(self, new_x, new_y)
                     new_edges = []
                     for node in self.nodes:
-                        if m.dist((new_x, new_y), (node.x, node.y)) <= connect_dist:
+                        if m.dist((new_x, new_y), (node.x, node.y)) <= self.world_gen_modifiers["CONNECT_DISTANCE"]:
                             new_edges.append(Edge(self, new_node, node))
                             no_new_edges = False
                     if not no_new_edges:
@@ -82,7 +86,7 @@ class World:
                         curr_x = new_x
                         curr_y = new_y
                 attempts += 1
-                if attempts >= max_attempts:
+                if attempts >= self.world_gen_modifiers["MAX_ATTEMPTS"]:
                     break
 
     def get_world_info(self):

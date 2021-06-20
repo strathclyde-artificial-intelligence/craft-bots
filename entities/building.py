@@ -9,7 +9,7 @@ class Building:
         
         if colour == 4:
             self.deposited_resources = [0, 0, 0, 0, 0]
-            self.needed_resources = [1, 1, 2, 3, 3]
+            self.needed_resources = self.world.modifiers["NEW_ACTOR_RESOURCES"]
             self.progress = 0
             self.fields = {"node": self.node.id, "colour": self.colour, "id": self.id,
                            "deposited_resources": self.deposited_resources,

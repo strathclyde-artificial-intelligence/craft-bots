@@ -28,7 +28,9 @@ class Mine:
         self.world.add_resource(self.node, self.colour)
 
     def dig(self):
-        digging_progress = self.world.modifiers["MINE_SPEED"] * (1.05 ** self.world.building_modifiers[1])
+        digging_progress = self.world.modifiers["MINE_SPEED"] * \
+                           ((1 + self.world.modifiers["ORANGE_BUILDING_MODIFIER_STRENGTH"])
+                            ** self.world.building_modifiers[1])
 
         # If mine is red, ensure that it is within red mining intervals
         if self.colour == 0:
@@ -51,7 +53,7 @@ class Mine:
             for actor in self.node.actors:
                 if actor.target == self:
                     num_of_miners += 1
-            if num_of_miners > 1:
+            if num_of_miners >= self.world.modifiers["ORANGE_ACTORS_TO_MINE"]:
                 self.set_progress(self.progress + digging_progress)
             else:
                 return False

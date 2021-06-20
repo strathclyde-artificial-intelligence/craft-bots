@@ -1,11 +1,11 @@
 class Site:
     
-    NEEDED_RESOURCES = [
-        [0, 2, 0, 2, 2],
-        [1, 4, 1, 0, 0],
-        [1, 3, 0, 0, 1],
-        [4, 2, 0, 2, 0],
-        [0, 0, 2, 2, 3]
+    NEEDED_RESOURCES_MODIFIER = [
+        "RED_BUILDING_RESOURCES",
+        "BLUE_BUILDING_RESOURCES",
+        "ORANGE_BUILDING_RESOURCES",
+        "BLACK_BUILDING_RESOURCES",
+        "GREEN_BUILDING_RESOURCES"
     ]
     
     def __init__(self, world, node, colour=0):
@@ -13,7 +13,7 @@ class Site:
         self.node = node
         self.colour = colour
         self.deposited_resources = [0, 0, 0, 0, 0]
-        self.needed_resources = Site.NEEDED_RESOURCES[colour]
+        self.needed_resources = self.world.modifiers[Site.NEEDED_RESOURCES_MODIFIER[colour]]
         self.progress = 0
         self.id = self.world.get_new_id()
 
@@ -49,7 +49,9 @@ class Site:
         return False
 
     def build(self):
-        building_progress = self.world.modifiers["BUILD_SPEED"] * (1.05 ** self.world.building_modifiers[2])
+        building_progress = self.world.modifiers["BUILD_SPEED"] * \
+                            ((1 + self.world.modifiers["ORANGE_BUILDING_MODIFIER_STRENGTH"]) **
+                             self.world.building_modifiers[2])
         max_progress = sum(self.deposited_resources) / sum(self.needed_resources) * self.world.modifiers["BUILD_EFFORT"]
         self.set_progress(min(self.progress + building_progress, max_progress))
 
