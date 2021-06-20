@@ -44,6 +44,14 @@ class Bogo:
             for actor_id in self.world_info["actors"]:
                 self.actors.append(self.world_info["actors"][actor_id])
                 self.orange_ticks.append(0)
+        elif self.actors.__len__() < self.world_info["actors"].__len__():
+            self.actors = []
+            self.orange_ticks = []
+            for actor_id in self.world_info["actors"]:
+                self.actors.append(self.world_info["actors"][actor_id])
+                self.orange_ticks.append(0)
+
+
 
         if not self.tasks:
             for task_id in self.world_info["tasks"]:
@@ -69,12 +77,23 @@ class Bogo:
                         # Deposit resources if needed and possible, and then build
                         for resource_id in actor["resources"]:
                             resource_colour = self.api.get_field(resource_id, "colour", entity_type="Resource")
-                            print(resource_id)
                             for site_id in self.api.get_field(actor["node"], "sites"):
                                 site = self.api.get_by_id(site_id)
-                                if site["deposited_resources"][resource_colour] < site["needed_resources"][resource_colour]:
+                                if site["deposited_resources"][resource_colour] < \
+                                        site["needed_resources"][resource_colour]:
                                     self.api.deposit_resources(actor["id"], site_id, resource_id)
                                     self.api.build_at(actor["id"], site_id)
+
+                # If at a node with a green buildings and holding resources needed to build a new actor, then do so.
+                for building_id in self.api.get_field(actor["node"], "buildings"):
+                    if self.api.get_field(building_id, "colour") == 4:
+                        for resource_id in actor["resources"]:
+                            resource_colour = self.api.get_field(resource_id, "colour", entity_type="Resource")
+                            building = self.api.get_by_id(building_id)
+                            if building["deposited_resources"][resource_colour] < \
+                                    building["needed_resources"][resource_colour]:
+                                self.api.deposit_resources(actor["id"], building_id, resource_id)
+                                self.api.build_at(actor["id"], building_id)
 
                 # If at a node with resources, pick them up if possible, if not, then drop currently held resources and
                 # pick up resources, then move to a random node.
