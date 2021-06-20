@@ -14,7 +14,7 @@ class World:
 
     def __init__(self, build_speed=3, build_effort=100, mine_speed=3, mine_effort=100, green_decay_time=1200,
                  blue_extra_effort=12, cycle_length=1200, red_collection_intervals=None, actor_speed=1,
-                 width=600, height=600, max_nodes=50):
+                 width=600, height=600, max_nodes=50, actor_inventory_size=7):
         if red_collection_intervals is None:
             red_collection_intervals = [300, 600, 900, 1200]
         self.modifiers = {
@@ -28,8 +28,17 @@ class World:
             "RED_COLLECTION_INTERVALS": red_collection_intervals,
             "ACTOR_SPEED": actor_speed,
             "WIDTH": width,
-            "HEIGHT": height
+            "HEIGHT": height,
+            "ACTOR_INVENTORY_SIZE": actor_inventory_size
         }
+
+        """
+        0 - Actor Speed
+        1 - Actor Mining Speed
+        2 - Actor Building Speed
+        3 - Actor Inventory Size
+        """
+        self.building_modifiers = {0: 0, 1: 0, 2: 0, 3: 0}
         
         self.nodes = []
         self.tick = 0
@@ -38,7 +47,8 @@ class World:
         self.command_results = []
         
         self.create_nodes_prm(max_nodes=max_nodes)
-        self.tasks = self.generate_tasks()
+        self.tasks = []
+        # self.tasks = self.generate_tasks()
 
     def create_nodes_prm(self, cast_dist=80, min_dist=40, connect_dist=100, max_nodes=50, max_attempts=100, deviation=0):
         self.nodes = [Node(self, self.modifiers["WIDTH"]/2, self.modifiers["HEIGHT"]/2)]
@@ -108,7 +118,8 @@ class World:
         self.update_all_resources()
         self.run_agent_commands()
         if self.tasks_complete():
-            print("The tasks have been completed")
+            pass
+            # print("The tasks have been completed")
         self.tick += 1
 
     def run_agent_commands(self):
@@ -190,6 +201,8 @@ class World:
         resources = []
         for node in self.nodes:
             resources.extend(node.resources)
+        for actor in self.get_all_actors():
+            resources.extend(actor.resources)
         return resources
     
     def get_all_sites(self):
