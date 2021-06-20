@@ -71,7 +71,8 @@ class Actor:
         state.
         """
         if self.state == 1:
-            self.set_progress(self.progress + self.world.modifiers["ACTOR_SPEED"])
+            speed_mod = (self.world.building_modifiers[0] * 0.05) + 1
+            self.set_progress(self.progress + (self.world.modifiers["ACTOR_SPEED"] * speed_mod))
             if self.target[0].length() <= self.progress:
                 self.node.remove_actor(self)
                 self.set_node(self.target[1])
@@ -80,7 +81,7 @@ class Actor:
                 self.set_progress(-1)
                 self.set_target(None)
         if self.state == 2:
-            self.target.mine()
+            self.target.dig()
         if self.state == 3:
             self.target.build()
 
@@ -88,13 +89,18 @@ class Actor:
         """
         Has the actor attempt to pick up the resource and place it in its inventory. Resource must be in the same node
         as the actor, and actor must be idle. If the resource is black, the actor must have an empty inventory.
-        Otherwise, the actor must not already be holding a black resource.
+        Otherwise, the actor must not already be holding a black resource. The actor must also have space to carry the
+        resource as determined by the initialisation of the world and the amount of black buildings.
         :param resource: Resource object to be picked up
         :return: True if successful and False otherwise
         """
         if self.state == 0 and resource.location is self.node:
             if resource.colour == 3 and self.resources or self.resources and self.resources[0].colour == 3:
-                print("can hold one black and nothing else")
+                print("Can hold one black and nothing else")
+                return False
+            if self.resources.__len__() >= self.world.modifiers["ACTOR_INVENTORY_SIZE"] + \
+                    self.world.building_modifiers[3]:
+                print("Inventory full, cannot pick up other resources until something is dropped")
                 return False
             resource.set_location(self)
             self.append_resource(resource)
@@ -180,7 +186,10 @@ class Actor:
         :param resource: The resource to drop off
         :return: True if successful and False otherwise
         """
-        return site.deposit_resources(resource)
+        if self.resources.__contains__(resource) and (self.node.sites.__contains__(site) or
+                                                      self.node.buildings.__contains__(site)) and not self.state:
+            return site.deposit_resources(resource)
+        return False
 
     def cancel_action(self):
         if self.state == 1:
