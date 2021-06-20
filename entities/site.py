@@ -49,8 +49,9 @@ class Site:
         return False
 
     def build(self):
+        building_progress = self.world.modifiers["BUILD_SPEED"] * (1.05 ** self.world.building_modifiers[2])
         max_progress = sum(self.deposited_resources) / sum(self.needed_resources) * self.world.modifiers["BUILD_EFFORT"]
-        self.set_progress(min(self.progress + self.world.modifiers["BUILD_SPEED"], max_progress))
+        self.set_progress(min(self.progress + building_progress, max_progress))
 
         if self.progress == max_progress:
             for actor in self.node.actors:

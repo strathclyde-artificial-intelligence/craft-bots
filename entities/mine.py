@@ -27,7 +27,9 @@ class Mine:
         self.set_progress(0)
         self.world.add_resource(self.node, self.colour)
 
-    def mine(self):
+    def dig(self):
+        digging_progress = self.world.modifiers["MINE_SPEED"] * (1.05 ** self.world.building_modifiers[1])
+
         # If mine is red, ensure that it is within red mining intervals
         if self.colour == 0:
             index = 0
@@ -36,7 +38,7 @@ class Mine:
                 if self.world.modifiers["RED_COLLECTION_INTERVALS"][index] <= self.world.tick % \
                         self.world.modifiers["CYCLE_LENGTH"] <= \
                         self.world.modifiers["RED_COLLECTION_INTERVALS"][index + 1]:
-                    self.set_progress(self.progress + self.world.modifiers["MINE_SPEED"])
+                    self.set_progress(self.progress + digging_progress)
                     bad_time = False
                     break
                 index += 2
@@ -50,16 +52,15 @@ class Mine:
                 if actor.target == self:
                     num_of_miners += 1
             if num_of_miners > 1:
-                self.set_progress(self.progress + self.world.modifiers["MINE_SPEED"])
+                self.set_progress(self.progress + digging_progress)
             else:
                 return False
 
         # If mine is blue, slow down mining speed
         elif self.colour == 1:
-            self.set_progress(self.progress + (self.world.modifiers["MINE_SPEED"] /
-                                               self.world.modifiers["BLUE_EXTRA_EFFORT"]))
+            self.set_progress(self.progress + (digging_progress / self.world.modifiers["BLUE_EXTRA_EFFORT"]))
         else:
-            self.set_progress(self.progress + self.world.modifiers["MINE_SPEED"])
+            self.set_progress(self.progress + digging_progress)
 
         # Check if mining yields resources, and stop mining
         if self.progress >= self.world.modifiers["MINE_EFFORT"]:
