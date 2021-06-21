@@ -12,11 +12,11 @@ class AgentAPI:
         :param max_commands: The maximum number of commands that can be sent to the world in one tick. If set to 0 then
         there is no limit
         """
-        self.world = world
-        self.max_commands = max_commands
+        self.__world = world
+        self.__max_commands = max_commands
         self.num_of_current_commands = 0
 
-    def send_command(self, function_id, *args):
+    def __send_command(self, function_id, *args):
         """
         This function creates a Command object that sends itself to the world, and at the start of a tick all of the
         commands are executed. This then returns a unique ID that can be used to find the outcome of the command. This
@@ -30,8 +30,8 @@ class AgentAPI:
         :param args: an array of parameters to be passed to the command.
         :return: The ID of the command or -1 if the max command limit has been reached
         """
-        if self.num_of_current_commands < self.max_commands or self.max_commands == 0:
-            command = Command(self.world, function_id, *args)
+        if self.num_of_current_commands < self.__max_commands or self.__max_commands == 0:
+            command = Command(self.__world, function_id, *args)
             self.num_of_current_commands += 1
             return command.id
         return -1
@@ -46,7 +46,7 @@ class AgentAPI:
         :param node_id: The ID of the node the actor should move to.
         :return: The ID of the command or -1 if the max command limit has been reached
         """
-        return self.send_command(Command.MOVE_TO, actor_id, node_id)
+        return self.__send_command(Command.MOVE_TO, actor_id, node_id)
 
     def move_rand(self, actor_id):
         """
@@ -57,7 +57,7 @@ class AgentAPI:
         :param actor_id: The ID of the actor to be moved
         :return: The ID of the command or -1 if the max command limit has been reached
         """
-        return self.send_command(Command.MOVE_RAND, actor_id)
+        return self.__send_command(Command.MOVE_RAND, actor_id)
 
     def pick_up_resource(self, actor_id, resource_id):
         """
@@ -73,7 +73,7 @@ class AgentAPI:
         :param resource_id: The ID of the resource to be picked up
         :return: The ID of the command or -1 if the max command limit has been reached
         """
-        return self.send_command(Command.PICK_UP_RESOURCE, actor_id, resource_id)
+        return self.__send_command(Command.PICK_UP_RESOURCE, actor_id, resource_id)
 
     def drop_resource(self, actor_id, resource_id):
         """
@@ -86,7 +86,7 @@ class AgentAPI:
         :param resource_id: The ID of the resource to be dropped
         :return: The ID of the command or -1 if the max command limit has been reached
         """
-        return self.send_command(Command.DROP_RESOURCE, actor_id, resource_id)
+        return self.__send_command(Command.DROP_RESOURCE, actor_id, resource_id)
 
     def drop_all_resources(self, actor_id):
         """
@@ -98,7 +98,7 @@ class AgentAPI:
         :param actor_id: The ID of the actor to drop all of its resources
         :return: The ID of the command or -1 if the max command limit has been reached
         """
-        return self.send_command(Command.DROP_ALL_RESOURCES, actor_id)
+        return self.__send_command(Command.DROP_ALL_RESOURCES, actor_id)
 
     def dig_at(self, actor_id, mine_id):
         """
@@ -112,7 +112,7 @@ class AgentAPI:
         :param mine_id: The ID of the mine the actor should dig at
         :return: The ID of the command or -1 if the max command limit has been reached
         """
-        return self.send_command(Command.DIG_AT, actor_id, mine_id)
+        return self.__send_command(Command.DIG_AT, actor_id, mine_id)
 
     def start_site(self, actor_id, site_type):
         """
@@ -124,7 +124,7 @@ class AgentAPI:
         :param site_type: The type of site to be built (0: red, 1: blue, 2: orange, 3: black, 4: green)
         :return: The ID of the command or -1 if the max command limit has been reached
         """
-        return self.send_command(Command.START_SITE, actor_id, site_type)
+        return self.__send_command(Command.START_SITE, actor_id, site_type)
 
     def construct_at(self, actor_id, site_id):
         """
@@ -139,7 +139,7 @@ class AgentAPI:
         :param site_id: The ID of the site / building the actor should construct at.
         :return: The ID of the command or -1 if the max command limit has been reached
         """
-        return self.send_command(Command.CONSTRUCT_AT, actor_id, site_id)
+        return self.__send_command(Command.CONSTRUCT_AT, actor_id, site_id)
 
     def deposit_resources(self, actor_id, site_id, resource_id):
         """
@@ -154,7 +154,7 @@ class AgentAPI:
         :param resource_id: The ID of the resource to be deposited
         :return: The ID of the command or -1 if the max command limit has been reached
         """
-        return self.send_command(Command.DEPOSIT_RESOURCES, actor_id, site_id, resource_id)
+        return self.__send_command(Command.DEPOSIT_RESOURCES, actor_id, site_id, resource_id)
 
     def no_commands(self):
         """
@@ -164,7 +164,7 @@ class AgentAPI:
 
         :return: The ID of the command or -1 if the max command limit has been reached
         """
-        return self.send_command(Command.NO_COMMAND)
+        return self.__send_command(Command.NO_COMMAND)
 
     def cancel_action(self, actor_id):
         """
@@ -179,7 +179,7 @@ class AgentAPI:
         :param actor_id: The ID of the actor to cancel its action
         :return: The ID of the command or -1 if the max command limit has been reached
         """
-        return self.send_command(Command.CANCEL_ACTION, actor_id)
+        return self.__send_command(Command.CANCEL_ACTION, actor_id)
 
     def get_by_id(self, entity_id, entity_type=None, target_node=None):
         """
@@ -196,7 +196,7 @@ class AgentAPI:
         :param target_node: (optional) the ID of the node that should be checked
         :return: A dictionary of the fields the entity has, or None if the entity is not found
         """
-        result = self.world.get_by_id(entity_id, entity_type=entity_type, target_node=self.world.get_by_id(target_node))
+        result = self.__world.get_by_id(entity_id, entity_type=entity_type, target_node=self.__world.get_by_id(target_node))
         return None if result is None else result.fields
 
     def get_field(self, entity_id, field, entity_type=None, target_node=None):
@@ -215,4 +215,4 @@ class AgentAPI:
         :param target_node: (optional) the ID of the node that should be checked
         :return: The field from the entity, or None if the entity is not found or the entity does not have the field.
         """
-        return self.world.get_field(entity_id, field, entity_type=entity_type, target_node=target_node)
+        return self.__world.get_field(entity_id, field, entity_type=entity_type, target_node=target_node)
