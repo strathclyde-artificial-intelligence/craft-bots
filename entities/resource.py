@@ -1,5 +1,12 @@
 class Resource:
     def __init__(self, world, location, colour=0):
+        """
+        A resource in the carftbots simulation. Resources are produced from mines and used to build buildings. Each
+        colour of the resources has its own special properties that affect how the resource can be collected or used.
+        :param world: The world in which the resources exists
+        :param location: The place the the resource currently is
+        :param colour: The colour of the resource
+        """
         self.world = world
         self.colour = colour
         self.location = location
@@ -20,14 +27,26 @@ class Resource:
         return self.__repr__()
 
     def update(self):
+        """
+        A call to update the resource, which is called by the world every tick. It only effects the green resource that
+        will decay after a certain amount of time.
+        """
         if self.colour == 4 and self.world.tick - self.tick_created >= self.world.modifiers["GREEN_DECAY_TIME"]:
             self.set_used(True)
             self.location.remove_resource(self)
 
     def set_location(self, location):
+        """
+        Sets the location of the resource and records the id of the location in the resources fields
+        :param location: the new location
+        """
         self.location = location
         self.fields.__setitem__("location", location.id)
 
     def set_used(self, used):
+        """
+        Sets the used state of the resource and records it in the resources fields
+        :param used: the new used state
+        """
         self.used = used
         self.fields.__setitem__("used", used)

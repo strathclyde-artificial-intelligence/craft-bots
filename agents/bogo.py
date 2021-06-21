@@ -51,8 +51,6 @@ class Bogo:
                 self.actors.append(self.world_info["actors"][actor_id])
                 self.orange_ticks.append(0)
 
-
-
         if not self.tasks:
             for task_id in self.world_info["tasks"]:
                 self.tasks.append(self.world_info["tasks"][task_id])
@@ -82,7 +80,7 @@ class Bogo:
                                 if site["deposited_resources"][resource_colour] < \
                                         site["needed_resources"][resource_colour]:
                                     self.api.deposit_resources(actor["id"], site_id, resource_id)
-                                    self.api.build_at(actor["id"], site_id)
+                                    self.api.construct_at(actor["id"], site_id)
 
                 # If at a node with a green buildings and holding resources needed to build a new actor, then do so.
                 for building_id in self.api.get_field(actor["node"], "buildings"):
@@ -93,7 +91,7 @@ class Bogo:
                             if building["deposited_resources"][resource_colour] < \
                                     building["needed_resources"][resource_colour]:
                                 self.api.deposit_resources(actor["id"], building_id, resource_id)
-                                self.api.build_at(actor["id"], building_id)
+                                self.api.construct_at(actor["id"], building_id)
 
                 # If at a node with resources, pick them up if possible, if not, then drop currently held resources and
                 # pick up resources, then move to a random node.

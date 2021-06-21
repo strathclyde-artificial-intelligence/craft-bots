@@ -7,7 +7,7 @@ class Command:
     DROP_ALL_RESOURCES = 4
     DIG_AT = 5
     START_SITE = 6
-    BUILD_AT = 7
+    CONSTRUCT_AT = 7
     DEPOSIT_RESOURCES = 8
     NO_COMMAND = 9
     CANCEL_ACTION = 10
@@ -59,13 +59,13 @@ class Command:
             if actor is not None:
                 return actor.start_site(self.args[1])
             return False
-        elif self.function_id == Command.BUILD_AT and self.args.__len__() == 2:
+        elif self.function_id == Command.CONSTRUCT_AT and self.args.__len__() == 2:
             actor = self.world.get_by_id(self.args[0], entity_type="Actor")
             site = self.world.get_by_id(self.args[1], entity_type="Site")
             if site is None:
                 site = self.world.get_by_id(self.args[1], entity_type="Building")
             if actor is not None and site is not None:
-                return actor.build_at(site)
+                return actor.construct_at(site)
             return False
         elif self.function_id == Command.DEPOSIT_RESOURCES and self.args.__len__() == 3:
             actor = self.world.get_by_id(self.args[0], entity_type="Actor")

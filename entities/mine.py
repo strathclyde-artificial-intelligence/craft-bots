@@ -24,10 +24,17 @@ class Mine:
         return not self.__eq__(other)
 
     def provide(self):
+        """
+        Creates a resource at the node the mine is at, and resets the progress
+        """
         self.set_progress(0)
         self.world.add_resource(self.node, self.colour)
 
     def dig(self):
+        """
+        Called when an actor digs at this mine, checking if the requirements (if any) are met before progress is made.
+        :return: True if digging can begin and false otherwise.
+        """
         digging_progress = self.world.modifiers["MINE_SPEED"] * \
                            ((1 + self.world.modifiers["ORANGE_BUILDING_MODIFIER_STRENGTH"])
                             ** self.world.building_modifiers[1])
@@ -69,12 +76,18 @@ class Mine:
             self.provide()
             self.ignore_me()
 
-    # Make all actors mining at this mine stop
     def ignore_me(self):
+        """
+        Gets all the actors that have targeted the mine and sets them to become idle
+        """
         for actor in self.node.actors:
             if actor.target == self:
                 actor.go_idle()
 
     def set_progress(self, progress):
+        """
+        Sets the progress of the mine and keeps track of this in the mines fields
+        :param progress:
+        """
         self.progress = progress
         self.fields.__setitem__("progress", progress)

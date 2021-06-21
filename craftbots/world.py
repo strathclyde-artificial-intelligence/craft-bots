@@ -12,30 +12,10 @@ from entities.task import Task
 
 class World:
 
-    def __init__(self, modifiers, world_gen_modifiers, build_speed=3, build_effort=100, mine_speed=3, mine_effort=100, green_decay_time=1200,
-                 blue_extra_effort=12, cycle_length=1200, red_collection_intervals=None, actor_speed=1,
-                 width=600, height=600, max_nodes=50, actor_inventory_size=7):
-        """
-        if red_collection_intervals is None:
-            red_collection_intervals = [300, 600, 900, 1200]
-
-        self.modifiers = {
-            "BUILD_SPEED": build_speed,
-            "BUILD_EFFORT": build_effort,
-            "MINE_SPEED": mine_speed,
-            "MINE_EFFORT": mine_effort,
-            "GREEN_DECAY_TIME": green_decay_time,
-            "BLUE_EXTRA_EFFORT": blue_extra_effort,
-            "CYCLE_LENGTH": cycle_length,
-            "RED_COLLECTION_INTERVALS": red_collection_intervals,
-            "ACTOR_SPEED": actor_speed,
-            "WIDTH": width,
-            "HEIGHT": height,
-            "ACTOR_INVENTORY_SIZE": actor_inventory_size
-        }
-        """
+    def __init__(self, modifiers, world_gen_modifiers):
         self.modifiers = modifiers
         self.world_gen_modifiers = world_gen_modifiers
+
         """
         0 - Actor Speed
         1 - Actor Mining Speed
@@ -151,8 +131,8 @@ class World:
     def generate_tasks(self):
         tasks = []
         for index in range(3):
-            tasks.append(Task(self.nodes[r.randint(0, self.nodes.__len__() - 1)], r.randint(0, 4), r.randint(1, 10),
-                              self.get_new_id()))
+            tasks.append(Task(self, self.nodes[r.randint(0, self.nodes.__len__() - 1)], r.randint(0, 4)
+                              , r.randint(1, 10)))
         return tasks
 
     def add_actor(self, node):

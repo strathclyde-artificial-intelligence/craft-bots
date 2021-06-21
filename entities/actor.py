@@ -5,8 +5,8 @@ class Actor:
     
     IDLE = 0
     MOVING = 1
-    MINING = 2
-    BUILDING = 3
+    DIGGING = 2
+    CONSTRUCTING = 3
     
     def __init__(self, world, node):
         """
@@ -19,7 +19,7 @@ class Actor:
         """
         self.world = world
         self.node = node
-        self.state = 0
+        self.state = Actor.IDLE
         self.progress = -1
         self.id = self.world.get_new_id()
         self.target = None
@@ -43,13 +43,13 @@ class Actor:
         :param target_node: Node object to send the actor to. Must share an edge with node the actor is currently in
         :return: True if successful and False otherwise
         """
-        if self.state:
+        if self.state != Actor.IDLE:
             # print("Error: Must be idle to begin travelling to another node!")
             return False
         node_index = self.node.shares_edge_with(target_node)
         if node_index != -1:
             self.set_target((self.node.edges[node_index], target_node))
-            self.set_state(1)
+            self.set_state(Actor.MOVING)
             self.set_progress(0)
             return True
         return False
@@ -70,7 +70,7 @@ class Actor:
         Called to simulate the actor performing actions for 1 tick. Depends on what the actor is currently doing via the
         state.
         """
-        if self.state == 1:
+        if self.state == Actor.MOVING:
             speed_mod = (self.world.building_modifiers[0] * 0.05) + 1
             self.set_progress(self.progress + (self.world.modifiers["ACTOR_MOVE_SPEED"] * speed_mod))
             if self.target[0].length() <= self.progress:
@@ -80,10 +80,10 @@ class Actor:
                 self.set_state(0)
                 self.set_progress(-1)
                 self.set_target(None)
-        if self.state == 2:
+        if self.state == Actor.DIGGING:
             self.target.dig()
-        if self.state == 3:
-            self.target.build()
+        if self.state == Actor.CONSTRUCTING:
+            self.target.construct()
 
     def pick_up_resource(self, resource):
         """
@@ -94,7 +94,7 @@ class Actor:
         :param resource: Resource object to be picked up
         :return: True if successful and False otherwise
         """
-        if self.state == 0 and resource.location is self.node:
+        if self.state == Actor.IDLE and resource.location is self.node:
             if resource.colour == 3 and self.resources or self.resources and self.resources[0].colour == 3:
                 print("Can hold one black and nothing else")
                 return False
@@ -116,7 +116,7 @@ class Actor:
         :param resource: Resource object to be dropped
         :return: True if successful and False otherwise
         """
-        if self.state == 0 and self.resources.__contains__(resource):
+        if self.state == Actor.IDLE and self.resources.__contains__(resource):
             resource.set_location(self.node)
             self.remove_resource(resource)
             self.node.append_resource(resource)
@@ -129,7 +129,7 @@ class Actor:
         Actor must be idle to do this
         :return: True if successful and False otherwise
         """
-        if self.state == 0:
+        if self.state == Actor.IDLE:
             for resource in self.resources:
                 resource.set_location(self.node)
                 self.remove_resource(resource)
@@ -145,8 +145,8 @@ class Actor:
         :param mine: The mine object the actor should start digging at.
         :return: True if successful and otherwise False
         """
-        if not self.state and mine.node == self.node:
-            self.set_state(2)
+        if self.state == Actor.IDLE and mine.node == self.node:
+            self.set_state(Actor.DIGGING)
             self.set_target(mine)
             return True
         return False
@@ -158,12 +158,12 @@ class Actor:
         :param colour: The colour of the construction site to make
         :return True if successful and False otherwise
         """
-        if not self.state:
+        if self.state == Actor.IDLE:
             self.world.add_site(self.node, colour)
             return True
         return False
 
-    def build_at(self, site):
+    def construct_at(self, site):
         """
         Tells the actor to begin building at the construction site. The site must be in the same node as the actor, and
         the actor must be idle. The actor will automatically stop building when it cannot build anymore due to a lack of
@@ -172,8 +172,8 @@ class Actor:
         :param site: The site the actor should start building at.
         :return: True if successful and otherwise False
         """
-        if not self.state and self.node == site.node:
-            self.set_state(3)
+        if self.state == Actor.IDLE and self.node == site.node:
+            self.set_state(Actor.CONSTRUCTING)
             self.set_target(site)
             return True
         return False
@@ -187,13 +187,22 @@ class Actor:
         :param resource: The resource to drop off
         :return: True if successful and False otherwise
         """
-        if self.resources.__contains__(resource) and (self.node.sites.__contains__(site) or
-                                                      self.node.buildings.__contains__(site)) and not self.state:
+        if self.resources.__contains__(resource) \
+                and (self.node.sites.__contains__(site) or self.node.buildings.__contains__(site)) \
+                and self.state == Actor.IDLE:
             return site.deposit_resources(resource)
         return False
 
     def cancel_action(self):
-        if self.state == 1:
+        """
+        A call to cancel any ongoing actions. If the actor is moving along an edge between two nodes, then it turns
+        around and must return to the original node before being to make another action. If the actor is digging and
+        there are no other actors digging (or not enough to continue digging if the mine is orange) then the progress
+        towards getting a resource from the mine is lost. If the actor is constructing a building or actor at a green
+        building then it simply stop the progress at the place it was in.
+        :return:
+        """
+        if self.state == Actor.MOVING:
             self.set_progress(self.target[0].length() - self.progress)
             return_node = self.node
             self.node.remove_actor(self)
@@ -201,7 +210,7 @@ class Actor:
             self.node.append_actor(self)
             self.set_target((self.target[0], return_node))
             return True
-        elif self.state == 2:
+        elif self.state == Actor.DIGGING:
             num_of_helpers = -1 * self.world.modifiers["ORANGE_ACTORS_TO_MINE"] if self.target.colour == 2 else -1
             for actor in self.node.actors:
                 if actor.target == self.target:
@@ -211,28 +220,47 @@ class Actor:
                 self.target.set_progress(0)
             self.go_idle()
             return True
-        elif self.state == 3:
+        elif self.state == Actor.CONSTRUCTING:
             self.go_idle()
             return True
         return False
 
     def go_idle(self):
+        """
+        Has the actor become Idle and forgot its target
+        """
         self.set_target(None)
         self.set_state(0)
 
     def set_node(self, node):
+        """
+        Sets the node current node the actor is in, and keeps track of it in the actor's fields.
+        :param node: the new current node
+        """
         self.node = node
         self.fields.__setitem__("node", node.id)
     
     def set_state(self, state):
+        """
+        Sets the actor's state, and keeps track of it in the actor's fields
+        :param state: the new state
+        """
         self.state = state
         self.fields.__setitem__("state", state)
     
     def set_progress(self, progress):
+        """
+        Sets the progress the actor has made and keeps track of it in the actor's fields
+        :param progress: the new value of progress
+        """
         self.progress = progress
         self.fields.__setitem__("progress", progress)
     
     def set_target(self, target):
+        """
+        Sets the new target of the actor and keeps track of the id of the target, if it has one.
+        :param target: the new target
+        """
         self.target = target
         if isinstance(target, tuple):
             self.fields.__setitem__("target", (target[0].id, target[1].id))
@@ -240,9 +268,17 @@ class Actor:
             self.fields.__setitem__("target", None if target is None else target.id)
     
     def append_resource(self, resource):
+        """
+        Adds a resource to the inventory of the actor and adds the relevant id to the actor's fields
+        :param resource: resource to be added to the inventory
+        """
         self.resources.append(resource)
         self.fields.get("resources").append(resource.id)
         
     def remove_resource(self, resource):
+        """
+        Removes the resource from the inventory and removes the relevant id from the actor's fields
+        :param resource: resource to be removed from the inventory
+        """
         self.resources.remove(resource)
         self.fields.get("resources").remove(resource.id)

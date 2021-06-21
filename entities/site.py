@@ -9,6 +9,13 @@ class Site:
     ]
     
     def __init__(self, world, node, colour=0):
+        """
+        A site in the craftbots simulation. It allows actors to deposit resources and construct at it to create
+        buildings. These buildings provide bonuses to the actor
+        :param world: the world in which the site exists
+        :param node: the node the site is located at
+        :param colour: the colour of the site (this will produce a building of the same colour)
+        """
         self.world = world
         self.node = node
         self.colour = colour
@@ -38,6 +45,11 @@ class Site:
         return not self.__eq__(other)
 
     def deposit_resources(self, resource):
+        """
+        Deposit a resource into the site. This consumes the resource.
+        :param resource: The resource to be added
+        :return: True if the resource was deposited and false if it wasn't
+        """
         if resource.location == self.node or resource.location.node == self.node:
             if self.deposited_resources[resource.colour] < self.needed_resources[resource.colour]:
                 resource.set_used(True)
@@ -49,6 +61,10 @@ class Site:
         return False
 
     def build(self):
+        """
+        Called to provide progress on the construction of a building. This can only be done up to a certain point based
+        on how many resources have been deposited so far.
+        """
         building_progress = self.world.modifiers["BUILD_SPEED"] * \
                             ((1 + self.world.modifiers["ORANGE_BUILDING_MODIFIER_STRENGTH"]) **
                              self.world.building_modifiers[2])
@@ -66,13 +82,24 @@ class Site:
             del self
 
     def max_progress(self):
+        """
+        Gets the currently possible maximum progress based on how many resources have been deposited
+        :return: The maximum progress
+        """
         return sum(self.deposited_resources) / sum(self.needed_resources) * self.world.modifiers["BUILD_EFFORT"]
 
     def ignore_me(self):
+        """
+        Gets all the actors that have targeted the building and sets them to become idle
+        """
         for actor in self.node.actors:
             if actor.target == self:
                 actor.go_idle()
 
     def set_progress(self, progress):
+        """
+        Sets the progress of the site and keeps track of this in the sites fields.
+        :param progress:
+        """
         self.progress = progress
         self.fields.__setitem__("progress", progress)

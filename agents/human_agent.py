@@ -86,7 +86,7 @@ class HumanAgent:
                     self.api.start_site(int(args[1]), int(args[2]))
                     return
                 elif args[0] == "build_at":
-                    self.api.build_at(int(args[1]), int(args[2]))
+                    self.api.construct_at(int(args[1]), int(args[2]))
                     return
             elif args.__len__() == 4:
                 if args[0] == "deposit_resources":
