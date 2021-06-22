@@ -22,8 +22,9 @@ class Bogo:
         self.orange_ticks = []
 
     def receive_results(self, results):
+        print(results)
         self.results.extend(results)
-        self.thinking = False
+
 
     def find_result_by_id(self, result_id):
         for result in self.results:
@@ -133,6 +134,6 @@ class Bogo:
                         self.api.cancel_action(actor["id"])
                         self.api.move_rand(actor["id"])
             actor_index += 1
-        self.api.no_commands()
+        self.thinking = False
 
 

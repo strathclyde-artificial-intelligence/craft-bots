@@ -1,6 +1,3 @@
-import time
-
-
 class BlankAgent:
     def __init__(self):
         self.api = None
@@ -8,7 +5,7 @@ class BlankAgent:
         self.world_info = None
 
     def receive_results(self, _):
-        self.thinking = False
+        pass
 
     def get_next_commands(self):
-        self.api.no_commands()
+        self.thinking = False

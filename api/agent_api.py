@@ -156,15 +156,18 @@ class AgentAPI:
         """
         return self.__send_command(Command.DEPOSIT_RESOURCES, actor_id, site_id, resource_id)
 
-    def no_commands(self):
+    def get_world_info(self):
         """
-        This is a empty command that does not affect the simulation in any way. This command should be called at the end
-        of the agent's get_next_commands function. Then, if the agent gives no commands, it will still send this. This
-        ensures that the simulation will continue to request commands from the agent.
+        This gets an up to date version of the world_info dictionary instantly. This is to be used if your agent takes a
+        long time to deliberate actions or is waiting for something to change, and the agent needs up to date
+        information immediately.
 
-        :return: The ID of the command or -1 if the max command limit has been reached
+        This does not need to be called at the start of get_next_commands because the world info is updated each time
+        before the function is called.
+
+        :return: The world_info dictionary
         """
-        return self.__send_command(Command.NO_COMMAND)
+        return self.__world.get_world_info()
 
     def cancel_action(self, actor_id):
         """

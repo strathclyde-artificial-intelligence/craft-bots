@@ -9,8 +9,7 @@ class Command:
     START_SITE = 6
     CONSTRUCT_AT = 7
     DEPOSIT_RESOURCES = 8
-    NO_COMMAND = 9
-    CANCEL_ACTION = 10
+    CANCEL_ACTION = 9
 
     def __init__(self, world, function_id, *args):
         self.world = world
@@ -76,8 +75,6 @@ class Command:
             if actor is not None and site is not None and resource is not None:
                 return actor.deposit(site, resource)
             return False
-        elif self.function_id == Command.NO_COMMAND and self.args.__len__() == 0:
-            return None
         elif self.function_id == Command.CANCEL_ACTION and self.args.__len__() == 1:
             actor = self.world.get_by_id(self.args[0], entity_type="Actor")
             if actor is not None:

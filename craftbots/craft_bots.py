@@ -96,7 +96,7 @@ def refresh_gui(gui):
 
 
 def refresh_world(world, agent):
-    if not world.command_queue and not agent.thinking:
+    if not agent.thinking:
         agent.thinking = True
         agent.world_info = world.get_world_info()
         agent_thread = threading.Thread(target=agent.get_next_commands)
