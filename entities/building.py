@@ -4,6 +4,7 @@ class Building:
         A completed building in the craftbots simulation. It takes a certain amount of work and resources gathered into
         a site by actors to create a building. Different buildings require different amount of resources. Each type of
         building will provide a different positive effect for the actors in the simulation.
+
         :param world: the world the in which the building exists
         :param node: the node the building is located at
         :param colour: the colour of the building (this determines the effect it provides)
@@ -28,7 +29,12 @@ class Building:
 
         # Keep track of the bonuses the building provides in the simulation
         if self.colour <= 3:
-            self.world.building_modifiers[self.colour] += 1
+            if self.world.modifiers[self.world.get_colour_string(self.colour).upper() + "_BUILDING_MAXIMUM"] >= 0:
+                self.world.building_modifiers[self.colour] = \
+                    min(self.world.modifiers[self.world.get_colour_string(self.colour).upper() + "_BUILDING_MAXIMUM"],
+                        self.world.building_modifiers[self.colour] + 1)
+            else:
+                self.world.building_modifiers[self.colour] += 1
 
     def __repr__(self):
         return "Building(" + str(self.id) + ", " + self.world.get_colour_string(self.colour) + ", " + str(
@@ -40,6 +46,7 @@ class Building:
     def deposit_resources(self, resource):
         """
         Deposit a resource into the building if it is green. This consumes the resource.
+
         :param resource: The resource to be added
         :return: True if the resource was deposited and false if it wasn't
         """
@@ -77,6 +84,7 @@ class Building:
         """
         Gets the currently possible maximum progress based on how many resources have been deposited, if the building is
         green
+
         :return: The maximum progress, or False if the building is not green
         """
         if self.colour == 4:
@@ -95,6 +103,7 @@ class Building:
     def set_progress(self, progress):
         """
         Sets the progress of the new actor in the building and keeps track of this in the Buildings fields.
+
         :param progress:
         """
         if self.colour == 4:
