@@ -1,29 +1,18 @@
-import time
+from api import agent_api
 
 
 class TestAgent:
     def __init__(self):
         self.api = None
-        self.results = []
         self.thinking = False
-        self.actors = []
+        self.world_info = None
 
     def receive_results(self, results):
-        self.results.extend(results)
-        self.thinking = False
-
-    def find_result_by_id(self, result_id):
-        for result in self.results:
-            if result[0] == result_id:
-                return result
-        return None
+        print(results)
 
     def get_next_commands(self):
-        if not self.actors:
-            self.actors = self.api.get_all_actors()
-        elif isinstance(self.actors, int):
-            self.actors = self.find_result_by_id(self.actors)[1]
-        else:
-            for actor in self.actors:
-                if not actor.state:
-                    self.api.move_rand(actor.id)
+        self.api: agent_api.AgentAPI
+        for actor_id in self.world_info["actors"]:
+            if self.api.get_field(actor_id, "state") == 0:
+                self.api.move_rand(actor_id)
+        self.thinking = False
