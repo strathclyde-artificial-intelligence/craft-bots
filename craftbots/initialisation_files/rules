@@ -1,0 +1,8 @@
+# In seconds
+SIM_LENGTH = 900
+
+# 0 for real time, i.e., exactly the number of seconds
+# 1 for simulation time, i.e., time is measured by ticks
+TIME_LENGTH_TYPE = 0
+
+TICK_HZ = 60
