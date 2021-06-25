@@ -5,11 +5,16 @@ import craftbots.view as view
 import threading
 import random as r
 import math
+import time
 
-
-TICK_HZ = 60
 PADDING = 25
 NODE_SIZE = 20
+
+simulation_stop = None
+sim_stopped = False
+gui_updating = False
+root = None
+start_time = time.time()
 
 
 def default_scenario(world, modifiers, world_gen_modifiers):
@@ -60,13 +65,15 @@ def default_scenario(world, modifiers, world_gen_modifiers):
         world.add_site(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 4)
     for _ in range(world_gen_modifiers["NUM_OF_GREEN_BUILDINGS"]):
         world.add_building(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 4)
-    
+
 
 def start_simulation(agent=None, use_gui=True, scenario=default_scenario):
     world_gen_modifiers = get_world_gen_modifiers()
     modifiers = get_modifiers()
-    world = World(modifiers, world_gen_modifiers)
+    rules = get_rules()
+    world = World(modifiers, world_gen_modifiers, rules)
     scenario(world, modifiers, world_gen_modifiers)
+
     if agent is not None:
         agent.api = AgentAPI(world)
         agent.world_info = world.get_world_info()
@@ -74,25 +81,24 @@ def start_simulation(agent=None, use_gui=True, scenario=default_scenario):
         agent = BlankAgent()
         agent.api = AgentAPI(world)
         agent.world_info = world.get_world_info()
+
+    global simulation_stop
+    simulation_stop = call_repeatedly(1 / rules["TICK_HZ"], refresh_world, world, agent)
+
     if use_gui:
-        stop_sim_ticking = call_repeatedly(1 / TICK_HZ, refresh_world, world, agent)
-
-        def sim_stop():
-            stop_sim_ticking()
-        gui = init_gui(world, sim_stop)
-        refresh_gui(gui)
+        gui = init_gui(world)
+        refresh_gui(gui, rules["TICK_HZ"])
         gui.mainloop()
-    else:
-        call_repeatedly(1 / TICK_HZ, refresh_world, world, agent)
 
 
-def refresh_gui(gui):
+def refresh_gui(gui, tick_hz):
 
     def refresh_gui_wrapper():
-        gui.update_model()
-        refresh_gui(gui)
+        if not sim_stopped:
+            gui.update_model()
+            refresh_gui(gui, tick_hz)
 
-    gui.after(math.ceil(1000 / TICK_HZ), refresh_gui_wrapper)
+    gui.after(math.ceil(1000 / tick_hz), refresh_gui_wrapper)
 
 
 def refresh_world(world, agent):
@@ -106,6 +112,12 @@ def refresh_world(world, agent):
         agent.receive_results(world.command_results)
         world.command_results = []
     agent.api.num_of_current_commands = 0
+    if world.rules["TIME_LENGTH_TYPE"] == 0:
+        if time.time() - world.rules["SIM_LENGTH"] >= start_time:
+            on_close()
+    else:
+        if world.tick >= world.rules["SIM_LENGTH"] * world.rules["TICK_HZ"]:
+            on_close()
 
 
 def call_repeatedly(interval, func, *args):
@@ -114,16 +126,13 @@ def call_repeatedly(interval, func, *args):
     def loop():
         while not stopped.wait(interval):  # the first call is in `interval` secs
             func(*args)
-    threading.Thread(target=loop).start()
+    threading.Thread(target=loop, daemon=True).start()
     return stopped.set
 
 
-def init_gui(world, stop_sim):
+def init_gui(world):
+    global root
     root = view.tk.Tk()
-
-    def on_close():
-        stop_sim()
-        root.destroy()
 
     width = world.world_gen_modifiers["WIDTH"]
     height = world.world_gen_modifiers["HEIGHT"]
@@ -131,6 +140,19 @@ def init_gui(world, stop_sim):
     root.protocol("WM_DELETE_WINDOW", on_close)
     root.geometry(str(width + PADDING * 2) + "x" + str(height + PADDING * 2))
     return view.GUI(world, width=width, height=height, padding=PADDING, node_size=NODE_SIZE, master=root)
+
+
+def on_close():
+    print("Simulation time up")
+    global sim_stopped, simulation_stop
+    simulation_stop()
+    sim_stopped = True
+    if root is not None:
+        try:
+            root.destroy()
+        except:
+            on_close()
+    exit()
 
 
 def get_world_gen_modifiers():
@@ -191,6 +213,7 @@ def get_modifiers():
                     for value in data[2].split(","):
                         temp.append(int(value))
                     modifiers[data[0]] = temp
+    default_file.close()
     try:
         file = open("craftbots/initialisation_files/modifiers", "r")
         for line in file:
@@ -208,6 +231,49 @@ def get_modifiers():
                         for value in data[2].split(","):
                             temp.append(int(value))
                         modifiers[data[0]] = temp
+        file.close()
     except FileNotFoundError:
         pass
     return modifiers
+
+
+def get_rules():
+    default_file = open("craftbots/initialisation_files/default_rules", "r")
+    rules = {}
+    for line in default_file:
+        data = line.strip("\n").split(" ")
+        if data[0] != '' and data[0][0] != "#":
+            try:
+                rules[data[0]] = int(data[2])
+                continue
+            except ValueError:
+                try:
+                    rules[data[0]] = float(data[2])
+                    continue
+                except ValueError:
+                    temp = []
+                    for value in data[2].split(","):
+                        temp.append(int(value))
+                    rules[data[0]] = temp
+    default_file.close()
+    try:
+        file = open("craftbots/initialisation_files/rules", "r")
+        for line in file:
+            data = line.strip("\n").split(" ")
+            if data[0] != '' and data[0][0] != "#":
+                try:
+                    rules[data[0]] = int(data[2])
+                    continue
+                except ValueError:
+                    try:
+                        rules[data[0]] = float(data[2])
+                        continue
+                    except ValueError:
+                        temp = []
+                        for value in data[2].split(","):
+                            temp.append(int(value))
+                        rules[data[0]] = temp
+        file.close()
+    except FileNotFoundError:
+        pass
+    return rules
