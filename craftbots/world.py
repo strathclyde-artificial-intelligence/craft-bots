@@ -12,10 +12,10 @@ from entities.task import Task
 
 class World:
 
-    def __init__(self, modifiers, world_gen_modifiers):
+    def __init__(self, modifiers, world_gen_modifiers, rules):
         self.modifiers = modifiers
         self.world_gen_modifiers = world_gen_modifiers
-
+        self.rules = rules
         """
         0 - Actor Speed
         1 - Actor Mining Speed
