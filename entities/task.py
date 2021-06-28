@@ -41,6 +41,14 @@ class Task:
         """
         return isinstance(self.project, Building)
 
+    def complete_task(self):
+        """
+        This function is called when the task is complete (usually by creating the building). It will calculate the
+        score provided by the task and added to a total score variable in the simulation
+        """
+        # TODO: Make a better score calculation, perhaps use deadline if one exists
+        self.world.total_score += sum(self.needed_resources)
+
     def __generate_task(self):
         """
         Generates a list of needed resources for the Task by determining what difficulty the task should be, and then

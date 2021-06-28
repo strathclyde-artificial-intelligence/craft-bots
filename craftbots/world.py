@@ -12,26 +12,30 @@ from entities.task import Task
 
 class World:
 
-    def __init__(self, modifiers, world_gen_modifiers, rules):
-        self.modifiers = modifiers
-        self.world_gen_modifiers = world_gen_modifiers
-        self.rules = rules
-        """
-        0 - Actor Speed
-        1 - Actor Mining Speed
-        2 - Actor Building Speed
-        3 - Actor Inventory Size
-        """
-        self.building_modifiers = {0: 0, 1: 0, 2: 0, 3: 0}
-        
-        self.nodes = []
-        self.tick = 0
-        self.last_id = -1
-        self.command_queue = []
-        self.command_results = []
-        
-        self.create_nodes_prm()
-        self.tasks = self.generate_tasks()
+    def __init__(self, modifiers=None, world_gen_modifiers=None, rules=None):
+        if modifiers is None or world_gen_modifiers is None or rules is None:
+            pass
+        else:
+            self.modifiers = modifiers
+            self.world_gen_modifiers = world_gen_modifiers
+            self.rules = rules
+            """
+            0 - Actor Speed
+            1 - Actor Mining Speed
+            2 - Actor Building Speed
+            3 - Actor Inventory Size
+            """
+            self.building_modifiers = {0: 0, 1: 0, 2: 0, 3: 0}
+
+            self.nodes = []
+            self.tick = 0
+            self.last_id = -1
+            self.command_queue = []
+            self.command_results = []
+            self.total_score = 0
+
+            self.create_nodes_prm()
+            self.tasks = self.generate_tasks()
 
     def create_nodes_prm(self):
         self.nodes = [Node(self, self.world_gen_modifiers["WIDTH"]/2, self.world_gen_modifiers["HEIGHT"]/2)]

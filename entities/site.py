@@ -106,6 +106,7 @@ class Site:
             self.ignore_me()
             if self.colour == Site.PURPLE:
                 self.task.set_project(new_building)
+                self.task.complete_task()
             del self
 
     def max_progress(self):
