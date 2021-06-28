@@ -102,8 +102,10 @@ class World:
         self.update_all_resources()
         self.run_agent_commands()
         if self.tasks_complete():
-            pass
-            # print("The tasks have been completed")
+            self.tasks.extend(self.generate_tasks())
+        else:
+            if r.random() < self.modifiers["NEW_TASK_CHANCE"]:
+                self.tasks.append(Task(self))
         self.tick += 1
 
     def run_agent_commands(self):
@@ -131,8 +133,7 @@ class World:
     def generate_tasks(self):
         tasks = []
         for index in range(3):
-            tasks.append(Task(self, self.nodes[r.randint(0, self.nodes.__len__() - 1)], r.randint(0, 4)
-                              , r.randint(1, 10)))
+            tasks.append(Task(self))
         return tasks
 
     def add_actor(self, node):
@@ -161,6 +162,8 @@ class World:
             return "black"
         elif colour == 4:
             return "green"
+        elif colour == 5:
+            return "purple"
 
     def get_all_mines(self):
         mines = []
