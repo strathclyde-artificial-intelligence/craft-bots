@@ -260,8 +260,11 @@ class GUI(tk.Frame):
             x -= 16
             y += 8
         elif colour == "green":
-            x -= 8
-            y += 12
+            x -= 10
+            y += 14
+        elif colour == "purple":
+            x -= 4
+            y += 10
         return self.graph.create_polygon(x, y, x, y - 4, x + 1, y - 4, x + 1, y - 1, x + 3, y - 1, x + 3, y - 2,
                                          x + 4, y - 2, x + 4, y, x, y, fill=colour, outline=colour, width=1)
     
@@ -281,8 +284,11 @@ class GUI(tk.Frame):
             x -= 14
             y += 6
         elif colour == "green":
-            x -= 6
-            y += 10
+            x -= 8
+            y += 12
+        elif colour == "purple":
+            x -= 2
+            y += 8
         return self.graph.create_rectangle(x - 2, y - 2, x + 2, y + 2, fill=colour, outline=colour, width=1)
     
     def draw_actor(self, node_x, node_y):
