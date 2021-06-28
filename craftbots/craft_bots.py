@@ -14,10 +14,12 @@ simulation_stop = None
 sim_stopped = False
 gui_updating = False
 root = None
+world = World()
 start_time = time.time()
 
 
-def default_scenario(world, modifiers, world_gen_modifiers):
+def default_scenario(modifiers, world_gen_modifiers):
+    global world
     for _ in range(modifiers["NUM_OF_ACTORS"]):
         world.add_actor(world.nodes[r.randint(0, world.nodes.__len__() - 1)])
         
@@ -68,11 +70,20 @@ def default_scenario(world, modifiers, world_gen_modifiers):
 
 
 def start_simulation(agent=None, use_gui=True, scenario=default_scenario):
+    sim_thread = threading.Thread(target=prep_simulation, args=(agent, use_gui, scenario), daemon=True)
+    sim_thread.start()
+    while not sim_stopped:
+        time.sleep(1)
+    return world.total_score
+
+
+def prep_simulation(agent, use_gui, scenario):
+    global world
     world_gen_modifiers = get_world_gen_modifiers()
     modifiers = get_modifiers()
     rules = get_rules()
     world = World(modifiers, world_gen_modifiers, rules)
-    scenario(world, modifiers, world_gen_modifiers)
+    scenario(modifiers, world_gen_modifiers)
 
     if agent is not None:
         agent.api = AgentAPI(world)
@@ -84,25 +95,26 @@ def start_simulation(agent=None, use_gui=True, scenario=default_scenario):
 
     if rules["RT_OR_LOCK_STEP"] == 0:
         global simulation_stop
-        simulation_stop = call_repeatedly(1 / rules["TICK_HZ"], refresh_world, world, agent)
+        simulation_stop = call_repeatedly(1 / rules["TICK_HZ"], refresh_world, agent)
 
         if use_gui:
-            gui = init_gui(world)
+            gui = init_gui()
             refresh_gui(gui, rules["TICK_HZ"])
             gui.mainloop()
 
     else:
         if use_gui:
-            gui = init_gui(world)
-            sim_thread = threading.Thread(target=lock_step_sim, args=(world, agent, gui.update_model))
+            gui = init_gui()
+            sim_thread = threading.Thread(target=lock_step_sim, args=(agent, gui.update_model))
             sim_thread.start()
             gui.mainloop()
         else:
-            sim_thread = threading.Thread(target=lock_step_sim, args=(world, agent, None))
+            sim_thread = threading.Thread(target=lock_step_sim, args=(agent, None))
             sim_thread.start()
 
 
-def lock_step_sim(world, agent, update_model):
+def lock_step_sim(agent, update_model):
+    global world
     while not sim_stopped:
         agent.world_info = world.get_world_info()
         agent.get_next_commands()
@@ -117,10 +129,10 @@ def lock_step_sim(world, agent, update_model):
 
         if world.rules["TIME_LENGTH_TYPE"] == 0:
             if time.time() - world.rules["SIM_LENGTH"] >= start_time:
-                on_close()
+                return on_close()
         else:
             if world.tick >= world.rules["SIM_LENGTH"] * world.rules["TICK_HZ"]:
-                on_close()
+                return on_close()
 
         if update_model is not None:
             update_model()
@@ -139,7 +151,8 @@ def refresh_gui(gui, tick_hz):
     gui.after(math.ceil(1000 / tick_hz), refresh_gui_wrapper)
 
 
-def refresh_world(world, agent):
+def refresh_world(agent):
+    global world
     if not agent.thinking:
         agent.thinking = True
         agent.world_info = world.get_world_info()
@@ -152,10 +165,10 @@ def refresh_world(world, agent):
     agent.api.num_of_current_commands = 0
     if world.rules["TIME_LENGTH_TYPE"] == 0:
         if time.time() - world.rules["SIM_LENGTH"] >= start_time:
-            on_close()
+            return on_close()
     else:
         if world.tick >= world.rules["SIM_LENGTH"] * world.rules["TICK_HZ"]:
-            on_close()
+            return on_close()
 
 
 def call_repeatedly(interval, func, *args):
@@ -168,8 +181,8 @@ def call_repeatedly(interval, func, *args):
     return stopped.set
 
 
-def init_gui(world):
-    global root
+def init_gui():
+    global root, world
     root = view.tk.Tk()
 
     width = world.world_gen_modifiers["WIDTH"]
@@ -181,6 +194,7 @@ def init_gui(world):
 
 
 def on_close():
+    global world
     print("Simulation time up")
     global sim_stopped, simulation_stop
     if simulation_stop is not None:
@@ -190,8 +204,8 @@ def on_close():
         try:
             root.destroy()
         except:
-            on_close()
-    exit()
+            return on_close()
+    return world.total_score
 
 
 def get_world_gen_modifiers():
