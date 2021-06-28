@@ -6,3 +6,11 @@ SIM_LENGTH = 900
 TIME_LENGTH_TYPE = 0
 
 TICK_HZ = 60
+
+# Should the simulation run in real time, or wait for the agent to provide commands, realtime or lockstep respectively
+# If using lockstep, command results are returned after the ticking the world, this might interfere with agents that
+# will wait for the results inside get_next_commands()
+# If using lockstep and gui, gui will not display "day/night" cycle due to flashing lights
+# 0 for real time
+# 1 for lockstep
+RT_OR_LOCK_STEP = 0

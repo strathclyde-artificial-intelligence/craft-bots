@@ -55,13 +55,15 @@ class GUI(tk.Frame):
                 node_x = resource.location.x + self.padding - self.centre_offset_x
                 node_y = resource.location.y + self.padding - self.centre_offset_y
                 self.draw_res_on_node(resource.location, resource,
-                                      self.draw_resource_sprite(node_x, node_y, resource.get_colour_string()))
+                                      self.draw_resource_sprite(node_x, node_y,
+                                                                self.world.get_colour_string(resource.colour)))
             if isinstance(resource.location, Actor):
                 actor_id = self.get_sprite_id_of(resource.location)
                 actor_x = self.graph.coords(actor_id)[0] + self.padding - self.centre_offset_x
                 actor_y = self.graph.coords(actor_id)[1] + self.padding - self.centre_offset_y
-                self.draw_res_on_actor(resource.location, self.draw_resource_sprite(actor_x, actor_y,
-                                                                                    resource.get_colour_string()))
+                self.draw_res_on_actor(resource.location,
+                                       self.draw_resource_sprite(actor_x, actor_y,
+                                                                 self.world.get_colour_string(resource.colour)))
             self.resources.append((resource, self.graph.find_all()[-1:][0]))
         self.mines = []
         for mine in self.world.get_all_mines():
@@ -147,10 +149,11 @@ class GUI(tk.Frame):
         self.update_resources()
         self.update_sites()
         self.update_buildings()
-        if self.world.tick % self.world.modifiers["CYCLE_LENGTH"] > self.world.modifiers["CYCLE_LENGTH"] / 2:
-            self.graph.itemconfig(self.background, fill="dark grey")
-        else:
-            self.graph.itemconfig(self.background, fill="white")
+        if self.world.rules["RT_OR_LOCK_STEP"] == 0:
+            if self.world.tick % self.world.modifiers["CYCLE_LENGTH"] > self.world.modifiers["CYCLE_LENGTH"] / 2:
+                self.graph.itemconfig(self.background, fill="dark grey")
+            else:
+                self.graph.itemconfig(self.background, fill="white")
         
     def update_sites(self):
         for site_pair in self.sites:

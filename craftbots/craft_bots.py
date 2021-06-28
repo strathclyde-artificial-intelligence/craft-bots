@@ -82,20 +82,58 @@ def start_simulation(agent=None, use_gui=True, scenario=default_scenario):
         agent.api = AgentAPI(world)
         agent.world_info = world.get_world_info()
 
-    global simulation_stop
-    simulation_stop = call_repeatedly(1 / rules["TICK_HZ"], refresh_world, world, agent)
+    if rules["RT_OR_LOCK_STEP"] == 0:
+        global simulation_stop
+        simulation_stop = call_repeatedly(1 / rules["TICK_HZ"], refresh_world, world, agent)
 
-    if use_gui:
-        gui = init_gui(world)
-        refresh_gui(gui, rules["TICK_HZ"])
-        gui.mainloop()
+        if use_gui:
+            gui = init_gui(world)
+            refresh_gui(gui, rules["TICK_HZ"])
+            gui.mainloop()
+
+    else:
+        if use_gui:
+            gui = init_gui(world)
+            sim_thread = threading.Thread(target=lock_step_sim, args=(world, agent, gui.update_model))
+            sim_thread.start()
+            gui.mainloop()
+        else:
+            sim_thread = threading.Thread(target=lock_step_sim, args=(world, agent, None))
+            sim_thread.start()
+
+
+def lock_step_sim(world, agent, update_model):
+    while not sim_stopped:
+        agent.world_info = world.get_world_info()
+        agent.get_next_commands()
+
+        world.run_tick()
+
+        if world.command_results:
+            agent.receive_results(world.command_results)
+            world.command_results = []
+
+        agent.api.num_of_current_commands = 0
+
+        if world.rules["TIME_LENGTH_TYPE"] == 0:
+            if time.time() - world.rules["SIM_LENGTH"] >= start_time:
+                on_close()
+        else:
+            if world.tick >= world.rules["SIM_LENGTH"] * world.rules["TICK_HZ"]:
+                on_close()
+
+        if update_model is not None:
+            update_model()
 
 
 def refresh_gui(gui, tick_hz):
 
     def refresh_gui_wrapper():
         if not sim_stopped:
+            global gui_updating
+            gui_updating = True
             gui.update_model()
+            gui_updating = False
             refresh_gui(gui, tick_hz)
 
     gui.after(math.ceil(1000 / tick_hz), refresh_gui_wrapper)
@@ -145,7 +183,8 @@ def init_gui(world):
 def on_close():
     print("Simulation time up")
     global sim_stopped, simulation_stop
-    simulation_stop()
+    if simulation_stop is not None:
+        simulation_stop()
     sim_stopped = True
     if root is not None:
         try:
