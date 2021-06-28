@@ -1,4 +1,12 @@
 class Building:
+
+    RED = 0
+    BLUE = 1
+    ORANGE = 2
+    BLACK = 3
+    GREEN = 4
+    PURPLE = 5
+
     def __init__(self, world, node, colour=0):
         """
         A completed building in the craftbots simulation. It takes a certain amount of work and resources gathered into
@@ -17,7 +25,7 @@ class Building:
         self.node.append_building(self)
 
         # If the building is green then create other fields needed to keep track of new actor construction
-        if colour == 4:
+        if colour == Building.GREEN:
             self.deposited_resources = [0, 0, 0, 0, 0]
             self.needed_resources = self.world.modifiers["NEW_ACTOR_RESOURCES"]
             self.progress = 0

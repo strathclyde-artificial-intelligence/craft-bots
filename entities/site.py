@@ -7,11 +7,18 @@ class Site:
         "BLACK_BUILDING_RESOURCES",
         "GREEN_BUILDING_RESOURCES"
     ]
-    
+
+    RED = 0
+    BLUE = 1
+    ORANGE = 2
+    BLACK = 3
+    GREEN = 4
+    PURPLE = 5
+
     def __init__(self, world, node, colour=0):
         """
         A site in the craftbots simulation. It allows actors to deposit resources and construct at it to create
-        buildings. These buildings provide bonuses to the actor
+        buildings. These buildings provide bonuses to the actors
         :param world: the world in which the site exists
         :param node: the node the site is located at
         :param colour: the colour of the site (this will produce a building of the same colour)
@@ -20,14 +27,24 @@ class Site:
         self.node = node
         self.colour = colour
         self.deposited_resources = [0, 0, 0, 0, 0]
-        self.needed_resources = self.world.modifiers[Site.NEEDED_RESOURCES_MODIFIER[colour]]
         self.progress = 0
         self.id = self.world.get_new_id()
+        self.needed_resources = []
+        if self.colour == 5:
+            for task in self.world.tasks:
+                if task.node == self.node and task.project is None:
+                    task.set_project(self)
+                    self.task = task
+                    self.needed_resources = task.needed_resources
+                    break
+        else:
+            self.needed_resources = self.world.modifiers[Site.NEEDED_RESOURCES_MODIFIER[colour]]
 
-        self.node.append_site(self)
-        
-        self.fields = {"node": self.node.id, "colour": self.colour, "deposited_resources": self.deposited_resources,
-                       "needed_resources": self.needed_resources, "progress": self.progress, "id": self.id}
+        # If needed resources cannot be found, then do not inform anything that this Site exists
+        if self.needed_resources:
+            self.node.append_site(self)
+            self.fields = {"node": self.node.id, "colour": self.colour, "deposited_resources": self.deposited_resources,
+                           "needed_resources": self.needed_resources, "progress": self.progress, "id": self.id}
 
     def __repr__(self):
         return "Site(" + str(self.id) + ", " + str(self.node) + ")"
@@ -75,15 +92,18 @@ class Site:
             for actor in self.node.actors:
                 if actor.target == self:
                     actor.go_idle()
-        if self.progress >= self.world.modifiers["BUILD_EFFORT"]:
-            self.world.add_building(self.node, self.colour)
+        if self.progress >= self.world.modifiers["BUILD_EFFORT"] * sum(self.needed_resources):
+            new_building = self.world.add_building(self.node, self.colour)
             self.node.remove_site(self)
             self.ignore_me()
+            if self.colour == Site.PURPLE:
+                self.task.set_project(new_building)
             del self
 
     def max_progress(self):
         """
         Gets the currently possible maximum progress based on how many resources have been deposited
+
         :return: The maximum progress
         """
         return sum(self.deposited_resources) / sum(self.needed_resources) * self.world.modifiers["BUILD_EFFORT"]

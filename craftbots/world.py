@@ -124,7 +124,7 @@ class World:
 
     def tasks_complete(self):
         for task in self.tasks:
-            if not task.complete():
+            if not task.completed():
                 return False
         return True
 
@@ -136,19 +136,19 @@ class World:
         return tasks
 
     def add_actor(self, node):
-        Actor(self, node)
+        return Actor(self, node)
 
     def add_resource(self, node, colour):
-        Resource(self, node, colour)
+        return Resource(self, node, colour)
 
     def add_mine(self, node, colour):
-        Mine(self, node, colour)
+        return Mine(self, node, colour)
 
     def add_site(self, node, colour):
-        Site(self, node, colour)
+        return Site(self, node, colour)
 
     def add_building(self, node, colour):
-        Building(self, node, colour)
+        return Building(self, node, colour)
 
     def get_colour_string(self, colour):
         if colour == 0:
