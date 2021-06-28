@@ -61,7 +61,7 @@ class Building:
                     return True
         return False
 
-    def build(self):
+    def construct(self):
         """
         Called to provide progress on the construction of a new bot. This can only be done up to a certain point based
         on how many resources have been deposited so far.
