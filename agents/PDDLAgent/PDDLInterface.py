@@ -74,7 +74,7 @@ class PDDLInterface:
             f.write("(:goal (and\n")
 
             for task in world_info['tasks']:
-                if world_info['tasks'][task]['complete']: continue
+                if world_info['tasks'][task]['completed'](): continue
                 f.write("  (completed b" + str(task) + ")\n")
                 # only plan for one task
                 break

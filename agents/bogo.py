@@ -34,7 +34,7 @@ class Bogo:
 
     def at_task_node(self, node):
         for task in self.tasks:
-            if (not task["complete"]) and task["node"] == node:
+            if (not task["completed"]()) and task["node"] == node:
                 return True
         return False
 
@@ -60,7 +60,7 @@ class Bogo:
         for actor in self.actors:
             if actor["state"] == 0:
                 for task in self.tasks:
-                    if (not task["complete"]) and task["node"] == actor["node"]:
+                    if (not task["completed"]()) and task["node"] == actor["node"]:
 
                         # Check if there are enough buildings / sites to complete the task
                         num_of_sites_and_builds = 0
