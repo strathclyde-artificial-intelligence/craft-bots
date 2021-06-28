@@ -6,3 +6,8 @@ SIM_LENGTH = 900
 TIME_LENGTH_TYPE = 0
 
 TICK_HZ = 60
+
+# Should the simulation run in real time, or wait for the agent to provide commands, realtime or lockstep respectively
+# 0 for real time
+# 1 for lockstep
+RT_OR_LOCK_STEP = 0
