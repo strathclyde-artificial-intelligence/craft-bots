@@ -15,13 +15,15 @@ class Site:
     GREEN = 4
     PURPLE = 5
 
-    def __init__(self, world, node, colour=0):
+    def __init__(self, world, node, colour, target_task=None):
         """
         A site in the craftbots simulation. It allows actors to deposit resources and construct at it to create
         buildings. These buildings provide bonuses to the actors
+
         :param world: the world in which the site exists
         :param node: the node the site is located at
         :param colour: the colour of the site (this will produce a building of the same colour)
+        :param target_task: the task entity that is chosen if the site is purple. If it is None then one at the sites node is chosen at random (if a free task is available)
         """
         self.world = world
         self.node = node
@@ -31,12 +33,18 @@ class Site:
         self.id = self.world.get_new_id()
         self.needed_resources = []
         if self.colour == 5:
-            for task in self.world.tasks:
-                if task.node == self.node and task.project is None:
-                    task.set_project(self)
-                    self.task = task
-                    self.needed_resources = task.needed_resources
-                    break
+            if target_task is None:
+                for task in self.world.tasks:
+                    if task.node == self.node and task.project is None:
+                        task.set_project(self)
+                        self.task = task
+                        self.needed_resources = task.needed_resources
+                        break
+            else:
+                if target_task.project is None and target_task.node == self.node:
+                    target_task.set_project(self)
+                    self.task = target_task
+                    self.needed_resources = target_task.needed_resources
         else:
             self.needed_resources = self.world.modifiers[Site.NEEDED_RESOURCES_MODIFIER[colour]]
 
