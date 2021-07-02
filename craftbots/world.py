@@ -1,5 +1,7 @@
 import random as r
 import math as m
+
+from api.command import Command
 from entities.node import Node
 from entities.edge import Edge
 from entities.actor import Actor
@@ -32,6 +34,7 @@ class World:
             self.last_id = -1
             self.command_queue = []
             self.command_results = []
+            self.all_commands = []
             self.total_score = 0
 
             self.create_nodes_prm()
@@ -82,6 +85,7 @@ class World:
         sites = {}
         buildings = {}
         tasks = {}
+        commands = {}
         for actor in self.get_all_actors():
             actors.__setitem__(actor.id, actor.fields)
         for edge in self.get_all_edges():
@@ -98,8 +102,10 @@ class World:
             buildings.__setitem__(building.id, building.fields)
         for task in self.tasks:
             tasks.__setitem__(task.id, task.fields)
-        return {"tick": self.tick, "actors": actors, "nodes": nodes, "edges": edges, "resources": resources, "mines": mines,
-                "sites": sites, "buildings": buildings, "tasks": tasks}
+        for command in self.all_commands:
+            commands.__setitem__(command.id, command.fields)
+        return {"tick": self.tick, "actors": actors, "nodes": nodes, "edges": edges, "resources": resources,
+                "mines": mines, "sites": sites, "buildings": buildings, "tasks": tasks, "commands": commands}
 
     def run_tick(self):
         self.update_all_actors()
@@ -114,11 +120,11 @@ class World:
 
     def run_agent_commands(self):
         if self.command_queue:
-            current_commands = self.command_queue[:]
-            self.command_queue = []
+            self.all_commands.extend(self.command_queue)
             self.command_results = []
-            for command in current_commands:
+            for command in self.command_queue:
                 self.command_results.append((command.id, command.perform()))
+            self.command_queue = []
 
     def update_all_actors(self):
         for actor in self.get_all_actors():
