@@ -14,3 +14,7 @@ TICK_HZ = 60
 # 0 for real time
 # 1 for lockstep
 RT_OR_LOCK_STEP = 0
+
+# Should none/some/all tasks have deadlines?
+# 0: none, all: 1, some: Chance for task to have a deadline
+TASK_DEADLINE_PROBABILITY = 0.5

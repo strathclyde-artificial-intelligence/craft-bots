@@ -231,6 +231,10 @@ class World:
             target_node = self.nodes
         else:
             target_node = [target_node]
+        if entity_type == "Task" or entity_type is None:
+            for task in self.tasks:
+                if task.id == entity_id:
+                    return task
         for node in target_node:
             if node.id == entity_id and (entity_type == "Node" or entity_type is None):
                 return node

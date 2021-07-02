@@ -20,10 +20,11 @@ class Task:
         self.id = self.world.get_new_id()
         self.difficulty = self.__decide_difficulty()
         self.needed_resources = self.__generate_task()
+        self.deadline = self.__set_dead_line()
         self.project = None
 
         self.fields = {"node": self.node.id, "id": self.id, "completed": self.completed, "difficulty": self.difficulty,
-                       "needed_resources": self.needed_resources, "project": self.project}
+                       "needed_resources": self.needed_resources, "project": self.project, "deadline": self.deadline}
 
     def __repr__(self):
         return "Task(" + str(self.node) + ", " + str(self.needed_resources) + ")"
@@ -34,12 +35,14 @@ class Task:
 
     def completed(self):
         """
-        Checks if the tasks project is a Building entity. If it is then it implies that the building is complete and as
-        such the task is complete. If the project is None or a Site entity, then it implies that there is still work to
-        do before the task is complete.
+        Checks if the deadline had passed, and then checks if the tasks project is a Building entity. If it is then it
+        implies that the building is complete and as such the task is complete. If the project is None or a Site entity,
+        then it implies that there is still work to do before the task is complete. If the deadline has passed then the
+        task is considered completed, but the agent will not have received any rewards for it.
         :return: True if the task is completed, and False if not
         """
-        return isinstance(self.project, Building)
+
+        return isinstance(self.project, Building) if self.deadline >= self.world.tick else True
 
     def complete_task(self):
         """
@@ -129,3 +132,20 @@ class Task:
         """
         self.project = project
         self.fields.__setitem__("project", project.id)
+
+    def __set_dead_line(self):
+        if r.random() < self.world.rules["TASK_DEADLINE_PROBABILITY"]:
+            sum_of_res = sum(self.needed_resources) * self.world.modifiers["RESOURCE_COMP_MODIFIER"]
+            mining_compensation = sum_of_res * self.world.modifiers["MINE_EFFORT"]
+            travel_compensation = sum_of_res * self.world.world_gen_modifiers["CAST_DISTANCE"] * \
+                                  self.world.get_all_edges().__len__() * 0.2 / self.world.modifiers["ACTOR_MOVE_SPEED"]
+            construction_compensation = sum_of_res * self.world.modifiers["BUILD_EFFORT"]
+
+            mining_compensation *= self.world.modifiers["MINING_COMP_MODIFIER"]
+            travel_compensation *= self.world.modifiers["TRAVEL_COMP_MODIFIER"]
+            construction_compensation *= self.world.modifiers["CONSTRUCT_COMP_MODIFIER"]
+
+            compensation = (mining_compensation + travel_compensation + construction_compensation) \
+                           * self.world.modifiers["COMP_MODIFIER"]
+            return self.world.tick + compensation
+        return -1
