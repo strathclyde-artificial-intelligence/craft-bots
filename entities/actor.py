@@ -1,4 +1,5 @@
 import random as r
+import numpy.random as nr
 
 
 class Actor:
@@ -7,6 +8,7 @@ class Actor:
     MOVING = 1
     DIGGING = 2
     CONSTRUCTING = 3
+    RECOVERING = 4
     
     def __init__(self, world, node):
         """
@@ -70,9 +72,19 @@ class Actor:
         Called to simulate the actor performing actions for 1 tick. Depends on what the actor is currently doing via the
         state.
         """
-        if self.state == Actor.MOVING:
+        if self.state == Actor.MOVING or self.state == Actor.RECOVERING:
             speed_mod = (self.world.building_modifiers[0] * 0.05) + 1
-            self.set_progress(self.progress + (self.world.modifiers["ACTOR_MOVE_SPEED"] * speed_mod))
+            move_speed = self.world.modifiers["ACTOR_MOVE_SPEED"] if not self.world.rules["TRAVEL_TU"] else \
+                nr.normal(self.world.modifiers["ACTOR_MOVE_SPEED"], self.world.modifiers["TRAVEL_SD"])
+
+            if self.state == Actor.MOVING and self.world.rules["TRAVEL_NON_DETERMINISTIC"] and r.random() < \
+                    self.world.modifiers["TRAVEL_FAIL_CHANCE"]:
+                print("Travel failed")
+                self.cancel_action()
+                self.set_state(Actor.RECOVERING)
+                return
+
+            self.set_progress(self.progress + (move_speed * speed_mod))
             if self.target[0].length() <= self.progress:
                 self.node.remove_actor(self)
                 self.set_node(self.target[1])
@@ -91,6 +103,7 @@ class Actor:
         as the actor, and actor must be idle. If the resource is black, the actor must have an empty inventory.
         Otherwise, the actor must not already be holding a black resource. The actor must also have space to carry the
         resource as determined by the initialisation of the world and the amount of black buildings.
+
         :param resource: Resource object to be picked up
         :return: True if successful and False otherwise
         """
@@ -103,6 +116,10 @@ class Actor:
                     self.world.building_modifiers[3]:
                 print("Inventory full, cannot pick up other resources until something is dropped")
                 return False
+            if self.world.rules["PICK_UP_NON_DETERMINISTIC"] and r.random() < \
+                    self.world.modifiers["PICK_UP_FAIL_CHANCE"]:
+                print("Pick up failed")
+                return False
             resource.set_location(self)
             self.append_resource(resource)
             self.node.remove_resource(resource)
@@ -113,10 +130,15 @@ class Actor:
         """
         Has the actor drop the resource into the node it is currently in. Actor must be idle to do so, and the resource
         should be inside the actor's inventory.
+
         :param resource: Resource object to be dropped
         :return: True if successful and False otherwise
         """
         if self.state == Actor.IDLE and self.resources.__contains__(resource):
+            if self.world.rules["DROP_NON_DETERMINISTIC"] and r.random() < \
+                    self.world.modifiers["DROP_FAIL_CHANCE"]:
+                print("Drop failed")
+                return False
             resource.set_location(self.node)
             self.remove_resource(resource)
             self.node.append_resource(resource)
@@ -127,13 +149,12 @@ class Actor:
         """
         Has the actor drop everything in it's inventory into the actor's current node, leaving it holding nothing.
         Actor must be idle to do this
+
         :return: True if successful and False otherwise
         """
         if self.state == Actor.IDLE:
             for resource in self.resources:
-                resource.set_location(self.node)
-                self.remove_resource(resource)
-                self.node.append_resource(resource)
+                self.drop_resource(resource)
             return True
         return False
 
@@ -142,6 +163,7 @@ class Actor:
         Tells the actor to start digging at the selected mine. Actor must be idle to start digging and the mine should
         be at the same node as the actor. When the actor is updated via update(), the actor makes progress towards
         digging.
+
         :param mine: The mine object the actor should start digging at.
         :return: True if successful and otherwise False
         """
@@ -155,10 +177,15 @@ class Actor:
         """
         Has the actor create a new "construction" site to create a building. Site is created in the same node as the
         actor. Actor must be idle to do this.
+
         :param colour: The colour of the construction site to make
         :return True if successful and False otherwise
         """
         if self.state == Actor.IDLE:
+            if self.world.rules["SITE_CREATION_NON_DETERMINISTIC"] and r.random() < \
+                    self.world.modifiers["SITE_CREATION_FAIL_CHANCE"]:
+                print("Site Creation failed")
+                return False
             self.world.add_site(self.node, colour)
             return True
         return False
@@ -169,6 +196,7 @@ class Actor:
         the actor must be idle. The actor will automatically stop building when it cannot build anymore due to a lack of
         materials or if the building is complete. When the actor is updated via update(), the actor makes progress
         towards building
+
         :param site: The site the actor should start building at.
         :return: True if successful and otherwise False
         """
@@ -183,6 +211,7 @@ class Actor:
         Tells the actor to deposit a resource object into a construction site. The site must be in the same node as the
         actor, the actor must be idle, the resource should be in the actors inventory or in the same node as the site
         and the actor, and the site should still need that type of resource.
+
         :param site: The site in which to drop off the resource
         :param resource: The resource to drop off
         :return: True if successful and False otherwise
@@ -190,6 +219,10 @@ class Actor:
         if self.resources.__contains__(resource) \
                 and (self.node.sites.__contains__(site) or self.node.buildings.__contains__(site)) \
                 and self.state == Actor.IDLE:
+            if self.world.rules["DEPOSIT_NON_DETERMINISTIC"] and r.random() < \
+                    self.world.modifiers["DEPOSIT_FAIL_CHANCE"]:
+                print("Deposit failed")
+                return False
             return site.deposit_resources(resource)
         return False
 
@@ -200,7 +233,8 @@ class Actor:
         there are no other actors digging (or not enough to continue digging if the mine is orange) then the progress
         towards getting a resource from the mine is lost. If the actor is constructing a building or actor at a green
         building then it simply stop the progress at the place it was in.
-        :return:
+
+        :return: True if action was successfully cancelled or False if action is not cancelable
         """
         if self.state == Actor.MOVING:
             self.set_progress(self.target[0].length() - self.progress)
@@ -235,6 +269,7 @@ class Actor:
     def set_node(self, node):
         """
         Sets the node current node the actor is in, and keeps track of it in the actor's fields.
+
         :param node: the new current node
         """
         self.node = node
@@ -243,6 +278,7 @@ class Actor:
     def set_state(self, state):
         """
         Sets the actor's state, and keeps track of it in the actor's fields
+
         :param state: the new state
         """
         self.state = state
@@ -251,6 +287,7 @@ class Actor:
     def set_progress(self, progress):
         """
         Sets the progress the actor has made and keeps track of it in the actor's fields
+
         :param progress: the new value of progress
         """
         self.progress = progress
@@ -259,6 +296,7 @@ class Actor:
     def set_target(self, target):
         """
         Sets the new target of the actor and keeps track of the id of the target, if it has one.
+
         :param target: the new target
         """
         self.target = target
@@ -270,6 +308,7 @@ class Actor:
     def append_resource(self, resource):
         """
         Adds a resource to the inventory of the actor and adds the relevant id to the actor's fields
+
         :param resource: resource to be added to the inventory
         """
         self.resources.append(resource)
@@ -278,6 +317,7 @@ class Actor:
     def remove_resource(self, resource):
         """
         Removes the resource from the inventory and removes the relevant id from the actor's fields
+
         :param resource: resource to be removed from the inventory
         """
         self.resources.remove(resource)
