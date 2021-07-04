@@ -1,3 +1,8 @@
+import numpy.random as nr
+import random as r
+import math as m
+
+
 class Building:
 
     RED = 0
@@ -74,10 +79,19 @@ class Building:
         Called to provide progress on the construction of a new bot. This can only be done up to a certain point based
         on how many resources have been deposited so far.
         """
+
+        if self.world.rules["CONSTRUCTION_NON_DETERMINISTIC"] and r.random() < \
+                self.world.modifiers["CONSTRUCTION_FAIL_CHANCE"]:
+            print("Constructing failed")
+            self.fail_construction()
+            return
+
         if self.colour == 4:
-            building_progress = self.world.modifiers["BUILD_SPEED"] * (1.05 ** self.world.building_modifiers[2])
-            max_progress = sum(self.deposited_resources) / sum(self.needed_resources) * \
-                           self.world.modifiers["BUILD_EFFORT"]
+            build_speed = self.world.modifiers["BUILD_SPEED"] if not self.world.rules["CONSTRUCT_TU"] else \
+                nr.normal(self.world.modifiers["BUILD_SPEED"], self.world.modifiers["CONSTRUCT_SD"])
+            building_progress = build_speed * ((1 + self.world.modifiers["ORANGE_BUILDING_MODIFIER_STRENGTH"]) **
+                                               self.world.building_modifiers[2])
+            max_progress = self.max_progress()
             self.set_progress(min(self.progress + building_progress, max_progress))
 
             if self.progress == max_progress:
@@ -87,6 +101,15 @@ class Building:
             if self.progress >= self.world.modifiers["BUILD_EFFORT"]:
                 self.world.add_actor(self.node)
                 self.ignore_me()
+
+    def fail_construction(self):
+        self.ignore_me()
+        penalty = r.uniform(self.world.modifiers["CONSTRUCTION_FAIL_MIN_PENALTY"],
+                            self.world.modifiers["CONSTRUCTION_FAIL_MAX_PENALTY"])
+        for _ in range(m.ceil(sum(self.needed_resources) * penalty)):
+            self.deposited_resources[self.deposited_resources.index(max(self.deposited_resources))] -= 1
+        self.set_progress(min(self.progress - (sum(self.needed_resources) * self.world.modifiers["BUILD_EFFORT"]
+                                               * penalty), self.max_progress()))
 
     def max_progress(self):
         """

@@ -1,3 +1,8 @@
+import numpy.random as nr
+import random as r
+import math as m
+
+
 class Site:
     
     NEEDED_RESOURCES_MODIFIER = [
@@ -90,10 +95,18 @@ class Site:
         Called to provide progress on the construction of a building. This can only be done up to a certain point based
         on how many resources have been deposited so far.
         """
-        building_progress = self.world.modifiers["BUILD_SPEED"] * \
-                            ((1 + self.world.modifiers["ORANGE_BUILDING_MODIFIER_STRENGTH"]) **
-                             self.world.building_modifiers[2])
-        max_progress = sum(self.deposited_resources) / sum(self.needed_resources) * self.world.modifiers["BUILD_EFFORT"]
+
+        if self.world.rules["CONSTRUCTION_NON_DETERMINISTIC"] and r.random() < \
+                self.world.modifiers["CONSTRUCTION_FAIL_CHANCE"]:
+            print("Constructing failed")
+            self.fail_construction()
+            return
+
+        build_speed = self.world.modifiers["BUILD_SPEED"] if not self.world.rules["CONSTRUCT_TU"] else \
+            nr.normal(self.world.modifiers["BUILD_SPEED"], self.world.modifiers["CONSTRUCT_SD"])
+        building_progress = build_speed * ((1 + self.world.modifiers["ORANGE_BUILDING_MODIFIER_STRENGTH"]) **
+                                           self.world.building_modifiers[2])
+        max_progress = self.max_progress()
         self.set_progress(min(self.progress + building_progress, max_progress))
 
         if self.progress == max_progress:
@@ -108,6 +121,15 @@ class Site:
                 self.task.set_project(new_building)
                 self.task.complete_task()
             del self
+
+    def fail_construction(self):
+        self.ignore_me()
+        penalty = r.uniform(self.world.modifiers["CONSTRUCTION_FAIL_MIN_PENALTY"],
+                            self.world.modifiers["CONSTRUCTION_FAIL_MAX_PENALTY"])
+        for _ in range(m.ceil(sum(self.needed_resources) * penalty)):
+            self.deposited_resources[self.deposited_resources.index(max(self.deposited_resources))] -= 1
+        self.set_progress(min(self.progress - (sum(self.needed_resources) * self.world.modifiers["BUILD_EFFORT"]
+                                               * penalty), self.max_progress()))
 
     def max_progress(self):
         """
