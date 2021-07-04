@@ -87,6 +87,12 @@ class Mine:
 
         # Check if mining yields resources, and stop mining
         if self.progress >= self.world.modifiers["MINE_EFFORT"]:
+            if self.world.rules["DIGGING_COMPLETION_NON_DETERMINISTIC"] and r.random() < \
+                    self.world.modifiers["DIGGING_COMPLETION_FAIL_CHANCE"]:
+                print("Digging completion failed")
+                self.set_progress(0)
+                self.ignore_me()
+                return
             self.provide()
             self.ignore_me()
 

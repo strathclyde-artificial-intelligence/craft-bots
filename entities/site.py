@@ -114,6 +114,11 @@ class Site:
                 if actor.target == self:
                     actor.go_idle()
         if self.progress >= self.world.modifiers["BUILD_EFFORT"] * sum(self.needed_resources):
+            if self.world.rules["CONSTRUCTION_COMPLETION_NON_DETERMINISTIC"] and r.random() < \
+                    self.world.modifiers["CONSTRUCTION_COMPLETION_FAIL_CHANCE"]:
+                print("Construction completion failed")
+                self.fail_construction()
+                return
             new_building = self.world.add_building(self.node, self.colour)
             self.node.remove_site(self)
             self.ignore_me()
