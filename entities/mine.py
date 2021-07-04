@@ -1,3 +1,7 @@
+import numpy.random as nr
+import random as r
+
+
 class Mine:
     def __init__(self, world, node, colour=0):
         self.world = world
@@ -33,11 +37,21 @@ class Mine:
     def dig(self):
         """
         Called when an actor digs at this mine, checking if the requirements (if any) are met before progress is made.
+
         :return: True if digging can begin and false otherwise.
         """
-        digging_progress = self.world.modifiers["MINE_SPEED"] * \
-                           ((1 + self.world.modifiers["ORANGE_BUILDING_MODIFIER_STRENGTH"])
-                            ** self.world.building_modifiers[1])
+
+        if self.world.rules["DIGGING_NON_DETERMINISTIC"] and r.random() < \
+                self.world.modifiers["DIGGING_FAIL_CHANCE"]:
+            print("Digging failed")
+            self.set_progress(0)
+            self.ignore_me()
+            return
+
+        digging_speed = self.world.modifiers["DIGGING_SPEED"] if not self.world.rules["DIGGING_TU"] else \
+            nr.normal(self.world.modifiers["DIGGING_SPEED"], self.world.modifiers["DIGGING_SD"])
+        digging_progress = digging_speed * ((1 + self.world.modifiers["BLUE_BUILDING_MODIFIER_STRENGTH"])
+                                            ** self.world.building_modifiers[1])
 
         # If mine is red, ensure that it is within red mining intervals
         if self.colour == 0:
@@ -87,6 +101,7 @@ class Mine:
     def set_progress(self, progress):
         """
         Sets the progress of the mine and keeps track of this in the mines fields
+
         :param progress:
         """
         self.progress = progress
