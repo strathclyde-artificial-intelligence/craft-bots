@@ -105,7 +105,7 @@ class GUI(tk.Frame):
                 dx = actor_pair[0].node.x + self.padding - self.centre_offset_x - 3 - self.graph.coords(actor_pair[1])[0]
                 dy = actor_pair[0].node.y + self.padding - self.centre_offset_y - 3 - self.graph.coords(actor_pair[1])[1]
                 self.graph.move(actor_pair[1], dx, dy)
-            if actor_pair[0].state == 1:
+            if actor_pair[0].state == 1 or actor_pair[0].state == 4:
                 new_x = (actor_pair[0].target[1].x - actor_pair[0].node.x) \
                         * (actor_pair[0].progress / actor_pair[0].target[0].length()) + actor_pair[0].node.x
                 new_y = (actor_pair[0].target[1].y - actor_pair[0].node.y) \
