@@ -1,3 +1,8 @@
+# It is strongly recommended to NOT modify this file
+# Instead, create a text file called rules.txt if it doesn't already exist
+# and write your required changes there.
+# Craftbots will overwrite the defaults with your values.
+
 # In seconds
 SIM_LENGTH = 900
 
@@ -18,3 +23,33 @@ RT_OR_LOCK_STEP = 0
 # Should none/some/all tasks have deadlines?
 # 0: none, all: 1, some: Chance for task to have a deadline
 TASK_DEADLINE_PROBABILITY = 0.5
+
+# Non-deterministic Actions
+# This decides an action can fail when attempted. "Instant" actions that fail will simply not have any affect
+# Failing on travelling will require the actor to return to the node it started at. It cannot fail returning and is
+# guaranteed to do so. Failing on digging will have all actors digging at the mine become idle and all progress on the
+# mine reset. If building fails, then some progress and resources will be lost
+
+# There is also a separate modifier for constructing and mining actions that have a different chance of failure upon
+# completion of the task. These have the same affects as described above
+
+TRAVEL_NON_DETERMINISTIC = 1
+DIGGING_NON_DETERMINISTIC = 0
+CONSTRUCTING_NON_DETERMINISTIC = 0
+
+DIGGING_COMPLETION_NON_DETERMINISTIC = 0
+CONSTRUCTION_COMPLETION_NON_DETERMINISTIC = 0
+
+PICK_UP_NON_DETERMINISTIC = 0
+DROP_NON_DETERMINISTIC = 0
+SITE_CREATION_NON_DETERMINISTIC = 0
+DEPOSIT_NON_DETERMINISTIC = 0
+
+# Temporal Uncertainty
+# "On-going" actions (travelling, mining, constructing) take time to complete. By setting these actions to be temporally
+# uncertain, they can take different amounts of time each time they are performed, even if conditions are the same.
+# This is simulated by having the "progress" made each tick by the actor(s) have an amount of standard deviation.
+
+TRAVEL_TU = 0
+DIGGING_TU = 0
+CONSTRUCTING_TU = 0

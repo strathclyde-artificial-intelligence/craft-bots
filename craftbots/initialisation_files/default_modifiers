@@ -1,7 +1,7 @@
 # It is strongly recommended to NOT modify this file
 # Instead, create a text file called modifiers.txt if it doesn't already exist
-# and write your required changes there. Craftbots will overwrite the defaults
-# with your values.
+# and write your required changes there.
+# Craftbots will overwrite the defaults with your values.
 
 # Modifiers for the actors in the simulation
 NUM_OF_ACTORS = 3
@@ -68,4 +68,23 @@ TRAVEL_COMP_MODIFIER = 1
 CONSTRUCT_COMP_MODIFIER = 1
 COMP_MODIFIER = 1
 
+# Non-deterministic Action Modifiers
+TRAVEL_FAIL_CHANCE = 0.01
 
+DIGGING_CHANCE = 0.01
+DIGGING_COMPLETION_FAIL_CHANCE = 0.1
+
+CONSTRUCTION_FAIL_CHANCE = 0.01
+CONSTRUCTION_COMPLETION_FAIL_CHANCE = 0.1
+CONSTRUCTION_FAIL_MIN_PENALTY = 0.1
+CONSTRUCTION_FAIL_MAX_PENALTY = 0.5
+
+PICK_UP_FAIL_CHANCE = 0.05
+DROP_FAIL_CHANCE = 0.05
+SITE_CREATION_CHANCE = 0.05
+DEPOSIT_FAIL_CHANCE = 0.05
+
+# Temporally Uncertain Action Modifiers
+TRAVEL_SD = 0.8
+DIGGING_SD = 2
+CONSTRUCTING_SD = 2
