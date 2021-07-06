@@ -49,8 +49,10 @@ class Task:
         This function is called when the task is complete (usually by creating the building). It will calculate the
         score provided by the task and added to a total score variable in the simulation
         """
-        # TODO: Make a better score calculation, perhaps use deadline if one exists
-        self.world.total_score += sum(self.needed_resources)
+
+        self.world.total_score += (sum(self.needed_resources) * self.world.modifiers["TASK_SCORE_A"]) + \
+                                  (self.world.modifiers["TASK_SCORE_B"] *
+                                   (sum(self.needed_resources) ** self.world.modifiers["TASK_SCORE_C"]))
 
     def __generate_task(self):
         """
