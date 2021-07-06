@@ -30,7 +30,7 @@ TASK_DEADLINE_PROBABILITY = 0.5
 # There is also a separate modifier for constructing and mining actions that have a different chance of failure upon
 # completion of the task. These have the same affects as described above
 
-TRAVEL_NON_DETERMINISTIC = 1
+TRAVEL_NON_DETERMINISTIC = 0
 DIGGING_NON_DETERMINISTIC = 0
 CONSTRUCTING_NON_DETERMINISTIC = 0
 

@@ -53,3 +53,7 @@ DEPOSIT_NON_DETERMINISTIC = 0
 TRAVEL_TU = 0
 DIGGING_TU = 0
 CONSTRUCTING_TU = 0
+
+# Partial observability
+# Instead of the entire world being visible by the agent, only what is seen by the actors is visible. An actor can see
+# in two ways. The first is passive sight, where an actor can see all entities the actor is at.
