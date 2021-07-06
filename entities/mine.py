@@ -34,7 +34,7 @@ class Mine:
         self.set_progress(0)
         self.world.add_resource(self.node, self.colour)
 
-    def dig(self):
+    def dig(self, deviation):
         """
         Called when an actor digs at this mine, checking if the requirements (if any) are met before progress is made.
 
@@ -48,10 +48,13 @@ class Mine:
             self.ignore_me()
             return
 
-        digging_speed = self.world.modifiers["DIGGING_SPEED"] if not self.world.rules["DIGGING_TU"] else \
-            nr.normal(self.world.modifiers["DIGGING_SPEED"], self.world.modifiers["DIGGING_SD"])
-        digging_progress = digging_speed * ((1 + self.world.modifiers["BLUE_BUILDING_MODIFIER_STRENGTH"])
-                                            ** self.world.building_modifiers[1])
+        dig_speed = self.world.modifiers["DIG_SPEED"] if not self.world.rules["DIGGING_TU"] else \
+            max(self.world.modifiers["DIGGING_MIN_SD"],
+                min(self.world.modifiers["DIGGING_MAX_SD"],
+                    nr.normal(deviation, self.world.modifiers["DIGGING_PT_SD"])))
+
+        digging_progress = dig_speed * ((1 + self.world.modifiers["BLUE_BUILDING_MODIFIER_STRENGTH"]) **
+                                        self.world.building_modifiers[2])
 
         # If mine is red, ensure that it is within red mining intervals
         if self.colour == 0:
