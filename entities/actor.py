@@ -26,6 +26,7 @@ class Actor:
         self.id = self.world.get_new_id()
         self.target = None
         self.resources = []
+        self.deviation = 0
 
         self.node.append_actor(self)
 
@@ -50,6 +51,9 @@ class Actor:
             return False
         node_index = self.node.shares_edge_with(target_node)
         if node_index != -1:
+            self.deviation = nr.normal(self.world.modifiers["ACTOR_MOVE_SPEED"],
+                                       self.world.modifiers["TRAVEL_OVERALL_SD"]) \
+                if self.world.rules["TRAVEL_TU"] else 0
             self.set_target((self.node.edges[node_index], target_node))
             self.set_state(Actor.MOVING)
             self.set_progress(0)
@@ -75,7 +79,9 @@ class Actor:
         if self.state == Actor.MOVING or self.state == Actor.RECOVERING:
             speed_mod = (self.world.building_modifiers[0] * 0.05) + 1
             move_speed = self.world.modifiers["ACTOR_MOVE_SPEED"] if not self.world.rules["TRAVEL_TU"] else \
-                nr.normal(self.world.modifiers["ACTOR_MOVE_SPEED"], self.world.modifiers["TRAVEL_SD"])
+                max(self.world.modifiers["TRAVEL_MIN_SD"],
+                    min(self.world.modifiers["TRAVEL_MAX_SD"],
+                        nr.normal(self.deviation, self.world.modifiers["TRAVEL_PT_SD"])))
 
             if self.state == Actor.MOVING and self.world.rules["TRAVEL_NON_DETERMINISTIC"] and r.random() < \
                     self.world.modifiers["TRAVEL_FAIL_CHANCE"]:
@@ -92,10 +98,11 @@ class Actor:
                 self.set_state(0)
                 self.set_progress(-1)
                 self.set_target(None)
+                self.deviation = 0
         if self.state == Actor.DIGGING:
-            self.target.dig()
+            self.target.dig(self.deviation)
         if self.state == Actor.CONSTRUCTING:
-            self.target.construct()
+            self.target.construct(self.deviation)
 
     def pick_up_resource(self, resource):
         """
@@ -201,6 +208,11 @@ class Actor:
         :return: True if successful and otherwise False
         """
         if self.state == Actor.IDLE and self.node == site.node:
+
+            self.deviation = nr.normal(self.world.modifiers["BUILD_SPEED"],
+                                       self.world.modifiers["CONSTRUCTING_OVERALL_SD"]) \
+                if self.world.rules["CONSTRUCTING_TU"] else 0
+
             self.set_state(Actor.CONSTRUCTING)
             self.set_target(site)
             return True
@@ -265,6 +277,7 @@ class Actor:
         """
         self.set_target(None)
         self.set_state(0)
+        self.deviation = 0
 
     def set_node(self, node):
         """
