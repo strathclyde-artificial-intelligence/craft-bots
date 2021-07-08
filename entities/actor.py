@@ -9,7 +9,8 @@ class Actor:
     DIGGING = 2
     CONSTRUCTING = 3
     RECOVERING = 4
-    
+    LOOKING = 5
+
     def __init__(self, world, node):
         """
         The actor of the world. With this object, your agent will be able to manipulate the world.
@@ -103,6 +104,8 @@ class Actor:
             self.target.dig(self.deviation)
         if self.state == Actor.CONSTRUCTING:
             self.target.construct(self.deviation)
+        if self.state == Actor.LOOKING:
+            self.set_progress(self.progress + 1)
 
     def pick_up_resource(self, resource):
         """
@@ -244,7 +247,9 @@ class Actor:
         around and must return to the original node before being to make another action. If the actor is digging and
         there are no other actors digging (or not enough to continue digging if the mine is orange) then the progress
         towards getting a resource from the mine is lost. If the actor is constructing a building or actor at a green
-        building then it simply stop the progress at the place it was in.
+        building then it simply stop the progress at the place it was in. If the actor is recovering after failing a
+        movement action, it cannot cancel the action, and must return to its starting node. If the actor is looking,
+        then it simply becomes idle.
 
         :return: True if action was successfully cancelled or False if action is not cancelable
         """
@@ -269,6 +274,8 @@ class Actor:
         elif self.state == Actor.CONSTRUCTING:
             self.go_idle()
             return True
+        elif self.state == Actor.LOOKING:
+            self.go_idle()
         return False
 
     def go_idle(self):
@@ -278,6 +285,21 @@ class Actor:
         self.set_target(None)
         self.set_state(0)
         self.deviation = 0
+        self.set_progress(-1)
+
+    def look(self):
+        """
+        Tells the actor to begin "looking". If any part of the simulation is considered partially observable, then
+        looking will allow the actor to see past its own node. Every tick, an actor can see more around itself. Actor
+        must be idle
+
+        :return: True if actor begins "looking" and False otherwise
+        """
+        if self.state == Actor.IDLE:
+            self.set_state(Actor.LOOKING)
+            self.set_progress(0)
+            return True
+        return False
 
     def set_node(self, node):
         """

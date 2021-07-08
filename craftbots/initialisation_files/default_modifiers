@@ -9,6 +9,7 @@ ACTOR_MOVE_SPEED = 1
 MINE_SPEED = 3
 BUILD_SPEED = 3
 INVENTORY_SIZE = 7
+LOOK_EFFORT = 20
 
 # Modifiers for the different mines and resources
 MINE_EFFORT = 100

@@ -16,10 +16,11 @@ class Node:
         self.mines = []
         self.sites = []
         self.buildings = []
+        self.tasks = []
         self.id = self.world.get_new_id()
         
         self.fields = {"x": self.x, "y": self.y, "edges": [], "actors": [], "resources": [], "mines": [], "sites": [], 
-                       "buildings": [], "id": self.id}
+                       "buildings": [], "tasks": [], "id": self.id}
 
     def __repr__(self):
         return "Node(" + str(self.id) + ")"
@@ -127,3 +128,11 @@ class Node:
         """
         self.buildings.append(building)
         self.fields.get("buildings").append(building.id)
+
+    def append_task(self, task):
+        """
+        Adds a task to the node and keeps its id in the nodes fields
+        :param task: the task to be added
+        """
+        self.tasks.append(task)
+        self.fields.get("tasks").append(task.id)

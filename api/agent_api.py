@@ -156,6 +156,25 @@ class AgentAPI:
         """
         return self.__send_command(Command.DEPOSIT_RESOURCES, actor_id, site_id, resource_id)
 
+    def start_looking(self, actor_id):
+        """
+        Tells the actor to begin "looking" this action only has an affect when the simulation is partially observable.
+        (Assuming that the simulation is partially observable) When an actor is doing anything (aside from moving) it
+        can see everything that is currently at the node it is at, but not further. If the actor is moving, then it can
+        only see itself.
+
+        However if the actor is looking then it will stay in place and do nothing. During this time,
+        it will look further each tick. Each tick that passes since the actor has started looking, the actor can see
+        everything an extra step further.
+
+        So assuming that the actor has been looking for 2 ticks, then it can see everything that is withing two nodes of
+        the node it is currently at. Any information gathered this way is provided in world_info.
+
+        :param actor_id: The ID of the actor that should begin looking
+        :return: The ID of the command or -1 if the max command limit has been reached
+        """
+        return self.__send_command(Command.START_LOOKING, actor_id)
+
     def get_world_info(self):
         """
         This gets an up to date version of the world_info dictionary instantly. This is to be used if your agent takes a

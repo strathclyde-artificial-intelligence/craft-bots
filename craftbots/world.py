@@ -78,30 +78,237 @@ class World:
 
     def get_world_info(self):
         actors = {}
-        nodes = {}
-        edges = {}
-        resources = {}
-        mines = {}
-        sites = {}
-        buildings = {}
-        tasks = {}
-        commands = {}
         for actor in self.get_all_actors():
             actors.__setitem__(actor.id, actor.fields)
-        for edge in self.get_all_edges():
-            edges.__setitem__(edge.id, edge.fields)
-        for node in self.nodes:
-            nodes.__setitem__(node.id, node.fields)
-        for resource in self.get_all_resources():
-            resources.__setitem__(resource.id, resource.fields)
-        for mine in self.get_all_mines():
-            mines.__setitem__(mine.id, mine.fields)
-        for site in self.get_all_sites():
-            sites.__setitem__(site.id, site.fields)
-        for building in self.get_all_buildings():
-            buildings.__setitem__(building.id, building.fields)
-        for task in self.tasks:
-            tasks.__setitem__(task.id, task.fields)
+
+        nodes = {}
+        if self.rules["NODE_PO"]:
+            for actor in self.get_all_actors():
+                if actor.state != actor.LOOKING and actor.state != actor.MOVING and actor.state != actor.RECOVERING:
+                    nodes.__setitem__(actor.node.id, actor.node.fields)
+                elif actor.state == actor.LOOKING:
+                    node_stack = {actor.node.id: actor.node}
+                    got_new_nodes = True
+                    layer = 0
+                    new_nodes = []
+                    while got_new_nodes and layer < actor.progress / self.modifiers["LOOK_EFFORT"]:
+                        got_new_nodes = False
+                        layer += 1
+                        for node_id in node_stack:
+                            for edge in node_stack[node_id].edges:
+                                new_node = edge.get_other_node(node_stack[node_id])
+                                if not node_stack.__contains__(new_node.id):
+                                    new_nodes.append(new_node)
+                                    got_new_nodes = True
+                        if got_new_nodes:
+                            for new_node in new_nodes:
+                                node_stack.__setitem__(new_node.id, new_node)
+                    for node in node_stack:
+                        nodes.__setitem__(node.id, node.fields)
+        else:
+            for node in self.nodes:
+                nodes.__setitem__(node.id, node.fields)
+                if self.rules["EDGE_PO"]:
+                    nodes[node.id].__setitem__("edges", [])
+                if self.rules["RESOURCE_PO"]:
+                    nodes[node.id].__setitem__("resources", [])
+                if self.rules["MINE_PO"]:
+                    nodes[node.id].__setitem__("mines", [])
+                if self.rules["SITE_PO"]:
+                    nodes[node.id].__setitem__("sites", [])
+                if self.rules["BUILDING_PO"]:
+                    nodes[node.id].__setitem__("buildings", [])
+                if self.rules["TASK_PO"]:
+                    nodes[node.id].__setitem__("tasks", [])
+
+        edges = {}
+        if self.rules["EDGE_PO"]:
+            for actor in self.get_all_actors():
+                if actor.state != actor.LOOKING and actor.state != actor.MOVING and actor.state != actor.RECOVERING:
+                    for edge in actor.node.edges:
+                        edges.__setitem__(edge.id, edge.fields)
+                elif actor.state == actor.LOOKING:
+                    node_stack = {actor.node.id: actor.node}
+                    got_new_nodes = True
+                    layer = 0
+                    new_nodes = []
+                    while got_new_nodes and layer < actor.progress / self.modifiers["LOOK_EFFORT"]:
+                        got_new_nodes = False
+                        layer += 1
+                        for node_id in node_stack:
+                            for edge in node_stack[node_id].edges:
+                                new_node = edge.get_other_node(node_stack[node_id])
+                                if not node_stack.__contains__(new_node.id):
+                                    new_nodes.append(new_node)
+                                    got_new_nodes = True
+                        if got_new_nodes:
+                            for new_node in new_nodes:
+                                node_stack.__setitem__(new_node.id, new_node)
+                    for node in node_stack:
+                        for edge in node_stack[node].edges:
+                            edges.__setitem__(edge.id, edge.fields)
+        else:
+            for edge in self.get_all_edges():
+                edges.__setitem__(edge.id, edge.fields)
+
+        resources = {}
+        if self.rules["RESOURCE_PO"]:
+            for actor in self.get_all_actors():
+                if actor.state != actor.LOOKING and actor.state != actor.MOVING and actor.state != actor.RECOVERING:
+                    for resource in actor.node.resources:
+                        resources.__setitem__(resource.id, resource.fields)
+                    for node_actor in actor.node.actors:
+                        for resource in node_actor.resources:
+                            resources.__setitem__(resource.id, resource.fields)
+                elif actor.state == actor.LOOKING:
+                    node_stack = {actor.node.id: actor.node}
+                    got_new_nodes = True
+                    layer = 0
+                    new_nodes = []
+                    while got_new_nodes and layer < actor.progress / self.modifiers["LOOK_EFFORT"]:
+                        got_new_nodes = False
+                        layer += 1
+                        for node_id in node_stack:
+                            for edge in node_stack[node_id].edges:
+                                new_node = edge.get_other_node(node_stack[node_id])
+                                if not node_stack.__contains__(new_node.id):
+                                    new_nodes.append(new_node)
+                                    got_new_nodes = True
+                        if got_new_nodes:
+                            for new_node in new_nodes:
+                                node_stack.__setitem__(new_node.id, new_node)
+                    for node in node_stack:
+                        for resource in node_stack[node].resources:
+                            resources.__setitem__(resource.id, resource.fields)
+                        for node_actor in node_stack[node].actors:
+                            for resource in node_actor.resources:
+                                resources.__setitem__(resource.id, resource.fields)
+        else:
+            for resource in self.get_all_resources():
+                resources.__setitem__(resource.id, resource.fields)
+
+        mines = {}
+        if self.rules["MINE_PO"]:
+            for actor in self.get_all_actors():
+                if actor.state != actor.LOOKING and actor.state != actor.MOVING and actor.state != actor.RECOVERING:
+                    for mine in actor.node.mines:
+                        mines.__setitem__(mine.id, mine.fields)
+                elif actor.state == actor.LOOKING:
+                    node_stack = {actor.node.id: actor.node}
+                    got_new_nodes = True
+                    layer = 0
+                    new_nodes = []
+                    while got_new_nodes and layer < actor.progress / self.modifiers["LOOK_EFFORT"]:
+                        got_new_nodes = False
+                        layer += 1
+                        for node_id in node_stack:
+                            for edge in node_stack[node_id].edges:
+                                new_node = edge.get_other_node(node_stack[node_id])
+                                if not node_stack.__contains__(new_node.id):
+                                    new_nodes.append(new_node)
+                                    got_new_nodes = True
+                        if got_new_nodes:
+                            for new_node in new_nodes:
+                                node_stack.__setitem__(new_node.id, new_node)
+                    for node in node_stack:
+                        for mine in node_stack[node].mines:
+                            mines.__setitem__(mine.id, mine.fields)
+        else:
+            for mine in self.get_all_mines():
+                mines.__setitem__(mine.id, mine.fields)
+
+        sites = {}
+        if self.rules["SITE_PO"]:
+            for actor in self.get_all_actors():
+                if actor.state != actor.LOOKING and actor.state != actor.MOVING and actor.state != actor.RECOVERING:
+                    for site in actor.node.sites:
+                        sites.__setitem__(site.id, site.fields)
+                elif actor.state == actor.LOOKING:
+                    node_stack = {actor.node.id: actor.node}
+                    got_new_nodes = True
+                    layer = 0
+                    new_nodes = []
+                    while got_new_nodes and layer < actor.progress / self.modifiers["LOOK_EFFORT"]:
+                        got_new_nodes = False
+                        layer += 1
+                        for node_id in node_stack:
+                            for edge in node_stack[node_id].edges:
+                                new_node = edge.get_other_node(node_stack[node_id])
+                                if not node_stack.__contains__(new_node.id):
+                                    new_nodes.append(new_node)
+                                    got_new_nodes = True
+                        if got_new_nodes:
+                            for new_node in new_nodes:
+                                node_stack.__setitem__(new_node.id, new_node)
+                    for node in node_stack:
+                        for site in node_stack[node].sites:
+                            sites.__setitem__(site.id, site.fields)
+        else:
+            for site in self.get_all_sites():
+                sites.__setitem__(site.id, site.fields)
+
+        buildings = {}
+        if self.rules["BUILDING_PO"]:
+            for actor in self.get_all_actors():
+                if actor.state != actor.LOOKING and actor.state != actor.MOVING and actor.state != actor.RECOVERING:
+                    for building in actor.node.buildings:
+                        buildings.__setitem__(building.id, building.fields)
+                elif actor.state == actor.LOOKING:
+                    node_stack = {actor.node.id: actor.node}
+                    got_new_nodes = True
+                    layer = 0
+                    new_nodes = []
+                    while got_new_nodes and layer < actor.progress / self.modifiers["LOOK_EFFORT"]:
+                        got_new_nodes = False
+                        layer += 1
+                        for node_id in node_stack:
+                            for edge in node_stack[node_id].edges:
+                                new_node = edge.get_other_node(node_stack[node_id])
+                                if not node_stack.__contains__(new_node.id):
+                                    new_nodes.append(new_node)
+                                    got_new_nodes = True
+                        if got_new_nodes:
+                            for new_node in new_nodes:
+                                    node_stack.__setitem__(new_node.id, new_node)
+                    for node in node_stack:
+                        for building in node_stack[node].buildings:
+                            buildings.__setitem__(building.id, building.fields)
+        else:
+            for building in self.get_all_buildings():
+                buildings.__setitem__(building.id, building.fields)
+
+        tasks = {}
+        if self.rules["TASK_PO"]:
+            for actor in self.get_all_actors():
+                if actor.state != actor.LOOKING and actor.state != actor.MOVING and actor.state != actor.RECOVERING:
+                    for task in actor.node.tasks:
+                        print(actor.node.tasks)
+                        tasks.__setitem__(task.id, task.fields)
+                elif actor.state == actor.LOOKING:
+                    node_stack = {actor.node.id: actor.node}
+                    got_new_nodes = True
+                    layer = 0
+                    new_nodes = []
+                    while got_new_nodes and layer < actor.progress / self.modifiers["LOOK_EFFORT"]:
+                        got_new_nodes = False
+                        layer += 1
+                        for node_id in node_stack:
+                            for edge in node_stack[node_id].edges:
+                                new_node = edge.get_other_node(node_stack[node_id])
+                                if not node_stack.__contains__(new_node.id):
+                                    new_nodes.append(new_node)
+                                    got_new_nodes = True
+                        if got_new_nodes:
+                            for new_node in new_nodes:
+                                node_stack.__setitem__(new_node.id, new_node)
+                    for node in node_stack:
+                        for task in node_stack[node].tasks:
+                            tasks.__setitem__(task.id, task.fields)
+        else:
+            for task in self.tasks:
+                tasks.__setitem__(task.id, task.fields)
+
+        commands = {}
         for command in self.all_commands:
             commands.__setitem__(command.id, command.fields)
         return {"tick": self.tick, "actors": actors, "nodes": nodes, "edges": edges, "resources": resources,
