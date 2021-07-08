@@ -23,6 +23,8 @@ class Task:
         self.deadline = self.__set_dead_line()
         self.project = None
 
+        self.node.append_task(self)
+
         self.fields = {"node": self.node.id, "id": self.id, "completed": self.completed, "difficulty": self.difficulty,
                        "needed_resources": self.needed_resources, "project": self.project, "deadline": self.deadline}
 
