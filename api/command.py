@@ -10,6 +10,7 @@ class Command:
     CONSTRUCT_AT = 7
     DEPOSIT_RESOURCES = 8
     CANCEL_ACTION = 9
+    START_LOOKING = 10
 
     PENDING = 0
     ACTIVE = 1
@@ -125,6 +126,15 @@ class Command:
             actor = self.world.get_by_id(self.args[0], entity_type="Actor")
             if actor is not None:
                 self.set_result(actor.cancel_action())
+                self.set_state(Command.COMPLETED)
+                return self.result
+            self.set_state(Command.REJECTED)
+            return False
+        elif self.function_id == Command.START_LOOKING and self.args.__len__() == 1:
+            self.set_state(Command.ACTIVE)
+            actor = self.world.get_by_id(self.args[0], entity_type="Actor")
+            if actor is not None:
+                self.set_result(actor.look())
                 self.set_state(Command.COMPLETED)
                 return self.result
             self.set_state(Command.REJECTED)
