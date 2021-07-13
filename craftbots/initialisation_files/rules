@@ -56,9 +56,9 @@ CONSTRUCTING_TU = 0
 # in two ways. The first is passive sight, where an actor can see all entities the actor is at.
 
 NODE_PO = 0
-EDGE_PO = 0
-RESOURCE_PO = 0
-MINE_PO = 0
-SITE_PO = 0
-BUILDING_PO = 0
-TASK_PO = 0
+EDGE_PO = 1
+RESOURCE_PO = 1
+MINE_PO = 1
+SITE_PO = 1
+BUILDING_PO = 1
+TASK_PO = 1
