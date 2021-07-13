@@ -21,7 +21,17 @@ start_time = time.time()
 def default_scenario(modifiers, world_gen_modifiers):
     global world
     for _ in range(modifiers["NUM_OF_ACTORS"]):
-        world.add_actor(world.nodes[r.randint(0, world.nodes.__len__() - 1)])
+        actor = world.add_actor(world.nodes[r.randint(0, world.nodes.__len__() - 1)])
+        for _ in range(world_gen_modifiers["ACTOR_NUM_OF_RED_RESOURCES"]):
+            world.add_resource(actor, 0)
+        for _ in range(world_gen_modifiers["ACTOR_NUM_OF_BLUE_RESOURCES"]):
+            world.add_resource(actor, 1)
+        for _ in range(world_gen_modifiers["ACTOR_NUM_OF_ORANGE_RESOURCES"]):
+            world.add_resource(actor, 2)
+        for _ in range(world_gen_modifiers["ACTOR_NUM_OF_BLACK_RESOURCES"]):
+            world.add_resource(actor, 3)
+        for _ in range(world_gen_modifiers["ACTOR_NUM_OF_GREEN_RESOURCES"]):
+            world.add_resource(actor, 4)
         
     for _ in range(world_gen_modifiers["NUM_OF_RED_RESOURCES"]):
         world.add_resource(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 0)
