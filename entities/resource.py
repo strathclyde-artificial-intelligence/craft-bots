@@ -1,8 +1,9 @@
 class Resource:
     def __init__(self, world, location, colour=0):
         """
-        A resource in the carftbots simulation. Resources are produced from mines and used to build buildings. Each
+        A resource in the craftbots simulation. Resources are produced from mines and used to build buildings. Each
         colour of the resources has its own special properties that affect how the resource can be collected or used.
+
         :param world: The world in which the resources exists
         :param location: The place the the resource currently is
         :param colour: The colour of the resource
@@ -38,6 +39,7 @@ class Resource:
     def set_location(self, location):
         """
         Sets the location of the resource and records the id of the location in the resources fields
+
         :param location: the new location
         """
         self.location = location
@@ -46,6 +48,7 @@ class Resource:
     def set_used(self, used):
         """
         Sets the used state of the resource and records it in the resources fields
+
         :param used: the new used state
         """
         self.used = used
