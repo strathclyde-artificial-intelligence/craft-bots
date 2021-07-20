@@ -10,6 +10,8 @@ class Actor:
     CONSTRUCTING = 3
     RECOVERING = 4
     LOOKING = 5
+    SENDING = 6
+    RECEIVING = 7
 
     def __init__(self, world, node):
         """
@@ -106,6 +108,11 @@ class Actor:
             self.target.construct(self.deviation)
         if self.state == Actor.LOOKING:
             self.set_progress(self.progress + 1)
+        if self.state == Actor.SENDING:
+            for actor in self.node.actors:
+                if actor.state == actor.RECEIVING:
+                    actor.target.append((self.world.tick, self.target))
+                    actor.set_target(actor.target)
 
     def pick_up_resource(self, resource):
         """
@@ -271,11 +278,10 @@ class Actor:
                 self.target.set_progress(0)
             self.go_idle()
             return True
-        elif self.state == Actor.CONSTRUCTING:
+        elif self.state == Actor.CONSTRUCTING or self.state == Actor.LOOKING or self.state == Actor.SENDING or \
+                self.state == Actor.RECEIVING:
             self.go_idle()
             return True
-        elif self.state == Actor.LOOKING:
-            self.go_idle()
         return False
 
     def go_idle(self):
@@ -298,6 +304,20 @@ class Actor:
         if self.state == Actor.IDLE:
             self.set_state(Actor.LOOKING)
             self.set_progress(0)
+            return True
+        return False
+
+    def start_sending(self, message):
+        if self.state == Actor.IDLE:
+            self.set_target(message)
+            self.set_state(Actor.SENDING)
+            return True
+        return False
+
+    def start_receiving(self):
+        if self.state == Actor.IDLE:
+            self.set_target([])
+            self.set_state(Actor.RECEIVING)
             return True
         return False
 
@@ -338,7 +358,10 @@ class Actor:
         if isinstance(target, tuple):
             self.fields.__setitem__("target", (target[0].id, target[1].id))
         else:
-            self.fields.__setitem__("target", None if target is None else target.id)
+            try:
+                self.fields.__setitem__("target", target.id)
+            except AttributeError:
+                self.fields.__setitem__("target", target)
     
     def append_resource(self, resource):
         """
