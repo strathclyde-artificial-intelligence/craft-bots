@@ -3,7 +3,7 @@ from api.command import Command
 
 class AgentAPI:
 
-    def __init__(self, world, max_commands=10):
+    def __init__(self, world, actors, max_commands=10):
         """
         The API for the craftbots simulation. It is given to the agent and the agent can make calls to this to perform
         actions on the simulation or to gather information.
@@ -14,6 +14,7 @@ class AgentAPI:
         """
         self.__world = world
         self.__max_commands = max_commands
+        self.actors = actors
         self.num_of_current_commands = 0
 
     def __send_command(self, function_id, *args):
@@ -21,16 +22,17 @@ class AgentAPI:
         This function creates a Command object that sends itself to the world, and at the start of a tick all of the
         commands are executed. This then returns a unique ID that can be used to find the outcome of the command. This
         will most often be True if the action is done/started successfully or False if for some reason the action could
-        not be performed. This will return -1 if the max_commands limit has been reached for the tick
+        not be performed. This will return -1 if the max_commands limit has been reached or API does not have access to the actor for the tick
 
         The result is given to the agent in a tuple with the command's id when the craft bots
         simulation calls the receive_results method in the Agent.
 
         :param function_id: the ID of the action to be performed
         :param args: an array of parameters to be passed to the command.
-        :return: The ID of the command or -1 if the max command limit has been reached
+        :return: The ID of the command or -1 if the max command limit has been reached or API does not have access to the actor
         """
-        if self.num_of_current_commands < self.__max_commands or self.__max_commands == 0:
+        if (self.num_of_current_commands < self.__max_commands or self.__max_commands == 0) and \
+                self.actors.__contains__(args[0]):
             command = Command(self.__world, function_id, *args)
             self.num_of_current_commands += 1
             return command.id
@@ -44,7 +46,7 @@ class AgentAPI:
 
         :param actor_id: The ID of the actor to be moved
         :param node_id: The ID of the node the actor should move to.
-        :return: The ID of the command or -1 if the max command limit has been reached
+        :return: The ID of the command or -1 if the max command limit has been reached or API does not have access to the actor
         """
         return self.__send_command(Command.MOVE_TO, actor_id, node_id)
 
@@ -55,7 +57,7 @@ class AgentAPI:
         To do this, the agent must be idle.
 
         :param actor_id: The ID of the actor to be moved
-        :return: The ID of the command or -1 if the max command limit has been reached
+        :return: The ID of the command or -1 if the max command limit has been reached or API does not have access to the actor
         """
         return self.__send_command(Command.MOVE_RAND, actor_id)
 
@@ -71,7 +73,7 @@ class AgentAPI:
 
         :param actor_id: The ID of the actor to pick up the resource
         :param resource_id: The ID of the resource to be picked up
-        :return: The ID of the command or -1 if the max command limit has been reached
+        :return: The ID of the command or -1 if the max command limit has been reached or API does not have access to the actor
         """
         return self.__send_command(Command.PICK_UP_RESOURCE, actor_id, resource_id)
 
@@ -84,7 +86,7 @@ class AgentAPI:
 
         :param actor_id: The ID of the actor to drop the resource
         :param resource_id: The ID of the resource to be dropped
-        :return: The ID of the command or -1 if the max command limit has been reached
+        :return: The ID of the command or -1 if the max command limit has been reached or API does not have access to the actor
         """
         return self.__send_command(Command.DROP_RESOURCE, actor_id, resource_id)
 
@@ -96,7 +98,7 @@ class AgentAPI:
         To do this, the actor must be idle.
 
         :param actor_id: The ID of the actor to drop all of its resources
-        :return: The ID of the command or -1 if the max command limit has been reached
+        :return: The ID of the command or -1 if the max command limit has been reached or API does not have access to the actor
         """
         return self.__send_command(Command.DROP_ALL_RESOURCES, actor_id)
 
@@ -110,7 +112,7 @@ class AgentAPI:
 
         :param actor_id: The ID of the actor to dig at the mine
         :param mine_id: The ID of the mine the actor should dig at
-        :return: The ID of the command or -1 if the max command limit has been reached
+        :return: The ID of the command or -1 if the max command limit has been reached or API does not have access to the actor
         """
         return self.__send_command(Command.DIG_AT, actor_id, mine_id)
 
@@ -122,7 +124,7 @@ class AgentAPI:
 
         :param actor_id: The ID of the actor to create a site
         :param site_type: The type of site to be built (0: red, 1: blue, 2: orange, 3: black, 4: green)
-        :return: The ID of the command or -1 if the max command limit has been reached
+        :return: The ID of the command or -1 if the max command limit has been reached or API does not have access to the actor
         """
         return self.__send_command(Command.START_SITE, actor_id, site_type)
 
@@ -137,7 +139,7 @@ class AgentAPI:
 
         :param actor_id: The ID of the actor to construct at the site
         :param site_id: The ID of the site / building the actor should construct at.
-        :return: The ID of the command or -1 if the max command limit has been reached
+        :return: The ID of the command or -1 if the max command limit has been reached or API does not have access to the actor
         """
         return self.__send_command(Command.CONSTRUCT_AT, actor_id, site_id)
 
@@ -152,7 +154,7 @@ class AgentAPI:
         :param actor_id: The ID of the actor to deposit a resource at the site
         :param site_id: The ID of the site the resources should be deposited in
         :param resource_id: The ID of the resource to be deposited
-        :return: The ID of the command or -1 if the max command limit has been reached
+        :return: The ID of the command or -1 if the max command limit has been reached or API does not have access to the actor
         """
         return self.__send_command(Command.DEPOSIT_RESOURCES, actor_id, site_id, resource_id)
 
@@ -171,22 +173,9 @@ class AgentAPI:
         the node it is currently at. Any information gathered this way is provided in world_info.
 
         :param actor_id: The ID of the actor that should begin looking
-        :return: The ID of the command or -1 if the max command limit has been reached
+        :return: The ID of the command or -1 if the max command limit has been reached or API does not have access to the actor
         """
         return self.__send_command(Command.START_LOOKING, actor_id)
-
-    def get_world_info(self):
-        """
-        This gets an up to date version of the world_info dictionary instantly. This is to be used if your agent takes a
-        long time to deliberate actions or is waiting for something to change, and the agent needs up to date
-        information immediately.
-
-        This does not need to be called at the start of get_next_commands because the world info is updated each time
-        before the function is called.
-
-        :return: The world_info dictionary
-        """
-        return self.__world.get_world_info()
 
     def cancel_action(self, actor_id):
         """
@@ -199,9 +188,47 @@ class AgentAPI:
         To do this, the actor must not be idle.
 
         :param actor_id: The ID of the actor to cancel its action
-        :return: The ID of the command or -1 if the max command limit has been reached
+        :return: The ID of the command or -1 if the max command limit has been reached or API does not have access to the actor
         """
         return self.__send_command(Command.CANCEL_ACTION, actor_id)
+
+    def start_sending(self, actor_id, message):
+        """
+        Tells the actor to start sending a message. This is intended to be used during a simulation with limited
+        communications. The message can be whatever the agent decides. Only actors that are actively receiving can
+        hear a message, and only when the two actors are at the same node.
+
+        To do this, the actor must be idle.
+
+        :param actor_id: The ID of the actor to start sending a message
+        :param message: The message the agent wishes to broadcast.
+        :return: The ID of the command or -1 if the max command limit has been reached or API does not have access to the actor
+        """
+        return self.__send_command(Command.START_SENDING, actor_id, message)
+
+    def start_receiving(self, actor_id):
+        """
+        Tells an actor to listen for a message being broadcasted by an actor that is sending. The two actors must be in
+        the same node for the message to be transmitted. When the actor receives a message, it will store it in a list
+        with any other messages it has received, as well as the tick the message was received, under the actors target.
+
+        :param actor_id: The ID of the actor to start receiving a message
+        :return: The ID of the command or -1 if the max command limit has been reached or API does not have access to the actor
+        """
+        return self.__send_command(Command.START_RECEIVING, actor_id)
+
+    def get_world_info(self):
+        """
+        This gets an up to date version of the world_info dictionary instantly. This is to be used if your agent takes a
+        long time to deliberate actions or is waiting for something to change, and the agent needs up to date
+        information immediately.
+
+        This does not need to be called at the start of get_next_commands because the world info is updated each time
+        before the function is called.
+
+        :return: The world_info dictionary
+        """
+        return self.__world.get_world_info(target_actors=self.actors)
 
     def get_by_id(self, entity_id, entity_type=None, target_node=None):
         """
@@ -218,7 +245,7 @@ class AgentAPI:
         :param target_node: (optional) the ID of the node that should be checked
         :return: A dictionary of the fields the entity has, or None if the entity is not found
         """
-        result = self.__world.get_by_id(entity_id, entity_type=entity_type, target_node=self.__world.get_by_id(target_node))
+        result = self.__world.get_by_id(entity_id, target_actors=self.actors, entity_type=entity_type, target_node=self.__world.get_by_id(target_node))
         return None if result is None else result.fields
 
     def get_field(self, entity_id, field, entity_type=None, target_node=None):
@@ -237,4 +264,4 @@ class AgentAPI:
         :param target_node: (optional) the ID of the node that should be checked
         :return: The field from the entity, or None if the entity is not found or the entity does not have the field.
         """
-        return self.__world.get_field(entity_id, field, entity_type=entity_type, target_node=target_node)
+        return self.__world.get_field(entity_id, field, target_actors=self.actors, entity_type=entity_type, target_node=target_node)
