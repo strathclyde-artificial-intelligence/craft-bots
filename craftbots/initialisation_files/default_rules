@@ -58,6 +58,7 @@ CONSTRUCTING_TU = 0
 # Instead of the entire world being visible by the agent, only what is seen by the actors is visible. An actor can see
 # in two ways. The first is passive sight, where an actor can see all entities the actor is at.
 
+ACTOR_PO = 0
 NODE_PO = 0
 EDGE_PO = 0
 RESOURCE_PO = 0
@@ -65,3 +66,9 @@ MINE_PO = 0
 SITE_PO = 0
 BUILDING_PO = 0
 TASK_PO = 0
+
+# Limited Communication
+# When limited communication is set, each actor can only knows about fully observable entities and any partially
+# observable entities it alone can see. Each actor is assigned a unique agent.
+
+LIMITED_COMMUNICATIONS = 0
