@@ -76,27 +76,31 @@ class World:
                 if attempts >= self.world_gen_modifiers["MAX_ATTEMPTS"]:
                     break
 
-    def get_world_info(self):
-        edges = self.get_edges_info()
-        resources = self.get_resources_info()
-        mines = self.get_mines_info()
-        sites = self.get_sites_info()
-        buildings = self.get_buildings_info()
-        tasks = self.get_tasks_info()
+    def get_world_info(self, target_actors=None):
+        if target_actors is None:
+            actors = self.get_all_actors()
+        else:
+            actors = []
+            for actor_index in range(target_actors.__len__()):
+                actors.append(self.get_by_id(target_actors[actor_index], entity_type="Actor"))
 
-        actors = {}
-        for actor in self.get_all_actors():
-            actors.__setitem__(actor.id, actor.fields)
+        edges_info = self.get_edges_info(actors)
+        resources_info = self.get_resources_info(actors)
+        mines_info = self.get_mines_info(actors)
+        sites_info = self.get_sites_info(actors)
+        buildings_info = self.get_buildings_info(actors)
+        tasks_info = self.get_tasks_info(actors)
+        actors_info = self.get_actor_info(actors)
 
-        nodes = {}
+        nodes_info = {}
         if self.rules["NODE_PO"]:
-            for actor in self.get_all_actors():
+            for actor in actors:
                 if actor.state != actor.LOOKING and actor.state != actor.MOVING and actor.state != actor.RECOVERING:
-                    if nodes.__contains__(actor.node.id):
-                        nodes.get(actor.node.id)["observers"].append(actor.id)
+                    if nodes_info.__contains__(actor.node.id):
+                        nodes_info.get(actor.node.id)["observers"].append(actor.id)
                     else:
-                        nodes.__setitem__(actor.node.id, actor.node.fields)
-                        nodes.get(actor.node.id).__setitem__("observers", [actor.id])
+                        nodes_info.__setitem__(actor.node.id, actor.node.fields)
+                        nodes_info.get(actor.node.id).__setitem__("observers", [actor.id])
                 elif actor.state == actor.LOOKING:
                     node_stack = {actor.node.id: actor.node}
                     got_new_nodes = True
@@ -115,56 +119,97 @@ class World:
                             for new_node in new_nodes:
                                 node_stack.__setitem__(new_node.id, new_node)
                     for node_id in node_stack:
-                        if nodes.__contains__(node_id):
-                            nodes.get(node_id)["observers"].append(actor.id)
+                        if nodes_info.__contains__(node_id):
+                            nodes_info.get(node_id)["observers"].append(actor.id)
                         else:
-                            nodes.__setitem__(node_id, node_stack[node_id].fields)
-                            nodes.get(node_id).__setitem__("observers", [actor.id])
+                            nodes_info.__setitem__(node_id, node_stack[node_id].fields)
+                            nodes_info.get(node_id).__setitem__("observers", [actor.id])
         else:
             for node in self.nodes:
-                nodes.__setitem__(node.id, node.fields)
+                nodes_info.__setitem__(node.id, node.fields)
                 if self.rules["EDGE_PO"]:
-                    nodes[node.id].__setitem__("edges", [])
-                    for edge_id in edges:
-                        if edges[edge_id]["node_a"] == node.id or edges[edge_id]["node_b"] == node.id:
-                            nodes.get(node.id)["edges"].append(edge_id)
+                    nodes_info[node.id].__setitem__("edges", [])
+                    for edge_id in edges_info:
+                        if edges_info[edge_id]["node_a"] == node.id or edges_info[edge_id]["node_b"] == node.id:
+                            nodes_info.get(node.id)["edges"].append(edge_id)
                 if self.rules["RESOURCE_PO"]:
-                    nodes[node.id].__setitem__("resources", [])
-                    for resource_id in resources:
-                        if resources[resource_id]["location"] == node.id:
-                            nodes.get(node.id)["resources"].append(resource_id)
+                    nodes_info[node.id].__setitem__("resources", [])
+                    for resource_id in resources_info:
+                        if resources_info[resource_id]["location"] == node.id:
+                            nodes_info.get(node.id)["resources"].append(resource_id)
                 if self.rules["MINE_PO"]:
-                    nodes[node.id].__setitem__("mines", [])
-                    for mine_id in mines:
-                        if mines[mine_id]["node"] == node.id:
-                            nodes.get(node.id)["mines"].append(mine_id)
+                    nodes_info[node.id].__setitem__("mines", [])
+                    for mine_id in mines_info:
+                        if mines_info[mine_id]["node"] == node.id:
+                            nodes_info.get(node.id)["mines"].append(mine_id)
                 if self.rules["SITE_PO"]:
-                    nodes[node.id].__setitem__("sites", [])
-                    for site_id in sites:
-                        if sites[site_id]["node"] == node.id:
-                            nodes.get(node.id)["sites"].append(site_id)
+                    nodes_info[node.id].__setitem__("sites", [])
+                    for site_id in sites_info:
+                        if sites_info[site_id]["node"] == node.id:
+                            nodes_info.get(node.id)["sites"].append(site_id)
                 if self.rules["BUILDING_PO"]:
-                    nodes[node.id].__setitem__("buildings", [])
-                    for building_id in buildings:
-                        if buildings[building_id]["node"] == node.id:
-                            nodes.get(node.id)["buildings"].append(building_id)
+                    nodes_info[node.id].__setitem__("buildings", [])
+                    for building_id in buildings_info:
+                        if buildings_info[building_id]["node"] == node.id:
+                            nodes_info.get(node.id)["buildings"].append(building_id)
                 if self.rules["TASK_PO"]:
-                    nodes[node.id].__setitem__("tasks", [])
-                    for task_id in tasks:
-                        if tasks[task_id]["node"] == node.id:
-                            nodes.get(node.id)["tasks"].append(task_id)
+                    nodes_info[node.id].__setitem__("tasks", [])
+                    for task_id in tasks_info:
+                        if tasks_info[task_id]["node"] == node.id:
+                            nodes_info.get(node.id)["tasks"].append(task_id)
 
-        commands = {}
+        commands_info = {}
         for command in self.all_commands:
-            commands.__setitem__(command.id, command.fields)
+            if actors_info.__contains__(command.args[0]):
+                commands_info.__setitem__(command.id, command.fields)
 
-        return {"tick": self.tick, "actors": actors, "nodes": nodes, "edges": edges, "resources": resources,
-                "mines": mines, "sites": sites, "buildings": buildings, "tasks": tasks, "commands": commands}
+        return {"tick": self.tick, "actors": actors_info, "nodes": nodes_info, "edges": edges_info, "resources": resources_info,
+                "mines": mines_info, "sites": sites_info, "buildings": buildings_info, "tasks": tasks_info, "commands": commands_info}
+    
+    def get_actor_info(self, actors):
+        actor_info = {}
+        if self.rules["ACTOR_PO"]:
+            for actor in actors:
+                if actor.state != actor.LOOKING and actor.state != actor.MOVING and actor.state != actor.RECOVERING:
+                    for actor_at_node in actor.node.actors:
+                        if actor_at_node.id in actor_info:
+                            actor_info.get(actor_at_node.id)["observers"].append(actor.id)
+                        else:
+                            actor_info.__setitem__(actor_at_node.id, actor_at_node.fields)
+                            actor_info.get(actor_at_node.id).__setitem__("observers", [actor.id])
+                elif actor.state == actor.LOOKING:
+                    node_stack = {actor.node.id: actor.node}
+                    got_new_nodes = True
+                    layer = 0
+                    new_nodes = []
+                    while got_new_nodes and layer < actor.progress / self.modifiers["LOOK_EFFORT"]:
+                        got_new_nodes = False
+                        layer += 1
+                        for node_id in node_stack:
+                            for edge in node_stack[node_id].edges:
+                                new_node = edge.get_other_node(node_stack[node_id])
+                                if not node_stack.__contains__(new_node.id):
+                                    new_nodes.append(new_node)
+                                    got_new_nodes = True
+                        if got_new_nodes:
+                            for new_node in new_nodes:
+                                node_stack.__setitem__(new_node.id, new_node)
+                    for node in node_stack:
+                        for actor_at_node in node_stack[node].actors:
+                            if actor_at_node.id in actor_info:
+                                actor_info.get(actor_at_node.id)["observers"].append(actor.id)
+                            else:
+                                actor_info.__setitem__(actor_at_node.id, actor_at_node.fields)
+                                actor_info.get(actor_at_node.id).__setitem__("observers", [actor.id])
+        else:
+            for actor in self.get_all_actors():
+                actor_info.__setitem__(actor.id, actor.fields)
+        return actor_info
 
-    def get_tasks_info(self):
+    def get_tasks_info(self, actors):
         tasks = {}
         if self.rules["TASK_PO"]:
-            for actor in self.get_all_actors():
+            for actor in actors:
                 if actor.state != actor.LOOKING and actor.state != actor.MOVING and actor.state != actor.RECOVERING:
                     for task in actor.node.tasks:
                         if tasks.__contains__(task.id):
@@ -201,10 +246,10 @@ class World:
                 tasks.__setitem__(task.id, task.fields)
         return tasks
 
-    def get_buildings_info(self):
+    def get_buildings_info(self, actors):
         buildings = {}
         if self.rules["BUILDING_PO"]:
-            for actor in self.get_all_actors():
+            for actor in actors:
                 if actor.state != actor.LOOKING and actor.state != actor.MOVING and actor.state != actor.RECOVERING:
                     for building in actor.node.buildings:
                         if buildings.__contains__(building.id):
@@ -241,10 +286,10 @@ class World:
                 buildings.__setitem__(building.id, building.fields)
         return buildings
 
-    def get_sites_info(self):
+    def get_sites_info(self, actors):
         sites = {}
         if self.rules["SITE_PO"]:
-            for actor in self.get_all_actors():
+            for actor in actors:
                 if actor.state != actor.LOOKING and actor.state != actor.MOVING and actor.state != actor.RECOVERING:
                     for site in actor.node.sites:
                         if sites.__contains__(site.id):
@@ -281,10 +326,10 @@ class World:
                 sites.__setitem__(site.id, site.fields)
         return sites
 
-    def get_mines_info(self):
+    def get_mines_info(self, actors):
         mines = {}
         if self.rules["MINE_PO"]:
-            for actor in self.get_all_actors():
+            for actor in actors:
                 if actor.state != actor.LOOKING and actor.state != actor.MOVING and actor.state != actor.RECOVERING:
                     for mine in actor.node.mines:
                         if mines.__contains__(mine.id):
@@ -321,10 +366,10 @@ class World:
                 mines.__setitem__(mine.id, mine.fields)
         return mines
 
-    def get_resources_info(self):
+    def get_resources_info(self, actors):
         resources = {}
         if self.rules["RESOURCE_PO"]:
-            for actor in self.get_all_actors():
+            for actor in actors:
                 if actor.state != actor.LOOKING and actor.state != actor.MOVING and actor.state != actor.RECOVERING:
                     for resource in actor.node.resources:
                         if resources.__contains__(resource.id):
@@ -375,10 +420,10 @@ class World:
                 resources.__setitem__(resource.id, resource.fields)
         return resources
 
-    def get_edges_info(self):
+    def get_edges_info(self, actors):
         edges = {}
         if self.rules["EDGE_PO"]:
-            for actor in self.get_all_actors():
+            for actor in actors:
                 if actor.state != actor.LOOKING and actor.state != actor.MOVING and actor.state != actor.RECOVERING:
                     for edge in actor.node.edges:
                         if edges.__contains__(edge.id):
@@ -536,15 +581,24 @@ class World:
         self.last_id += 1
         return self.last_id
 
-    def get_by_id(self, entity_id, entity_type=None, target_node=None):
+    def get_by_id(self, entity_id, target_actors=None, entity_type=None, target_node=None):
+        if target_actors is not None:
+            visible_world = self.get_world_info(target_actors=target_actors)
+            if entity_id not in visible_world["actors"] and entity_id not in visible_world["sites"] and \
+                    entity_id not in visible_world["buildings"] and entity_id not in visible_world["edges"] and \
+                    entity_id not in visible_world["mines"] and entity_id not in visible_world["nodes"] and \
+                    entity_id not in visible_world["resources"] and entity_id not in visible_world["tasks"] and \
+                    entity_id not in visible_world["commands"]:
+                return None
         if target_node is None:
             target_node = self.nodes
         else:
             target_node = [target_node]
-        if entity_type == "Task" or entity_type is None:
-            for task in self.tasks:
-                if task.id == entity_id:
-                    return task
+
+        if entity_type == "Command" or entity_type is None:
+            for command in self.all_commands:
+                if command.id == entity_id:
+                    return command
         for node in target_node:
             if node.id == entity_id and (entity_type == "Node" or entity_type is None):
                 return node
@@ -569,8 +623,11 @@ class World:
             for edge in node.edges:
                 if edge.id == entity_id and (entity_type == "Edge" or entity_type is None):
                     return edge
+            for task in node.tasks:
+                if task.id == entity_id and (entity_type == "Task" or entity_type is None):
+                    return task
         return None
 
-    def get_field(self, entity_id, field, entity_type=None, target_node=None):
-        entity = self.get_by_id(entity_id, entity_type=entity_type, target_node=target_node)
+    def get_field(self, entity_id, field, target_actors=None, entity_type=None, target_node=None):
+        entity = self.get_by_id(entity_id, target_actors=target_actors, entity_type=entity_type, target_node=target_node)
         return None if entity is None else entity.fields.get(field)
