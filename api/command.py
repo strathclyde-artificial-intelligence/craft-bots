@@ -28,7 +28,8 @@ class Command:
         self.result = None
         self.state = Command.PENDING
 
-        self.fields = {"id": self.id, "function_id": self.function_id, "args": self.args, "result": self.result}
+        self.fields = {"id": self.id, "function_id": self.function_id, "args": self.args, "result": self.result,
+                       "state": self.state}
 
     def perform(self):
         if self.function_id == Command.MOVE_TO and self.args.__len__() == 2:
