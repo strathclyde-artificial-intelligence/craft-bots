@@ -33,7 +33,6 @@ class World:
             self.tick = 0
             self.last_id = -1
             self.command_queue = []
-            self.command_results = []
             self.all_commands = []
             self.total_score = 0
 
@@ -476,9 +475,8 @@ class World:
     def run_agent_commands(self):
         if self.command_queue:
             self.all_commands.extend(self.command_queue)
-            self.command_results = []
             for command in self.command_queue:
-                self.command_results.append((command.id, command.perform()))
+                command.perform()
             self.command_queue = []
 
     def update_all_actors(self):
