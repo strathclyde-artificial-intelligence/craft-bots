@@ -9,6 +9,7 @@ class AgentAPI:
         actions on the simulation or to gather information.
 
         :param world: The world used to be affected by the API/agent
+        :param actors: A list of actor ID's that the API can send commands to
         :param max_commands: The maximum number of commands that can be sent to the world in one tick. If set to 0 then
         there is no limit
         """
@@ -40,9 +41,9 @@ class AgentAPI:
 
     def move_to(self, actor_id, node_id):
         """
-        Send the actor to the given node.
+        Tell an actor to begin moving to the given node.
 
-        To do this, the agent must be idle, and the target node must be adjacent to the node the actor is currently at.
+        To do this, the actor must be idle, and the target node must be adjacent to the node the actor is currently at.
 
         :param actor_id: The ID of the actor to be moved
         :param node_id: The ID of the node the actor should move to.
@@ -52,7 +53,7 @@ class AgentAPI:
 
     def move_rand(self, actor_id):
         """
-        Send the actor to a randomly chosen adjacent node.
+        Tell the actor to move to a randomly chosen adjacent node.
 
         To do this, the agent must be idle.
 
@@ -63,10 +64,10 @@ class AgentAPI:
 
     def pick_up_resource(self, actor_id, resource_id):
         """
-        Tell an actor to pick a a specific resource off of the ground.
+        Tell an actor to pick a specific resource off of the ground.
 
         To do this, the actor must be idle, the resource must be in the same node as the actor, the resource must not
-        held by another actor, and the actor should have space in it's inventory to store the resource.
+        be held by another actor, and the actor should have space in it's inventory to store the resource.
 
         If the resource is black then the actor should not be holding any other resources. The actor should also not be
         holding a black resource already.
@@ -120,10 +121,11 @@ class AgentAPI:
         """
         Tell an actor to start a site of the specified type. A site will be placed on the node that the actor is at.
 
-        To do this the actor must be idle.
+        To do this the actor must be idle. If the site is purple, there must be a task that does not have a site or
+        building assigned to it at the node the actor is at.
 
         :param actor_id: The ID of the actor to create a site
-        :param site_type: The type of site to be built (0: red, 1: blue, 2: orange, 3: black, 4: green)
+        :param site_type: The type of site to be built (0: red, 1: blue, 2: orange, 3: black, 4: green, 5: purple)
         :return: The ID of the command or -1 if the max command limit has been reached or API does not have access to the actor
         """
         return self.__send_command(Command.START_SITE, actor_id, site_type)
@@ -145,8 +147,8 @@ class AgentAPI:
 
     def deposit_resources(self, actor_id, site_id, resource_id):
         """
-        Tell the actor deposit a resource into the site. This will increase the maximum progress that can be done on the
-        site. Actors can also do this on green buildings to commit resources towards creating new actors.
+        Tell the actor to deposit a resource into the site. This will increase the maximum progress that can be done on
+        the site. Actors can also do this on green buildings to commit resources towards creating new actors.
 
         To do this, the actor must be at the same node as the site, the resource must be in the actor's inventory, and
         the site should still need the type of the resource.
@@ -160,17 +162,15 @@ class AgentAPI:
 
     def start_looking(self, actor_id):
         """
-        Tells the actor to begin "looking" this action only has an affect when the simulation is partially observable.
-        (Assuming that the simulation is partially observable) When an actor is doing anything (aside from moving) it
-        can see everything that is currently at the node it is at, but not further. If the actor is moving, then it can
-        only see itself.
+        Tells the actor to begin "looking" this action only has an effect when the simulation is partially observable.
+        Assuming that the simulation is partially observable when an actor is doing anything (aside from moving) it can
+        see everything that is currently at the node it is at, but not further. If the actor is moving, then it can only
+        see itself. However, if the actor is looking then it will stay in place and do nothing. During this time, it
+        will look further every few ticks. After each interval of ticks is required to see deeper that passes since the
+        actor has started looking, the actor can see everything an extra step further. Any information gathered this way
+        is provided in world_info.
 
-        However if the actor is looking then it will stay in place and do nothing. During this time,
-        it will look further each tick. Each tick that passes since the actor has started looking, the actor can see
-        everything an extra step further.
-
-        So assuming that the actor has been looking for 2 ticks, then it can see everything that is withing two nodes of
-        the node it is currently at. Any information gathered this way is provided in world_info.
+        To do this, the actor must be idle.
 
         :param actor_id: The ID of the actor that should begin looking
         :return: The ID of the command or -1 if the max command limit has been reached or API does not have access to the actor
@@ -185,7 +185,7 @@ class AgentAPI:
         actors are digging at the node, then the progress towards a new resource is lost. If the actor is constructing,
         then the actor becomes idle, and the progress in the site stops at the amount it is at.
 
-        To do this, the actor must not be idle.
+        To do this, the actor must be moving, digging, constructing, looking, sending, or receiving
 
         :param actor_id: The ID of the actor to cancel its action
         :return: The ID of the command or -1 if the max command limit has been reached or API does not have access to the actor
@@ -211,6 +211,8 @@ class AgentAPI:
         Tells an actor to listen for a message being broadcasted by an actor that is sending. The two actors must be in
         the same node for the message to be transmitted. When the actor receives a message, it will store it in a list
         with any other messages it has received, as well as the tick the message was received, under the actors target.
+
+        To do this, the actor must be idle.
 
         :param actor_id: The ID of the actor to start receiving a message
         :return: The ID of the command or -1 if the max command limit has been reached or API does not have access to the actor
