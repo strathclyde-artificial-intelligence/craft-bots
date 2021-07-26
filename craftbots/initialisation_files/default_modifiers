@@ -6,7 +6,7 @@
 # Modifiers for the actors in the simulation
 NUM_OF_ACTORS = 3
 ACTOR_MOVE_SPEED = 1
-MINE_SPEED = 3
+DIG_SPEED = 3
 BUILD_SPEED = 3
 INVENTORY_SIZE = 7
 LOOK_EFFORT = 20
