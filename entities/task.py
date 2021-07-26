@@ -44,7 +44,7 @@ class Task:
         :return: True if the task is completed, and False if not
         """
 
-        return isinstance(self.project, Building) if self.deadline >= self.world.tick else True
+        return isinstance(self.project, Building) if self.deadline >= self.world.tick or self.deadline == -1 else True
 
     def complete_task(self):
         """
