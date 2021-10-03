@@ -3,6 +3,9 @@
 # and write your required changes there. Craftbots will overwrite the defaults
 # with your values.
 
+# Random Seed. Uncomment for fixed setup.
+# RANDOM_SEED = 789
+
 # Width and height of the map
 WIDTH = 600
 HEIGHT = 600
