@@ -79,7 +79,20 @@ def default_scenario(modifiers, world_gen_modifiers):
         world.add_building(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 4)
 
 
+
 def start_simulation(agent_class=BlankAgent, use_gui=True, scenario=default_scenario,modifier_file=None,world_modifier_file=None,rule_file=None):
+    """
+        The command used to start the CraftBots simulation. The simulation will run on a separate thread and the current
+        thread will wait for the simulation to finish and return the score achieved.
+
+        :param agent_class: (optional) the class constructor for the Agent to be used. Default: BlankAgent (from agents folder)
+        :param use_gui: (optional) if the GUI should be displayed. Default: True
+        :param scenario: (optional) the scenario that should be created in the world, regarding actors, mine, resources, sites, and buildings. Documentation to create a scenario still WIP. Default: default_scenario (using modifiers and world_gen_modifiers)
+        :param modifier_file: (optional) path to the text file that is used to initialise the modifiers for the simulation. Default: None (the default parameters are used)
+        :param world_modifier_file: (optional) path to the text file that is used to initialise the world parameters for the simulation. Default: None (the default parameters are used)
+        :param rule_file: (optional) path to the text file that is used to set the rules for the simulation.  Default: None (the default parameters are used)
+        :return:
+        """
     sim_thread = threading.Thread(target=prep_simulation, args=(agent_class, use_gui, scenario, modifier_file, world_modifier_file, rule_file), daemon=True)
     sim_thread.start()
     while not sim_stopped:
