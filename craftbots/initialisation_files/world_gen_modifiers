@@ -3,6 +3,12 @@
 # Random Seed. Uncomment for a fixed setup.
 # RANDOM_SEED = 789
 
+# Number of initial tasks
+INITIAL_TASKS = 6
+
+# Generate new initial tasks if all tasks are complete
+REFRESH_TASKS = 0
+
 # Width and height of the map
 WIDTH = 600
 HEIGHT = 600

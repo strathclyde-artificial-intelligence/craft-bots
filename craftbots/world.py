@@ -470,7 +470,7 @@ class World:
         self.update_all_actors()
         self.update_all_resources()
         self.run_agent_commands()
-        if self.tasks_complete():
+        if self.tasks_complete() and self.world_gen_modifiers["REFRESH_TASKS"]:
             self.tasks.extend(self.generate_tasks())
         else:
             if r.random() < self.modifiers["NEW_TASK_CHANCE"]:
@@ -500,7 +500,7 @@ class World:
 
     def generate_tasks(self):
         tasks = []
-        for index in range(3):
+        for index in range(self.world_gen_modifiers["INITIAL_TASKS"]):
             tasks.append(Task(self))
         return tasks
 
