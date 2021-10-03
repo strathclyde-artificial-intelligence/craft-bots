@@ -21,6 +21,11 @@ class World:
             self.modifiers = modifiers
             self.world_gen_modifiers = world_gen_modifiers
             self.rules = rules
+
+            # Set random seed before any other calls
+            if "RANDOM_SEED" in self.world_gen_modifiers:
+                r.seed(self.world_gen_modifiers["RANDOM_SEED"])
+
             """
             0 - Actor Speed
             1 - Actor Mining Speed

@@ -79,19 +79,19 @@ def default_scenario(modifiers, world_gen_modifiers):
         world.add_building(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 4)
 
 
-def start_simulation(agent_class=BlankAgent, use_gui=True, scenario=default_scenario):
-    sim_thread = threading.Thread(target=prep_simulation, args=(agent_class, use_gui, scenario), daemon=True)
+def start_simulation(agent_class=BlankAgent, use_gui=True, scenario=default_scenario,modifier_file=None,world_modifier_file=None,rule_file=None):
+    sim_thread = threading.Thread(target=prep_simulation, args=(agent_class, use_gui, scenario, modifier_file, world_modifier_file, rule_file), daemon=True)
     sim_thread.start()
     while not sim_stopped:
         time.sleep(1)
     return world.total_score
 
 
-def prep_simulation(agent_class, use_gui, scenario):
+def prep_simulation(agent_class, use_gui, scenario, modifier_file, world_modifier_file, rule_file):
     global world
-    world_gen_modifiers = get_world_gen_modifiers()
-    modifiers = get_modifiers()
-    rules = get_rules()
+    world_gen_modifiers = get_world_gen_modifiers(world_modifier_file)
+    modifiers = get_modifiers(modifier_file)
+    rules = get_rules(rule_file)
     world = World(modifiers, world_gen_modifiers, rules)
     scenario(modifiers, world_gen_modifiers)
 
@@ -222,17 +222,16 @@ def on_close():
     return world.total_score
 
 
-def get_world_gen_modifiers():
-    return read_ini_file("craftbots/initialisation_files/world_gen_modifiers",
-                         "craftbots/initialisation_files/default_world_gen_modifiers")
+def get_world_gen_modifiers(modifier_file):
+    return read_ini_file(modifier_file, "craftbots/initialisation_files/default_world_gen_modifiers")
 
 
-def get_modifiers():
-    return read_ini_file("craftbots/initialisation_files/modifiers", "craftbots/initialisation_files/default_modifiers")
+def get_modifiers(modifier_file):
+    return read_ini_file(modifier_file, "craftbots/initialisation_files/default_modifiers")
     
-    
-def get_rules():
-    return read_ini_file("craftbots/initialisation_files/rules", "craftbots/initialisation_files/default_rules")
+
+def get_rules(rule_file):
+    return read_ini_file(rule_file, "craftbots/initialisation_files/default_rules")
 
 
 def read_ini_file(path, default_path):
@@ -254,6 +253,8 @@ def read_ini_file(path, default_path):
                         temp.append(int(value))
                     parameters[data[0]] = temp
     default_file.close()
+
+    if path is None: return parameters
     try:
         file = open(path, "r")
         for line in file:
