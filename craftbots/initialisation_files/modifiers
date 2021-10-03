@@ -1,6 +1,3 @@
-# It is strongly recommended to NOT modify this file
-# Instead, create a text file called modifiers.txt if it doesn't already exist
-# and write your required changes there.
 # Craftbots will overwrite the defaults with your values.
 
 # Modifiers for the actors in the simulation
