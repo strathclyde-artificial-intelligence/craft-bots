@@ -125,7 +125,7 @@ class Actor:
         :return: True if successful and False otherwise
         """
         if self.state == Actor.IDLE and resource.location is self.node:
-            if resource.colour == 3 and self.resources or self.resources and self.resources[0].colour == 3:
+            if self.resources and (resource.colour == 3 or self.resources[0].colour == 3) and self.world.modifiers["BLACK_HEAVY"]:
                 print("Can hold one black and nothing else")
                 return False
             if self.resources.__len__() >= self.world.modifiers["INVENTORY_SIZE"] \
