@@ -150,6 +150,8 @@ def lock_step_sim(agents, update_model):
             agent.world_info = agent.api.get_world_info()
             agent.get_next_commands()
 
+
+        time.sleep(1 / world.rules["LOCK_STEP_RATE"])
         world.run_tick()
 
         for agent in agents:
