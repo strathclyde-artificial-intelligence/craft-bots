@@ -1,6 +1,8 @@
 import numpy.random as nr
 import random as r
 
+from entities.building import Building
+
 
 class Mine:
     def __init__(self, world, node, colour=0):
@@ -54,7 +56,7 @@ class Mine:
                     nr.normal(deviation, self.world.modifiers["DIGGING_PT_SD"])))
 
         digging_progress = dig_speed * ((1 + self.world.modifiers["BLUE_BUILDING_MODIFIER_STRENGTH"]) **
-                                        self.world.building_modifiers[2])
+                                        self.world.building_modifiers[Building.BUILDING_MINE])
 
         # If mine is red, ensure that it is within red mining intervals
         if self.colour == 0:

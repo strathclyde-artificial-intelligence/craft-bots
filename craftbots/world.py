@@ -26,13 +26,12 @@ class World:
             if "RANDOM_SEED" in self.world_gen_modifiers:
                 r.seed(self.world_gen_modifiers["RANDOM_SEED"])
 
-            """
-            0 - Actor Speed
-            1 - Actor Mining Speed
-            2 - Actor Building Speed
-            3 - Actor Inventory Size
-            """
-            self.building_modifiers = {0: 0, 1: 0, 2: 0, 3: 0}
+            self.building_modifiers = {
+                Building.BUILDING_SPEED:        0,
+                Building.BUILDING_MINE:         0,
+                Building.BUILDING_INVENTORY:    0,
+                Building.BUILDING_CONSTRUCTION: 0
+            }
 
             self.nodes = []
             self.tick = 0
@@ -513,11 +512,11 @@ class World:
     def add_mine(self, node, colour):
         return Mine(self, node, colour)
 
-    def add_site(self, node, colour):
-        return Site(self, node, colour)
+    def add_site(self, node, building_type):
+        return Site(self, node, building_type)
 
-    def add_building(self, node, colour):
-        return Building(self, node, colour)
+    def add_building(self, node, building_type):
+        return Building(self, node, building_type)
 
     def get_colour_string(self, colour):
         if colour == 0:

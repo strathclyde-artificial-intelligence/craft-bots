@@ -19,5 +19,4 @@ class TestAgent:
 
         for command_id in self.pending:
             if self.api.get_field(command_id, "state") == Command.COMPLETED:
-                # print(self.api.get_field(command_id, "result"))
                 self.pending.remove(command_id)

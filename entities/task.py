@@ -4,9 +4,9 @@ from entities.building import Building
 
 class Task:
 
-    EASY = 0
-    MEDIUM = 1
-    HARD = 2
+    EASY    = 0
+    MEDIUM  = 1
+    HARD    = 2
 
     def __init__(self, world):
         """
@@ -32,8 +32,7 @@ class Task:
         return "Task(" + str(self.node) + ", " + str(self.needed_resources) + ")"
 
     def __str__(self):
-        return "Task to build purple building at " + str(self.node) + " with the resource requirements of " + \
-               str(self.needed_resources)
+        return "Task to build at " + str(self.node) + " with the resource requirements of " + str(self.needed_resources)
 
     def completed(self):
         """
