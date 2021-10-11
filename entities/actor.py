@@ -1,6 +1,8 @@
 import random as r
 import numpy.random as nr
 
+from entities.building import Building
+
 
 class Actor:
     
@@ -80,7 +82,7 @@ class Actor:
         state.
         """
         if self.state == Actor.MOVING or self.state == Actor.RECOVERING:
-            speed_mod = (self.world.building_modifiers[0] * 0.05) + 1
+            speed_mod = (self.world.building_modifiers[Building.BUILDING_SPEED] * 0.05) + 1
             move_speed = self.world.modifiers["ACTOR_MOVE_SPEED"] if not self.world.rules["TRAVEL_TU"] else \
                 max(self.world.modifiers["TRAVEL_MIN_SD"],
                     min(self.world.modifiers["TRAVEL_MAX_SD"],
@@ -130,7 +132,7 @@ class Actor:
                 return False
             if self.resources.__len__() >= self.world.modifiers["INVENTORY_SIZE"] \
                     * self.world.modifiers["BLACK_BUILDING_MODIFIER_STRENGTH"] + \
-                    self.world.building_modifiers[3]:
+                    self.world.building_modifiers[Building.BUILDING_INVENTORY]:
                 print("Inventory full, cannot pick up other resources until something is dropped")
                 return False
             if self.world.rules["PICK_UP_NON_DETERMINISTIC"] and r.random() < \
@@ -269,7 +271,7 @@ class Actor:
             self.set_target((self.target[0], return_node))
             return True
         elif self.state == Actor.DIGGING:
-            num_of_helpers = -1 * self.world.modifiers["ORANGE_ACTORS_TO_MINE"] if self.target.colour == 2 else -1
+            num_of_helpers = -1 * self.world.modifiers["ORANGE_ACTORS_TO_MINE"] if self.target.building_type == 2 else -1
             for actor in self.node.actors:
                 if actor.target == self.target:
                     num_of_helpers += 1

@@ -5,14 +5,20 @@ import math as m
 
 class Building:
 
-    RED = 0
-    BLUE = 1
-    ORANGE = 2
-    BLACK = 3
-    GREEN = 4
-    PURPLE = 5
+    BUILDING_TASK         = 0
+    BUILDING_SPEED        = 1
+    BUILDING_MINE         = 2
+    BUILDING_CONSTRUCTION = 3
+    BUILDING_INVENTORY    = 4
+    BUILDING_ACTOR_SPAWN  = 5
 
-    def __init__(self, world, node, colour=0):
+    @staticmethod
+    def get_building_type_name(building_type):
+        for key in Building.__dict__:
+            if "BUILDING" in key and Building.__dict__[key]==building_type:
+                return key
+
+    def __init__(self, world, node, building_type=0):
         """
         A completed building in the craftbots simulation. It takes a certain amount of work and resources gathered into
         a site by actors to create a building. Different buildings require different amount of resources. Each type of
@@ -20,38 +26,36 @@ class Building:
 
         :param world: the world the in which the building exists
         :param node: the node the building is located at
-        :param colour: the colour of the building (this determines the effect it provides)
+        :param building_type: the colour of the building (this determines the effect it provides)
         """
         self.world = world
         self.node = node
-        self.colour = colour
+        self.building_type = building_type
         self.id = self.world.get_new_id()
 
         self.node.append_building(self)
 
         # If the building is green then create other fields needed to keep track of new actor construction
-        if colour == Building.GREEN:
+        if building_type == Building.BUILDING_ACTOR_SPAWN:
             self.deposited_resources = [0, 0, 0, 0, 0]
             self.needed_resources = self.world.modifiers["NEW_ACTOR_RESOURCES"]
             self.progress = 0
-            self.fields = {"node": self.node.id, "colour": self.colour, "id": self.id,
+            self.fields = {"node": self.node.id, "building_type": self.building_type, "id": self.id,
                            "deposited_resources": self.deposited_resources,
                            "needed_resources": self.needed_resources, "progress": self.progress}
         else:
-            self.fields = {"node": self.node.id, "colour": self.colour, "id": self.id}
+            self.fields = {"node": self.node.id, "building_type": self.building_type, "id": self.id}
 
         # Keep track of the bonuses the building provides in the simulation
-        if self.colour <= 3:
-            if self.world.modifiers[self.world.get_colour_string(self.colour).upper() + "_BUILDING_MAXIMUM"] >= 0:
-                self.world.building_modifiers[self.colour] = \
-                    min(self.world.modifiers[self.world.get_colour_string(self.colour).upper() + "_BUILDING_MAXIMUM"],
-                        self.world.building_modifiers[self.colour] + 1)
+        max_var_name = 'MAX_' + Building.get_building_type_name(self.building_type)
+        if max_var_name in self.world.modifiers:
+            if self.world.modifiers[max_var_name] >= 0:
+                self.world.building_modifiers[self.building_type] = min(self.world.modifiers[max_var_name], self.world.building_modifiers[self.building_type] + 1)
             else:
-                self.world.building_modifiers[self.colour] += 1
+                self.world.building_modifiers[self.building_type] += 1
 
     def __repr__(self):
-        return "Building(" + str(self.id) + ", " + self.world.get_colour_string(self.colour) + ", " + str(
-            self.node) + ")"
+        return "Building(" + str(self.id) + ", " + Building.get_building_type_name(self.building_type) + ", " + str(self.node) + ")"
 
     def __str__(self):
         return self.__repr__()
@@ -63,7 +67,7 @@ class Building:
         :param resource: The resource to be added
         :return: True if the resource was deposited and false if it wasn't
         """
-        if self.colour == 4:
+        if self.building_type == Building.BUILDING_ACTOR_SPAWN:
             if resource.location == self.node or resource.location.node == self.node:
                 if self.deposited_resources[resource.colour] < self.needed_resources[resource.colour]:
                     resource.set_used(True)
@@ -80,13 +84,12 @@ class Building:
         on how many resources have been deposited so far.
         """
 
-        if self.world.rules["CONSTRUCTION_NON_DETERMINISTIC"] and r.random() < \
-                self.world.modifiers["CONSTRUCTION_FAIL_CHANCE"]:
+        if self.world.rules["CONSTRUCTION_NON_DETERMINISTIC"] and r.random() < self.world.modifiers["CONSTRUCTION_FAIL_CHANCE"]:
             print("Constructing failed")
             self.fail_construction()
             return
 
-        if self.colour == 4:
+        if self.building_type == Building.BUILDING_ACTOR_SPAWN:
 
             build_speed = self.world.modifiers["BUILD_SPEED"] if not self.world.rules["CONSTRUCTING_TU"] else \
                 max(self.world.modifiers["CONSTRUCTING_MIN_SD"],
@@ -94,7 +97,7 @@ class Building:
                         nr.normal(deviation, self.world.modifiers["CONSTRUCTING_PT_SD"])))
 
             building_progress = build_speed * ((1 + self.world.modifiers["ORANGE_BUILDING_MODIFIER_STRENGTH"]) **
-                                               self.world.building_modifiers[2])
+                                               self.world.building_modifiers[Building.BUILDING_CONSTRUCTION])
             
             max_progress = self.max_progress()
             self.set_progress(min(self.progress + building_progress, max_progress))
@@ -130,7 +133,7 @@ class Building:
 
         :return: The maximum progress, or False if the building is not green
         """
-        if self.colour == 4:
+        if self.building_type == Building.BUILDING_ACTOR_SPAWN:
             return sum(self.deposited_resources) / sum(self.needed_resources) * self.world.modifiers["BUILD_EFFORT"]
         return False
 
@@ -138,7 +141,7 @@ class Building:
         """
         Gets all the actors that have targeted the building and sets them to become idle
         """
-        if self.colour == 4:
+        if self.building_type == Building.BUILDING_ACTOR_SPAWN:
             for actor in self.node.actors:
                 if actor.target == self:
                     actor.go_idle()
@@ -149,6 +152,6 @@ class Building:
 
         :param progress:
         """
-        if self.colour == 4:
+        if self.building_type == Building.BUILDING_ACTOR_SPAWN:
             self.progress = progress
             self.fields.__setitem__("progress", progress)

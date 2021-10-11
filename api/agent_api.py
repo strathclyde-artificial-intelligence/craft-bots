@@ -125,7 +125,7 @@ class AgentAPI:
         building assigned to it at the node the actor is at.
 
         :param actor_id: The ID of the actor to create a site
-        :param site_type: The type of site to be built (0: red, 1: blue, 2: orange, 3: black, 4: green, 5: purple)
+        :param site_type: The type of site to be built (see Building.BUILDING_[TYPE])
         :return: The ID of the command or -1 if the max command limit has been reached or API does not have access to the actor
         """
         return self.__send_command(Command.START_SITE, actor_id, site_type)

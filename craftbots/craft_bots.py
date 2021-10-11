@@ -7,6 +7,8 @@ import random as r
 import math
 import time
 
+from entities.building import Building
+
 PADDING = 25
 NODE_SIZE = 20
 
@@ -37,47 +39,42 @@ def default_scenario(modifiers, world_gen_modifiers):
         world.add_resource(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 0)
     for _ in range(world_gen_modifiers["NUM_OF_RED_MINES"]):
         world.add_mine(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 0)
-    for _ in range(world_gen_modifiers["NUM_OF_RED_SITES"]):
-        world.add_site(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 0)
-    for _ in range(world_gen_modifiers["NUM_OF_RED_BUILDINGS"]):
-        world.add_building(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 0)
-        
+
     for _ in range(world_gen_modifiers["NUM_OF_BLUE_RESOURCES"]):
         world.add_resource(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 1)
     for _ in range(world_gen_modifiers["NUM_OF_BLUE_MINES"]):
         world.add_mine(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 1)
-    for _ in range(world_gen_modifiers["NUM_OF_BLUE_SITES"]):
-        world.add_site(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 1)
-    for _ in range(world_gen_modifiers["NUM_OF_BLUE_BUILDINGS"]):
-        world.add_building(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 1)
         
     for _ in range(world_gen_modifiers["NUM_OF_ORANGE_RESOURCES"]):
         world.add_resource(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 2)
     for _ in range(world_gen_modifiers["NUM_OF_ORANGE_MINES"]):
         world.add_mine(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 2)
-    for _ in range(world_gen_modifiers["NUM_OF_ORANGE_SITES"]):
-        world.add_site(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 2)
-    for _ in range(world_gen_modifiers["NUM_OF_ORANGE_BUILDINGS"]):
-        world.add_building(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 2)
-        
+
     for _ in range(world_gen_modifiers["NUM_OF_BLACK_RESOURCES"]):
         world.add_resource(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 3)
     for _ in range(world_gen_modifiers["NUM_OF_BLACK_MINES"]):
         world.add_mine(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 3)
-    for _ in range(world_gen_modifiers["NUM_OF_BLACK_SITES"]):
-        world.add_site(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 3)
-    for _ in range(world_gen_modifiers["NUM_OF_BLACK_BUILDINGS"]):
-        world.add_building(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 3)
-        
+
     for _ in range(world_gen_modifiers["NUM_OF_GREEN_RESOURCES"]):
         world.add_resource(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 4)
     for _ in range(world_gen_modifiers["NUM_OF_GREEN_MINES"]):
         world.add_mine(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 4)
-    for _ in range(world_gen_modifiers["NUM_OF_GREEN_SITES"]):
-        world.add_site(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 4)
-    for _ in range(world_gen_modifiers["NUM_OF_GREEN_BUILDINGS"]):
-        world.add_building(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 4)
 
+    for key in world_gen_modifiers:
+
+        # initial buildings
+        if key.startswith("NUM_BUILDING"):
+            for _ in range(world_gen_modifiers[key]):
+                building_type_name = key[4:] # removes "NUM_"
+                building_type = Building.__dict__[building_type_name]
+                world.add_building(world.nodes[r.randint(0, world.nodes.__len__() - 1)], building_type)
+
+        # initial sites
+        if key.startswith("NUM_SITE"):
+            for _ in range(world_gen_modifiers[key]):
+                building_type_name = "BUILDING" + key[9:] # removes "NUM_SITE_"
+                building_type = Building.__dict__[building_type_name]
+                world.add_site(world.nodes[r.randint(0, world.nodes.__len__() - 1)], building_type)
 
 
 def start_simulation(agent_class=BlankAgent, use_gui=True, scenario=default_scenario,modifier_file=None,world_modifier_file=None,rule_file=None):

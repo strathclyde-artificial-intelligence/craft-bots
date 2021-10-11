@@ -70,11 +70,10 @@ class GUI(tk.Frame):
             self.mines.append((mine, self.draw_mine(mine.node.x, mine.node.y, world.get_colour_string(mine.colour))))
         self.sites = []
         for site in self.world.get_all_sites():
-            self.sites.append((site, self.draw_site(site.node.x, site.node.y, self.world.get_colour_string(site.colour))))
+            self.sites.append((site, self.draw_site(site.node.x, site.node.y, "purple")))
         self.buildings = []
         for building in self.world.get_all_buildings():
-            self.buildings.append((building, self.draw_building(building.node.x, building.node.y,
-                                                                self.world.get_colour_string(building.colour))))
+            self.buildings.append((building, self.draw_building(building.node.x, building.node.y, "purple")))
         self.update_actors()
         self.graph.pack()
         self.pack()
@@ -168,7 +167,7 @@ class GUI(tk.Frame):
             if not accounted:
                 node_x = site.node.x
                 node_y = site.node.y
-                self.draw_site(node_x, node_y, self.world.get_colour_string(site.colour))
+                self.draw_site(node_x, node_y, "purple")
                 self.sites.append((site, self.graph.find_all()[-1:][0]))
     
     def update_buildings(self):
@@ -180,7 +179,7 @@ class GUI(tk.Frame):
             if not accounted:
                 node_x = building.node.x
                 node_y = building.node.y
-                self.draw_building(node_x, node_y, self.world.get_colour_string(building.colour))
+                self.draw_building(node_x, node_y, "purple")
                 self.buildings.append((building, self.graph.find_all()[-1:][0]))
 
     def draw_resource_sprite(self, x, y, colour):

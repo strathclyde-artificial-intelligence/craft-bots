@@ -2,42 +2,29 @@ import numpy.random as nr
 import random as r
 import math as m
 
+from entities.building import Building
+
 
 class Site:
-    
-    NEEDED_RESOURCES_MODIFIER = [
-        "RED_BUILDING_RESOURCES",
-        "BLUE_BUILDING_RESOURCES",
-        "ORANGE_BUILDING_RESOURCES",
-        "BLACK_BUILDING_RESOURCES",
-        "GREEN_BUILDING_RESOURCES"
-    ]
 
-    RED = 0
-    BLUE = 1
-    ORANGE = 2
-    BLACK = 3
-    GREEN = 4
-    PURPLE = 5
-
-    def __init__(self, world, node, colour, target_task=None):
+    def __init__(self, world, node, building_type, target_task=None):
         """
         A site in the craftbots simulation. It allows actors to deposit resources and construct at it to create
         buildings. These buildings provide bonuses to the actors
 
         :param world: the world in which the site exists
         :param node: the node the site is located at
-        :param colour: the colour of the site (this will produce a building of the same colour)
+        :param building_type: the colour of the site (this will produce a building of that type)
         :param target_task: the task entity that is chosen if the site is purple. If it is None then one at the sites node is chosen at random (if a free task is available)
         """
         self.world = world
         self.node = node
-        self.colour = colour
+        self.building_type = building_type
         self.deposited_resources = [0, 0, 0, 0, 0]
         self.progress = 0
         self.id = self.world.get_new_id()
         self.needed_resources = []
-        if self.colour == 5:
+        if self.building_type == Building.BUILDING_TASK:
             if target_task is None:
                 for task in self.world.tasks:
                     if task.node == self.node and task.project is None:
@@ -51,12 +38,14 @@ class Site:
                     self.task = target_task
                     self.needed_resources = target_task.needed_resources
         else:
-            self.needed_resources = self.world.modifiers[Site.NEEDED_RESOURCES_MODIFIER[colour]]
+            required_resources_key = "REQUIRED_RESOURCES_" + Building.get_building_type_name(building_type)
+            if self.world.modifiers[required_resources_key]:
+                self.needed_resources = self.world.modifiers[required_resources_key]
 
         # If needed resources cannot be found, then do not inform anything that this Site exists
         if self.needed_resources:
             self.node.append_site(self)
-            self.fields = {"node": self.node.id, "colour": self.colour, "deposited_resources": self.deposited_resources,
+            self.fields = {"node": self.node.id, "building_type": self.building_type, "deposited_resources": self.deposited_resources,
                            "needed_resources": self.needed_resources, "progress": self.progress, "id": self.id}
 
     def __repr__(self):
@@ -67,7 +56,7 @@ class Site:
 
     def __eq__(self, other):
         if isinstance(other, Site):
-            if self.node == other.node and self.colour == other.colour:
+            if self.node == other.node and self.building_type == other.building_type:
                 return True
         return False
 
@@ -108,7 +97,7 @@ class Site:
                     nr.normal(deviation, self.world.modifiers["CONSTRUCTING_PT_SD"])))
 
         building_progress = build_speed * ((1 + self.world.modifiers["ORANGE_BUILDING_MODIFIER_STRENGTH"]) **
-                                           self.world.building_modifiers[2])
+                                           self.world.building_modifiers[Building.BUILDING_CONSTRUCTION])
 
         max_progress = self.max_progress()
         self.set_progress(min(self.progress + building_progress, max_progress))
@@ -123,10 +112,10 @@ class Site:
                 print("Construction completion failed")
                 self.fail_construction()
                 return
-            new_building = self.world.add_building(self.node, self.colour)
+            new_building = self.world.add_building(self.node, self.building_type)
             self.node.remove_site(self)
             self.ignore_me()
-            if self.colour == Site.PURPLE:
+            if self.building_type == Building.BUILDING_TASK:
                 self.task.set_project(new_building)
                 self.task.complete_task()
             del self
