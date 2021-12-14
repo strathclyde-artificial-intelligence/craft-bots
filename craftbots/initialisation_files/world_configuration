@@ -1,0 +1,155 @@
+World Setup:
+    use_random_seed = False
+    random_seed = 789
+    sim_length = 10000
+    width = 600
+    height = 600
+    max_nodes = 5
+    roadmap_cast_distance = 80
+    roadmap_min_distance = 50
+    roadmap_connect_distance = 100
+    roadmap_max_attempts = 100
+    roadmap_random_deviation = 10
+
+Tasks:
+    initial_tasks = 6
+    refresh_tasks = False  # generate new initial tasks if all tasks are complete
+    new_task_chance = 0.00
+    task_deadline_probability = 0.0
+    easy_task_weight = 1
+    easy_task_min_types = 3
+    easy_task_max_types = 3
+    easy_task_min_resources = 1
+    easy_task_max_resources = 1
+    medium_task_weight = 0
+    medium_task_min_types = 2
+    medium_task_max_types = 4
+    medium_task_min_resources = 3
+    medium_task_max_resources = 6
+    hard_task_weight = 0
+    hard_task_min_types = 4
+    hard_task_max_types = 5
+    hard_task_min_resources = 5
+    hard_task_max_resources = 10
+
+Actors:
+    num_actors = 3
+    inventory_size = 7
+    move_speed = 1
+    dig_speed = 3
+    build_speed = 3
+    look_effort = 20
+
+Other:
+    # control how many mines, resources are placed when the world is created
+    num_of_red_resources = 0
+    num_of_blue_resources = 0
+    num_of_orange_resources = 0
+    num_of_black_resources = 0
+    num_of_green_resources = 0
+
+    num_of_red_mines = 3
+    num_of_blue_mines = 3
+    num_of_orange_mines = 3
+    num_of_black_mines = 3
+    num_of_green_mines = 3
+
+    # control how many initial buildings or sites are placed
+    num_building_speed = 0
+    num_building_mine = 0
+    num_building_construction = 0
+    num_building_inventory = 0
+    num_building_actor_spawn = 0
+
+    num_site_speed = 0
+    num_site_mine = 0
+    num_site_construction = 0
+    num_site_inventory = 0
+    num_site_actor_spawn = 0
+
+    # control how many resources the actors start with
+    actor_num_of_red_resources = 0
+    actor_num_of_blue_resources = 0
+    actor_num_of_orange_resources = 0
+    actor_num_of_black_resources = 0
+    actor_num_of_green_resources = 0
+
+    # modifiers for the different mines and resources
+    mine_effort = 100
+    cycle_length = 1200
+    red_collection_intervals = 0,1200
+    blue_extra_effort = 1
+    orange_actors_to_mine = 1
+    green_decay_time = 99999
+    black_heavy = 0
+
+    # the required effort and resources to build a building
+    build_effort = 100
+    red_building_resources = 0,2,0,2,2
+    blue_building_resources = 1,4,1,0,0
+    orange_building_resources = 1,3,0,0,1
+    black_building_resources = 4,2,0,2,0
+    green_building_resources = 0,0,2,2,3
+
+    # modifiers for the different buildings
+    red_building_modifier_strength = 0.05
+    blue_building_modifier_strength = 0.05
+    orange_building_modifier_strength = 0.05
+    black_building_modifier_strength = 1
+    new_actor_resources = 1,1,2,3,3
+
+    # maximum modifiers
+    # -1 will disable the limit, and 0 will disable the modifier entirely
+    red_building_maximum = 0
+    blue_building_maximum = 0
+    orange_building_maximum = 0
+    black_building_maximum = 0
+
+    # non-deterministic actions
+    # this decides an action can fail when attempted. "instant" actions that fail will simply not have any affect
+    # failing on travelling will require the actor to return to the node it started at. it cannot fail returning and is
+    # guaranteed to do so. failing on digging will have all actors digging at the mine become idle and all progress on the
+    # mine reset. if building fails, then some progress and resources will be lost
+
+    # there is also a separate modifier for constructing and mining actions that have a different chance of failure upon
+    # completion of the task. these have the same affects as described above
+
+    travel_non_deterministic = 0
+    digging_non_deterministic = 0
+    construction_non_deterministic = 0
+
+    digging_completion_non_deterministic = 0
+    construction_completion_non_deterministic = 0
+
+    pick_up_non_deterministic = 0
+    drop_non_deterministic = 0
+    site_creation_non_deterministic = 0
+    deposit_non_deterministic = 0
+
+    # temporal uncertainty
+    # "on-going" actions (travelling, mining, constructing) take time to complete. by setting these actions to be temporally
+    # uncertain, they can take different amounts of time each time they are performed, even if conditions are the same.
+    # this is simulated by having the "progress" made each tick by the actor(s) have an amount of standard deviation.
+
+    travel_tu = 0
+    digging_tu = 0
+    constructing_tu = 0
+
+    # partial observability
+    # instead of the entire world being visible by the agent, only what is seen by the actors is visible. an actor can see
+    # in two ways. the first is passive sight, where an actor can see all entities the actor is at.
+
+    actor_po = 0
+    node_po = 0
+    edge_po = 0
+    resource_po = 0
+    mine_po = 0
+    site_po = 0
+    building_po = 0
+    task_po = 0
+
+    # limited communication
+    # when limited communication is set, each actor can only knows about fully observable entities and any partially
+    # observable entities it alone can see. each actor is assigned a unique agent.
+
+    limited_communications = 0

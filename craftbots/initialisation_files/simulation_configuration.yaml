@@ -1,0 +1,136 @@
+--- # Simulation Configuration
+
+  Run Configuration:
+    lockstep: {value: true, description: "If true, the simulation will block while the agent makes a decision. If false, the agent and simulation will run in separate threads."}
+    simulation_rate: {value: 30.0, description: "The maximum number of simulation ticks per second."}
+    sim_length: {value: 10000, description: "Maximum number of ticks."}
+
+  World Setup:
+    use_random_seed: {value: false, description: "Use random seed for a fixed setup."}
+    random_seed: {value: 789, description: "Random seed used if use_random_seed is checked."}
+    width: {value: 600, description: "Width of map."}
+    height: {value: 600, description: "Height of map."}
+    max_nodes: {value: 5, description: "Maximum number of nodes."}
+    roadmap_cast_distance: {value: 80, description: "Cast distance in probabilistic roadmap, increase to spread nodes more widely."}
+    roadmap_min_distance: {value: 50, description: "Minimum distance allowed between nodes in probabilistic roadmap."}
+    roadmap_connect_distance: {value: 100, description: "Threshold distance to connect nodes with an edge. Increase to create a more densely connected map."}
+    roadmap_max_attempts: {value: 100, description: "Number of roadmap creation attempts. Increase if max_nodes is not reached."}
+    roadmap_random_deviation: {value: 10, description: "Increase for less uniform distances between nodes."}
+
+  Tasks:
+    initial_tasks: {value: 6, description: ""}
+    refresh_tasks: {value: false, description: "Generate new tasks equal to initial task amount if all current tasks are complete."}
+    new_task_chance: {value: 0.00, description: ""}
+    task_deadline_probability: {value: 0.0, description: ""}
+    easy_task_weight: {value: 1, description: "Relative chance of generating an easy task."}
+    easy_task_types: {value: [2,3], description: "Min/Max different resource types that compose an easy task."}
+    easy_task_resources: {value: [1,1], description: "Min/Max number of resources of each type that compose an easy task."}
+    medium_task_weight: {value: 0, description: "Relative chance of generating a medium task."}
+    medium_task_types: {value: [3,4], description: "Min/Max different resource types that compose a medium task."}
+    medium_task_resources: {value: [1,2], description: "Min/Max number of resources of each type that compose a medium task."}
+    hard_task_weight: {value: 0, description: "Relative chance of generating a hard task."}
+    hard_task_types: {value: [3,5], description: "Min/Max different resource types that compose a hard task."}
+    hard_task_resources: {value: [2,4], description: "Min/Max number of resources of each type that compose a hard task."}
+
+  Actors:
+    num_actors: {value: 3, description: ""}
+    inventory_size: {value: 7, description: ""}
+    move_speed: {value: 1, description: ""}
+    dig_speed: {value: 3, description: ""}
+    build_speed: {value: 3, description: ""}
+    look_effort: {value: 20, description: ""}
+
+  Mines:
+    num_of_red_mines: {value: 3, description: ""}
+    num_of_blue_mines: {value: 3, description: ""}
+    num_of_orange_mines: {value: 3, description: ""}
+    num_of_black_mines: {value: 3, description: ""}
+    num_of_green_mines: {value: 3, description: ""}
+
+  Resources:
+    mine_effort: {value: 100, description: "Number of ticks required for one actor to mine a resource."}
+    cycle_length: {value: 1200, description: "Length in simulation ticks of the day cycle, used in conjunction with Red collection intervals."}
+    red_collection_intervals: {value: [0,1200], description: "Start and end of interval within which Red resource can be collected each day."}
+    blue_extra_effort: {value: 1, description: "Blue will take longer to mine by this factor."}
+    orange_actors_to_mine: {value: 1, description: "Number of additional actors required to mine Orange resource."}
+    green_decay_time: {value: 99999, description: "Number of ticks after which Green resource vanishes."}
+    black_heavy: {value: true, description: "If True, an actor carrying one Black resource cannot carry anything else."}
+
+    "Resources in Nodes":
+      description: "Number of resources initially placed in nodes."
+      num_of_red_resources: 0
+      num_of_blue_resources: 0
+      num_of_orange_resources: 0
+      num_of_black_resources: 0
+      num_of_green_resources: 0
+
+    "Resources in Inventory":
+      description: "Number of resources initially placed in each Actor's inventory."
+      actor_num_of_red_resources: 0
+      actor_num_of_blue_resources: 0
+      actor_num_of_orange_resources: 0
+      actor_num_of_black_resources: 0
+      actor_num_of_green_resources: 0
+
+  Buildings:
+
+    num_building_speed: {value: 0, description: ""}
+    num_building_mine: {value: 0, description: ""}
+    num_building_construction: {value: 0, description: ""}
+    num_building_inventory: {value: 0, description: ""}
+    num_building_actor_spawn: {value: 0, description: ""}
+
+    num_site_speed: {value: 0, description: ""}
+    num_site_mine: {value: 0, description: ""}
+    num_site_construction: {value: 0, description: ""}
+    num_site_inventory: {value: 0, description: ""}
+    num_site_actor_spawn: {value: 0, description: ""}
+
+    build_effort: {value: 100 , description: "The required effort and resources to build a building."}
+    red_building_resources: {value: 0,2,0,2,2, description: ""}
+    blue_building_resources: {value: 1,4,1,0,0, description: ""}
+    orange_building_resources: {value: 1,3,0,0,1, description: ""}
+    black_building_resources: {value: 4,2,0,2,0, description: ""}
+    green_building_resources: {value: 0,0,2,2,3, description: ""}
+
+    red_building_modifier_strength: {value: 0.05, description: ""}
+    blue_building_modifier_strength: {value: 0.05, description: ""}
+    orange_building_modifier_strength: {value: 0.05, description: ""}
+    black_building_modifier_strength: {value: 1, description: ""}
+    new_actor_resources: {value: 1,1,2,3,3, description: ""}
+
+    red_building_maximum: {value: 0, description: "-1 will disable the limit, and 0 will disable the modifier entirely"}
+    blue_building_maximum: {value: 0, description: "-1 will disable the limit, and 0 will disable the modifier entirely"}
+    orange_building_maximum: {value: 0, description: "-1 will disable the limit, and 0 will disable the modifier entirely"}
+    black_building_maximum: {value: 0, description: "-1 will disable the limit, and 0 will disable the modifier entirely"}
+
+  Nondeterminism:
+    travel_non_deterministic: {value: 0, description: "Probability [0,1] that the move action will fail on each tick. A failed move action results in the actor returning to the original node."}
+    digging_non_deterministic: {value: 0, description: "Probability per tick [0,1] that the dig action will fail, producing no effects."}
+    digging_completion_non_deterministic: {value: 0, description: "Probability upon completion [0,1] that the dig action will fail, producing no effects."}
+    construction_non_deterministic: {value: 0, description: "Probability per tick [0,1] that the construct action will fail, producing no effects."}
+    construction_completion_non_deterministic: {value: 0, description: "Probability upon completion [0,1] that the construct action will fail, producing no effects."}
+    pick_up_non_deterministic: {value: 0, description: "Probability [0,1] that the pickup action will fail, producing no effects."}
+    drop_non_deterministic: {value: 0, description: "Probability [0,1] that the drop action will fail, producing no effects."}
+    site_creation_non_deterministic: {value: 0, description: "Probability [0,1] that the create site action will fail, producing no effects."}
+    deposit_non_deterministic: {value: 0, description: "Probability [0,1] that the deposit action will fail, producing no effects."}
+
+  Temporal Uncertainty:
+    description: "Actions that take time to complete (travelling, mining, constructing) can be set to be temporally uncertain."
+    move_duration_uncertain: {value: false, description: "If true, movement takes an uncertain duration as configured below."}
+    move_overall_stddev: {value: 0.8, description: "The standard deviation (in ticks) of the normal distribution from which to sample the movement duration."}
+    move_per_tick_stddev: {value: 0.3, description: ""}
+    move_sd: {value: [0,2], description: ""}
+
+
+  "Partial Observability":
+    description: "If true, only what is seen by the actors is observable."
+    actor_po: {value: false, description: ""}
+    node_po: {value: false, description: ""}
+    edge_po: {value: false, description: ""}
+    resource_po: {value: false, description: ""}
+    mine_po: {value: false, description: ""}
+    site_po: {value: false, description: ""}
+    building_po: {value: false, description: ""}
+    task_po: {value: false, description: ""}
+    limited_communications: {value: false, description: "If true, each actor observes only fully observable entities and any partially observable entities it can see. Each actor is assigned a unique agent."}

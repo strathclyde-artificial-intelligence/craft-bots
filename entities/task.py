@@ -51,9 +51,9 @@ class Task:
         score provided by the task and added to a total score variable in the simulation
         """
 
-        self.world.total_score += (sum(self.needed_resources) * self.world.modifiers["TASK_SCORE_A"]) + \
-                                  (self.world.modifiers["TASK_SCORE_B"] *
-                                   (sum(self.needed_resources) ** self.world.modifiers["TASK_SCORE_C"]))
+        self.world.total_score += (sum(self.needed_resources) * self.world.task_config["TASK_SCORE_A"]) + \
+                                  (self.world.task_config["TASK_SCORE_B"] *
+                                   (sum(self.needed_resources) ** self.world.task_config["TASK_SCORE_C"]))
 
     def __generate_task(self):
         """
@@ -72,11 +72,11 @@ class Task:
 
         :return: The difficulty of the Task
         """
-        result = r.randint(1, self.world.modifiers["EASY_TASK_WEIGHT"] + self.world.modifiers["MEDIUM_TASK_WEIGHT"] +
-                           self.world.modifiers["HARD_TASK_WEIGHT"])
-        if result - self.world.modifiers["EASY_TASK_WEIGHT"] <= 0:
+        result = r.randint(1, self.world.task_config["easy_task_weight"] + self.world.task_config["medium_task_weight"] +
+                           self.world.task_config["hard_task_weight"])
+        if result - self.world.task_config["easy_task_weight"] <= 0:
             return Task.EASY
-        elif result - self.world.modifiers["EASY_TASK_WEIGHT"] - self.world.modifiers["MEDIUM_TASK_WEIGHT"] <= 0:
+        elif result - self.world.task_config["easy_task_weight"] - self.world.task_config["medium_task_weight"] <= 0:
             return Task.MEDIUM
         else:
             return Task.HARD
@@ -89,12 +89,11 @@ class Task:
         :return: The number of different resource types to be used in the Task
         """
         if self.difficulty == Task.EASY:
-            return r.randint(self.world.modifiers["EASY_TASK_MIN_TYPES"], self.world.modifiers["EASY_TASK_MAX_TYPES"])
+            return r.randint(self.world.task_config["easy_task_types"][0], self.world.task_config["easy_task_types"][1])
         elif self.difficulty == Task.MEDIUM:
-            return r.randint(self.world.modifiers["MEDIUM_TASK_MIN_TYPES"], 
-                             self.world.modifiers["MEDIUM_TASK_MAX_TYPES"])
+            return r.randint(self.world.task_config["medium_task_types"][0], self.world.task_config["medium_task_types"][1])
         else:
-            return r.randint(self.world.modifiers["HARD_TASK_MIN_TYPES"], self.world.modifiers["HARD_TASK_MAX_TYPES"])
+            return r.randint(self.world.task_config["hard_task_types"][0], self.world.task_config["hard_task_types"][1])
 
     def __get_num_of_resources(self, num_of_types):
         """
@@ -115,14 +114,14 @@ class Task:
         for index in range(needed_resources.__len__()):
             if chosen.__contains__(index):
                 if self.difficulty == Task.EASY:
-                    min_res = self.world.modifiers["EASY_TASK_MIN_RESOURCES"]
-                    max_res = self.world.modifiers["EASY_TASK_MAX_RESOURCES"]
+                    min_res = self.world.task_config["easy_task_resources"][0]
+                    max_res = self.world.task_config["easy_task_resources"][1]
                 elif self.difficulty == Task.MEDIUM:
-                    min_res = self.world.modifiers["MEDIUM_TASK_MIN_RESOURCES"]
-                    max_res = self.world.modifiers["MEDIUM_TASK_MAX_RESOURCES"]
+                    min_res = self.world.task_config["medium_task_resources"][0]
+                    max_res = self.world.task_config["medium_task_resources"][1]
                 else:
-                    min_res = self.world.modifiers["HARD_TASK_MIN_RESOURCES"]
-                    max_res = self.world.modifiers["HARD_TASK_MAX_RESOURCES"]
+                    min_res = self.world.task_config["hard_task_resources"][0]
+                    max_res = self.world.task_config["hard_task_resources"][1]
                 needed_resources[index] = r.randint(min_res, max_res)
         return needed_resources
 
@@ -137,18 +136,18 @@ class Task:
         self.fields.__setitem__("project", project.id)
 
     def __set_dead_line(self):
-        if r.random() < self.world.rules["TASK_DEADLINE_PROBABILITY"]:
-            sum_of_res = sum(self.needed_resources) * self.world.modifiers["RESOURCE_COMP_MODIFIER"]
-            mining_compensation = sum_of_res * self.world.modifiers["MINE_EFFORT"]
+        if r.random() < self.world.task_config["task_deadline_probability"]:
+            sum_of_res = sum(self.needed_resources) * self.world.task_config["RESOURCE_COMP_MODIFIER"]
+            mining_compensation = sum_of_res * self.world.task_config["MINE_EFFORT"]
             travel_compensation = sum_of_res * self.world.world_gen_modifiers["CAST_DISTANCE"] * \
-                                  self.world.get_all_edges().__len__() * 0.2 / self.world.modifiers["ACTOR_MOVE_SPEED"]
-            construction_compensation = sum_of_res * self.world.modifiers["BUILD_EFFORT"]
+                                  self.world.get_all_edges().__len__() * 0.2 / self.world.task_config["ACTOR_MOVE_SPEED"]
+            construction_compensation = sum_of_res * self.world.task_config["BUILD_EFFORT"]
 
-            mining_compensation *= self.world.modifiers["MINING_COMP_MODIFIER"]
-            travel_compensation *= self.world.modifiers["TRAVEL_COMP_MODIFIER"]
-            construction_compensation *= self.world.modifiers["CONSTRUCT_COMP_MODIFIER"]
+            mining_compensation *= self.world.task_config["MINING_COMP_MODIFIER"]
+            travel_compensation *= self.world.task_config["TRAVEL_COMP_MODIFIER"]
+            construction_compensation *= self.world.task_config["CONSTRUCT_COMP_MODIFIER"]
 
             compensation = (mining_compensation + travel_compensation + construction_compensation) \
-                           * self.world.modifiers["COMP_MODIFIER"]
+                           * self.world.task_config["COMP_MODIFIER"]
             return self.world.tick + compensation
         return -1

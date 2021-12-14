@@ -43,8 +43,7 @@ class Mine:
         :return: True if digging can begin and false otherwise.
         """
 
-        if self.world.rules["DIGGING_NON_DETERMINISTIC"] and r.random() < \
-                self.world.modifiers["DIGGING_FAIL_CHANCE"]:
+        if self.world.nondeterminism_config["digging_non_deterministic"] and r.random() < self.world.nondeterminism_config["digging_non_deterministic"]:
             print("Digging failed")
             self.set_progress(0)
             self.ignore_me()

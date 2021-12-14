@@ -56,9 +56,9 @@ class Actor:
             return False
         node_index = self.node.shares_edge_with(target_node)
         if node_index != -1:
-            self.deviation = nr.normal(self.world.modifiers["ACTOR_MOVE_SPEED"],
-                                       self.world.modifiers["TRAVEL_OVERALL_SD"]) \
-                if self.world.rules["TRAVEL_TU"] else 0
+            self.deviation = 0
+            if self.world.temporal_config["move_duration_uncertain"]:
+                self.deviation = nr.normal(self.world.actor_config["move_speed"], self.world.temporal_config["move_overall_stddev"])
             self.set_target((self.node.edges[node_index], target_node))
             self.set_state(Actor.MOVING)
             self.set_progress(0)
@@ -83,13 +83,12 @@ class Actor:
         """
         if self.state == Actor.MOVING or self.state == Actor.RECOVERING:
             speed_mod = (self.world.building_modifiers[Building.BUILDING_SPEED] * 0.05) + 1
-            move_speed = self.world.modifiers["ACTOR_MOVE_SPEED"] if not self.world.rules["TRAVEL_TU"] else \
-                max(self.world.modifiers["TRAVEL_MIN_SD"],
-                    min(self.world.modifiers["TRAVEL_MAX_SD"],
-                        nr.normal(self.deviation, self.world.modifiers["TRAVEL_PT_SD"])))
+            move_speed = self.world.actor_config["move_speed"]
+            if self.world.temporal_config["move_duration_uncertain"]:
+                move_speed = nr.normal(self.deviation, self.world.temporal_config["move_per_tick_stddev"])
+                move_speed = max(1, move_speed)
 
-            if self.state == Actor.MOVING and self.world.rules["TRAVEL_NON_DETERMINISTIC"] and r.random() < \
-                    self.world.modifiers["TRAVEL_FAIL_CHANCE"]:
+            if self.state == Actor.MOVING and r.random() < self.world.nondeterminism_config["travel_non_deterministic"]:
                 print("Travel failed")
                 self.cancel_action()
                 self.set_state(Actor.RECOVERING)
@@ -127,16 +126,16 @@ class Actor:
         :return: True if successful and False otherwise
         """
         if self.state == Actor.IDLE and resource.location is self.node:
-            if self.resources and (resource.colour == 3 or self.resources[0].colour == 3) and self.world.modifiers["BLACK_HEAVY"]:
+            if self.resources and (resource.colour == 3 or self.resources[0].colour == 3) and self.worldFIXME["BLACK_HEAVY"]:
                 print("Can hold one black and nothing else")
                 return False
-            if self.resources.__len__() >= self.world.modifiers["INVENTORY_SIZE"] \
-                    * self.world.modifiers["BLACK_BUILDING_MODIFIER_STRENGTH"] + \
+            if self.resources.__len__() >= self.worldFIXME["INVENTORY_SIZE"] \
+                    * self.worldFIXME["BLACK_BUILDING_MODIFIER_STRENGTH"] + \
                     self.world.building_modifiers[Building.BUILDING_INVENTORY]:
                 print("Inventory full, cannot pick up other resources until something is dropped")
                 return False
             if self.world.rules["PICK_UP_NON_DETERMINISTIC"] and r.random() < \
-                    self.world.modifiers["PICK_UP_FAIL_CHANCE"]:
+                    self.worldFIXME["PICK_UP_FAIL_CHANCE"]:
                 print("Pick up failed")
                 return False
             resource.set_location(self)
@@ -155,7 +154,7 @@ class Actor:
         """
         if self.state == Actor.IDLE and self.resources.__contains__(resource):
             if self.world.rules["DROP_NON_DETERMINISTIC"] and r.random() < \
-                    self.world.modifiers["DROP_FAIL_CHANCE"]:
+                    self.worldFIXME["DROP_FAIL_CHANCE"]:
                 print("Drop failed")
                 return False
             resource.set_location(self.node)
@@ -201,8 +200,7 @@ class Actor:
         :return True if successful and False otherwise
         """
         if self.state == Actor.IDLE:
-            if self.world.rules["SITE_CREATION_NON_DETERMINISTIC"] and r.random() < \
-                    self.world.modifiers["SITE_CREATION_FAIL_CHANCE"]:
+            if r.random() < self.world.nondeterminism_config["site_creation_non_deterministic"]:
                 print("Site Creation failed")
                 return False
             self.world.add_site(self.node, colour)
@@ -221,8 +219,8 @@ class Actor:
         """
         if self.state == Actor.IDLE and self.node == site.node:
 
-            self.deviation = nr.normal(self.world.modifiers["BUILD_SPEED"],
-                                       self.world.modifiers["CONSTRUCTING_OVERALL_SD"]) \
+            self.deviation = nr.normal(self.worldFIXME["BUILD_SPEED"],
+                                       self.worldFIXME["CONSTRUCTING_OVERALL_SD"]) \
                 if self.world.rules["CONSTRUCTING_TU"] else 0
 
             self.set_state(Actor.CONSTRUCTING)
@@ -244,7 +242,7 @@ class Actor:
                 and (self.node.sites.__contains__(site) or self.node.buildings.__contains__(site)) \
                 and self.state == Actor.IDLE:
             if self.world.rules["DEPOSIT_NON_DETERMINISTIC"] and r.random() < \
-                    self.world.modifiers["DEPOSIT_FAIL_CHANCE"]:
+                    self.worldFIXME["DEPOSIT_FAIL_CHANCE"]:
                 print("Deposit failed")
                 return False
             return site.deposit_resources(resource)
@@ -271,7 +269,7 @@ class Actor:
             self.set_target((self.target[0], return_node))
             return True
         elif self.state == Actor.DIGGING:
-            num_of_helpers = -1 * self.world.modifiers["ORANGE_ACTORS_TO_MINE"] if self.target.building_type == 2 else -1
+            num_of_helpers = -1 * self.worldFIXME["ORANGE_ACTORS_TO_MINE"] if self.target.building_type == 2 else -1
             for actor in self.node.actors:
                 if actor.target == self.target:
                     num_of_helpers += 1
