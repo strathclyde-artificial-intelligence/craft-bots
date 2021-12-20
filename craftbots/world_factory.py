@@ -23,40 +23,40 @@ class WorldFactory:
     @classmethod
     def add_actors(cls, world, actor_config, resource_config):
         for _ in range(actor_config["num_actors"]):
-            actor = world.add_actor(world.nodes[r.randint(0, world.nodes.__len__() - 1)])
-            for _ in range(resource_config["actor_num_of_red_resources"]):
+            actor = world.add_actor(world.nodes[r.randint(0, len(world.nodes) - 1)])
+            for _ in range(int(resource_config["actor_num_of_red_resources"])):
                 world.add_resource(actor, 0)
-            for _ in range(resource_config["actor_num_of_blue_resources"]):
+            for _ in range(int(resource_config["actor_num_of_blue_resources"])):
                 world.add_resource(actor, 1)
-            for _ in range(resource_config["actor_num_of_orange_resources"]):
+            for _ in range(int(resource_config["actor_num_of_orange_resources"])):
                 world.add_resource(actor, 2)
-            for _ in range(resource_config["actor_num_of_black_resources"]):
+            for _ in range(int(resource_config["actor_num_of_black_resources"])):
                 world.add_resource(actor, 3)
-            for _ in range(resource_config["actor_num_of_green_resources"]):
+            for _ in range(int(resource_config["actor_num_of_green_resources"])):
                 world.add_resource(actor, 4)
 
     @classmethod
     def add_mines(cls, world, config):
-        for _ in range(config["num_of_red_mines"]):
-            world.add_mine(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 0)
-        for _ in range(config["num_of_blue_mines"]):
-            world.add_mine(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 1)
-        for _ in range(config["num_of_orange_mines"]):
-            world.add_mine(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 2)
-        for _ in range(config["num_of_black_mines"]):
-            world.add_mine(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 3)
-        for _ in range(config["num_of_green_mines"]):
-            world.add_mine(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 4)
+        for _ in range(int(config["num_of_red_mines"])):
+            world.add_mine(world.nodes[r.randint(0, len(world.nodes) - 1)], 0)
+        for _ in range(int(config["num_of_blue_mines"])):
+            world.add_mine(world.nodes[r.randint(0, len(world.nodes) - 1)], 1)
+        for _ in range(int(config["num_of_orange_mines"])):
+            world.add_mine(world.nodes[r.randint(0, len(world.nodes) - 1)], 2)
+        for _ in range(int(config["num_of_black_mines"])):
+            world.add_mine(world.nodes[r.randint(0, len(world.nodes) - 1)], 3)
+        for _ in range(int(config["num_of_green_mines"])):
+            world.add_mine(world.nodes[r.randint(0, len(world.nodes) - 1)], 4)
 
     @classmethod
     def add_resources(cls, world, config):
-        for _ in range(config["num_of_red_resources"]):
-            world.add_resource(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 0)
-        for _ in range(config["num_of_blue_resources"]):
-            world.add_resource(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 1)
-        for _ in range(config["num_of_orange_resources"]):
-            world.add_resource(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 2)
-        for _ in range(config["num_of_black_resources"]):
-            world.add_resource(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 3)
-        for _ in range(config["num_of_green_resources"]):
-            world.add_resource(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 4)
+        for _ in range(int(config["num_of_red_resources"])):
+            world.add_resource(world.nodes[r.randint(0, len(world.nodes) - 1)], 0)
+        for _ in range(int(config["num_of_blue_resources"])):
+            world.add_resource(world.nodes[r.randint(0, len(world.nodes) - 1)], 1)
+        for _ in range(int(config["num_of_orange_resources"])):
+            world.add_resource(world.nodes[r.randint(0, len(world.nodes) - 1)], 2)
+        for _ in range(int(config["num_of_black_resources"])):
+            world.add_resource(world.nodes[r.randint(0, len(world.nodes) - 1)], 3)
+        for _ in range(int(config["num_of_green_resources"])):
+            world.add_resource(world.nodes[r.randint(0, len(world.nodes) - 1)], 4)

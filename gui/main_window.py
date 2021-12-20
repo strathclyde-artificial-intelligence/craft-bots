@@ -171,7 +171,7 @@ class CraftBotsGUI:
             elif type(value) == list or type(value) == tuple:
                 for i in range(len(value)):
                     dpg.add_input_text(label=None if i<len(value)-1 else key,
-                                       tag=key+str(i),
+                                       tag=key+"@"+str(i),
                                        default_value=value[i], decimal=True,
                                        width=int((self.CONFIG_WIDTH - dpg.mvStyleVar_PopupRounding)/len(value)),
                                        callback=self.configure)
@@ -194,9 +194,13 @@ class CraftBotsGUI:
 
     def configure(self, sender, data):
         # Item set in configuration window.
+        if "decimal" in dpg.get_item_configuration(sender):
+            if data=='': data=0
+            data = float(data)
         Configuration.set_value(self.simulation.config, sender, data)
 
     def reset_simulation(self, sender, data):
+        # TODO fix agent threads that currently just die.
         # reset button pressed, reset sim and then fit map to window.
         self.simulation.reset_simulation()
         world_info = self.simulation.world.get_world_info()

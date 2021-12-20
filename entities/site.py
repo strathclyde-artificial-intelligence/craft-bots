@@ -38,9 +38,8 @@ class Site:
                     self.task = target_task
                     self.needed_resources = target_task.needed_resources
         else:
-            required_resources_key = "REQUIRED_RESOURCES_" + Building.get_building_type_name(building_type)
-            if self.world.modifiers[required_resources_key]:
-                self.needed_resources = self.world.modifiers[required_resources_key]
+            resources_key = Building.BUILDING_NAMES[self.building_type] + "_building_resources"
+            self.needed_resources = self.world.building_config[resources_key]
 
         # If needed resources cannot be found, then do not inform anything that this Site exists
         if self.needed_resources:
@@ -85,18 +84,20 @@ class Site:
         on how many resources have been deposited so far.
         """
 
-        if self.world.rules["CONSTRUCTION_NON_DETERMINISTIC"] and r.random() < \
-                self.world.modifiers["CONSTRUCTION_FAIL_CHANCE"]:
+        if self.world.nondeterminism_config["construction_non_deterministic"] \
+                and r.random() < self.world.nondeterminism_config["construction_non_deterministic"]:
             print("Constructing failed")
             self.fail_construction()
             return
 
-        build_speed = self.world.modifiers["BUILD_SPEED"] if not self.world.rules["CONSTRUCTING_TU"] else \
-            max(self.world.modifiers["CONSTRUCTING_MIN_SD"],
-                min(self.world.modifiers["CONSTRUCTING_MAX_SD"],
-                    nr.normal(deviation, self.world.modifiers["CONSTRUCTING_PT_SD"])))
+        build_speed = self.world.actor_config["build_speed"]
+        if self.world.temporal_config["build_duration_uncertain"]:
+            deviation = nr.normal(deviation, self.world.temporal_config["build_per_tick_stddev"])
+            build_speed = build_speed + deviation
+            build_speed = max(self.world.temporal_config["build_deviation_bounds"][0], build_speed)
+            build_speed = min(self.world.temporal_config["build_deviation_bounds"][1], build_speed)
 
-        building_progress = build_speed * ((1 + self.world.modifiers["ORANGE_BUILDING_MODIFIER_STRENGTH"]) **
+        building_progress = build_speed * ((1 + self.world.building_config["constructing_speed_building_modifier_strength"]) **
                                            self.world.building_modifiers[Building.BUILDING_CONSTRUCTION])
 
         max_progress = self.max_progress()
@@ -106,9 +107,10 @@ class Site:
             for actor in self.node.actors:
                 if actor.target == self:
                     actor.go_idle()
-        if self.progress >= self.world.modifiers["BUILD_EFFORT"] * sum(self.needed_resources):
-            if self.world.rules["CONSTRUCTION_COMPLETION_NON_DETERMINISTIC"] and r.random() < \
-                    self.world.modifiers["CONSTRUCTION_COMPLETION_FAIL_CHANCE"]:
+        if self.progress >= self.world.building_config["build_effort"] * sum(self.needed_resources):
+            if self.world.nondeterminism_config["construction_completion_non_deterministic"] \
+                    and r.random() < self.world.nondeterminism_config["construction_completion_non_deterministic"]:
+                # TODO all PRINT statements swapped to singleton logger linked to API and console.
                 print("Construction completion failed")
                 self.fail_construction()
                 return
@@ -122,14 +124,14 @@ class Site:
 
     def fail_construction(self):
         self.ignore_me()
-        penalty = r.uniform(self.world.modifiers["CONSTRUCTION_FAIL_MIN_PENALTY"],
-                            self.world.modifiers["CONSTRUCTION_FAIL_MAX_PENALTY"])
-        for _ in range(min(self.world.modifiers["MAX_RESOURCE_PENALTY"], m.ceil(sum(self.needed_resources) * penalty))):
+        penalty = r.uniform(self.world.nondeterminism_config["construction_failure_penalty"][0],
+                            self.world.nondeterminism_config["construction_failure_penalty"][1])
+        resources_lost = int(len(self.deposited_resources) * penalty)
+        resources_lost = min(len(self.deposited_resources), max(0,resources_lost))
+
+        for _ in range(resources_lost):
             self.deposited_resources[self.deposited_resources.index(max(self.deposited_resources))] -= 1
-        for index in range(self.needed_resources.__len__()):
-            self.needed_resources[index] = max(0, self.needed_resources[index])
-        self.set_progress(min(self.progress - (sum(self.needed_resources) * self.world.modifiers["BUILD_EFFORT"]
-                                               * penalty), self.max_progress()))
+            self.set_progress(max(self.progress - self.world.building_config["build_effort"], 0))
 
     def max_progress(self):
         """
@@ -137,7 +139,7 @@ class Site:
 
         :return: The maximum progress
         """
-        return self.world.modifiers["BUILD_EFFORT"] * sum(self.needed_resources) * sum(self.deposited_resources) / sum(self.needed_resources)
+        return self.world.building_config["build_effort"] * sum(self.needed_resources) * sum(self.deposited_resources) / sum(self.needed_resources)
 
     def ignore_me(self):
         """

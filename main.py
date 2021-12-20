@@ -10,7 +10,7 @@ from gui.main_window import CraftBotsGUI
 if __name__ == '__main__':
 
     # agent
-    agent = PDDLAgent()
+    agent = Bogo()
 
     # Simulation
     sim = Simulation()

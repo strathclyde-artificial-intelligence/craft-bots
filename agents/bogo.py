@@ -23,8 +23,6 @@ class Bogo:
         self.api: agent_api.AgentAPI
 
         for actor_id in self.api.actors:
-            try:
-
                 actor = self.api.get_by_id(actor_id, entity_type="Actor")
 
                 if actor["state"] == Actor.IDLE:
@@ -40,8 +38,7 @@ class Bogo:
                             site = self.api.get_by_id(site_id, entity_type="Site")
                             for resource_id in actor["resources"]:
                                 resource = self.api.get_by_id(resource_id, entity_type="Resource")
-                                if site["deposited_resources"][resource["colour"]] < site["needed_resources"][
-                                    resource["colour"]]:
+                                if site["deposited_resources"][resource["colour"]] < site["needed_resources"][resource["colour"]]:
                                     self.api.deposit_resources(actor_id, site["id"], resource_id)
                                     self.api.construct_at(actor_id, site["id"])
                     else:
@@ -80,7 +77,5 @@ class Bogo:
                         if self.world_info["tick"] > self.orange_ticks[actor_id]:
                             self.api.cancel_action(actor_id)
                             self.api.move_rand(actor_id)
-            except:
-                print("Something went wrong")
 
         self.thinking = False

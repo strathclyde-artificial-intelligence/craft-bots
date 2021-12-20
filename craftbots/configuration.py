@@ -30,10 +30,23 @@ class Configuration:
 
     @classmethod
     def set_value(cls, configuration, key, value):
+        # check for setting list value
+        index = -1
+        if "@" in key:
+            index = int(key.split("@")[1])
+            key = key.split("@")[0]
         for category,config in configuration.items():
-            if key in config:
-                config[key]['value'] = value
-                return
+            for k,v in config.items():
+                # check sub-category
+                if type(v)==dict and key in v:
+                    if index >= 0: v[key][index] = value
+                    else: v[key] = value
+                    return
+                # normal config property
+                if key in config:
+                    if index >= 0: config[key]['value'][index] = value
+                    else:  config[key]['value'] = value
+                    return
         print("Set config key not found: ",key)
         return None
 

@@ -20,6 +20,8 @@ class World:
         self.config = config
         self.task_config = Configuration.flatten(self.config['Tasks'])
         self.actor_config = Configuration.flatten(self.config['Actors'])
+        self.resource_config = Configuration.flatten(self.config['Resources'])
+        self.building_config = Configuration.flatten(self.config['Buildings'])
         self.partial_observability_config = Configuration.flatten(self.config["Partial Observability"])
         self.nondeterminism_config = Configuration.flatten(self.config["Nondeterminism"])
         self.temporal_config = Configuration.flatten(self.config["Temporal Uncertainty"])
@@ -490,7 +492,6 @@ class World:
             self.tasks.extend(self.generate_tasks())
         else:
             if r.random() < self.task_config["new_task_chance"]:
-                self.tasks.append(Task(self))
                 self.tasks.append(Task(self))
         self.tick += 1
 

@@ -105,13 +105,13 @@ class Task:
         """
         available = [0, 1, 2, 3, 4]
         chosen = []
-        for _ in range(num_of_types):
-            index = r.randint(0, available.__len__() - 1)
+        for _ in range(min(num_of_types,len(available))):
+            index = r.randint(0, len(available) - 1)
             chosen.append(available[index])
             available.remove(available[index])
             
         needed_resources = [0, 0, 0, 0, 0]
-        for index in range(needed_resources.__len__()):
+        for index in range(len(needed_resources)):
             if chosen.__contains__(index):
                 if self.difficulty == Task.EASY:
                     min_res = self.world.task_config["easy_task_resources"][0]

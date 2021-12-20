@@ -126,16 +126,18 @@ class Actor:
         :return: True if successful and False otherwise
         """
         if self.state == Actor.IDLE and resource.location is self.node:
-            if self.resources and (resource.colour == 3 or self.resources[0].colour == 3) and self.worldFIXME["BLACK_HEAVY"]:
+            # TODO fix resource colour references (and mine) so that they are human readable.
+            if self.resources and self.world.resource_config["black_heavy"] and (resource.colour == 3 or self.resources[0].colour == 3):
+                # TODO all PRINT statements swapped to singleton logger linked to API and console.
                 print("Can hold one black and nothing else")
                 return False
-            if self.resources.__len__() >= self.worldFIXME["INVENTORY_SIZE"] \
-                    * self.worldFIXME["BLACK_BUILDING_MODIFIER_STRENGTH"] + \
+            if len(self.resources) >= self.world.actor_config["inventory_size"] + \
+                    self.world.building_config["inventory_size_building_modifier_strength"] * \
                     self.world.building_modifiers[Building.BUILDING_INVENTORY]:
                 print("Inventory full, cannot pick up other resources until something is dropped")
                 return False
-            if self.world.rules["PICK_UP_NON_DETERMINISTIC"] and r.random() < \
-                    self.worldFIXME["PICK_UP_FAIL_CHANCE"]:
+            if self.world.nondeterminism_config["pick_up_non_deterministic"] \
+                    and r.random() < self.world.nondeterminism_config["pick_up_non_deterministic"]:
                 print("Pick up failed")
                 return False
             resource.set_location(self)
@@ -153,8 +155,8 @@ class Actor:
         :return: True if successful and False otherwise
         """
         if self.state == Actor.IDLE and self.resources.__contains__(resource):
-            if self.world.rules["DROP_NON_DETERMINISTIC"] and r.random() < \
-                    self.worldFIXME["DROP_FAIL_CHANCE"]:
+            if self.world.nondeterminism_config["drop_non_deterministic"] and \
+                    r.random() < self.world.nondeterminism_config["drop_non_deterministic"]:
                 print("Drop failed")
                 return False
             resource.set_location(self.node)
@@ -218,11 +220,9 @@ class Actor:
         :return: True if successful and otherwise False
         """
         if self.state == Actor.IDLE and self.node == site.node:
-
-            self.deviation = nr.normal(self.worldFIXME["BUILD_SPEED"],
-                                       self.worldFIXME["CONSTRUCTING_OVERALL_SD"]) \
-                if self.world.rules["CONSTRUCTING_TU"] else 0
-
+            self.deviation = 0
+            if self.world.temporal_config["build_duration_uncertain"]:
+                self.deviation = nr.normal(self.world.actor_config["build_speed"], self.world.building_config["build_overall_stddev"])
             self.set_state(Actor.CONSTRUCTING)
             self.set_target(site)
             return True
@@ -241,8 +241,8 @@ class Actor:
         if self.resources.__contains__(resource) \
                 and (self.node.sites.__contains__(site) or self.node.buildings.__contains__(site)) \
                 and self.state == Actor.IDLE:
-            if self.world.rules["DEPOSIT_NON_DETERMINISTIC"] and r.random() < \
-                    self.worldFIXME["DEPOSIT_FAIL_CHANCE"]:
+            if self.world.nondeterminism_config["deposit_non_deterministic"] \
+                    and r.random() < self.world.nondeterminism_config["deposit_non_deterministic"]:
                 print("Deposit failed")
                 return False
             return site.deposit_resources(resource)
@@ -269,11 +269,11 @@ class Actor:
             self.set_target((self.target[0], return_node))
             return True
         elif self.state == Actor.DIGGING:
-            num_of_helpers = -1 * self.worldFIXME["ORANGE_ACTORS_TO_MINE"] if self.target.building_type == 2 else -1
+            # TODO Fix the references to mine_type so that they are readable (e.g. this is orange).
+            num_of_helpers = -1 * self.world.resource_config["orange_actors_to_mine"] if self.target.building_type == 2 else -1
             for actor in self.node.actors:
                 if actor.target == self.target:
                     num_of_helpers += 1
-
             if num_of_helpers <= 0:
                 self.target.set_progress(0)
             self.go_idle()
