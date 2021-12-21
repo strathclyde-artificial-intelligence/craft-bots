@@ -3,12 +3,12 @@ import threading
 
 from api.agent_api import AgentAPI
 from craftbots.world_factory import WorldFactory
-from craftbots.configuration import Configuration
+from craftbots.config.config_manager import Configuration
 
 
 class Simulation:
 
-    def __init__(self, configuration_file = "craftbots/initialisation_files/simulation_configuration.yaml"):
+    def __init__(self, configuration_file = "craftbots/config/simulation_configuration.yaml"):
 
         # simulation loop properties
         self.config = Configuration.read_ini_file(configuration_file)

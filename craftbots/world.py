@@ -1,22 +1,22 @@
 import random as r
 import math as m
 
-from craftbots.configuration import Configuration
-from entities.node import Node
-from entities.edge import Edge
-from entities.actor import Actor
-from entities.resource import Resource
-from entities.site import Site
-from entities.building import Building
-from entities.mine import Mine
-from entities.task import Task
+from craftbots.config.config_manager import Configuration
+from craftbots.entities.node import Node
+from craftbots.entities.edge import Edge
+from craftbots.entities.actor import Actor
+from craftbots.entities.resource import Resource
+from craftbots.entities.site import Site
+from craftbots.entities.building import Building
+from craftbots.entities.mine import Mine
+from craftbots.entities.task import Task
 
 
 class World:
 
     def __init__(self, config):
 
-        # Flatten nested config into dictionary for easy access
+        # Flatten nested config into dictionaries for easy access
         self.config = config
         self.task_config = Configuration.flatten(self.config['Tasks'])
         self.actor_config = Configuration.flatten(self.config['Actors'])
@@ -88,6 +88,10 @@ class World:
                 attempts += 1
                 if attempts >= world_generation_config["roadmap_max_attempts"]:
                     break
+
+    # ===================== #
+    # World Info Dictionary #
+    # ===================== #
 
     def get_world_info(self, target_actors=None):
         if target_actors is None:
@@ -484,6 +488,10 @@ class World:
             for edge in self.get_all_edges():
                 edges.__setitem__(edge.id, edge.fields)
         return edges
+
+    # ====== #
+    # Update #
+    # ====== #
 
     def run_tick(self):
         self.update_all_actors()

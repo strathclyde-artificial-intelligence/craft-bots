@@ -1,6 +1,6 @@
 import dearpygui.dearpygui as dpg
 
-from craftbots.configuration import Configuration
+from craftbots.config.config_manager import Configuration
 from craftbots.simulation import Simulation
 from gui.palletes import palletes
 from gui.simulation_view import SimulationView

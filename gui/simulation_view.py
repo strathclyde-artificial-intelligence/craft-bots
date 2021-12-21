@@ -1,7 +1,7 @@
 import math
 import dearpygui.dearpygui as dpg
 
-from entities.actor import Actor
+from craftbots.entities.actor import Actor
 from gui.palletes import palletes
 
 class SimulationView:

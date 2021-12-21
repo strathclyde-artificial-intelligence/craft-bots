@@ -1,6 +1,5 @@
 from api import agent_api
 from api.command import Command
-from entities.actor import Actor
 
 
 class TestAgent:

@@ -1,7 +1,7 @@
 import numpy.random as nr
 import random as r
 
-from entities.building import Building
+from craftbots.entities.building import Building
 
 
 class Mine:

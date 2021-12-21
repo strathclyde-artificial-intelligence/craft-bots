@@ -1,4 +1,4 @@
-from craftbots.configuration import Configuration
+from craftbots.config.config_manager import Configuration
 from craftbots.world import World
 import random as r
 
