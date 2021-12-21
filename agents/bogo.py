@@ -1,6 +1,6 @@
 import random
 from api import agent_api
-from entities.actor import Actor
+from craftbots.entities.actor import Actor
 
 """
 Bogo is an agent for the craft bots simulation that only makes (semi)-random moves. 

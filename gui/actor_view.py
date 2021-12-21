@@ -1,7 +1,6 @@
-import math
 import dearpygui.dearpygui as dpg
 
-from entities.actor import Actor
+from craftbots.entities.actor import Actor
 from gui.palletes import palletes
 from gui.simulation_view import SimulationView
 
@@ -80,7 +79,6 @@ class ActorView:
 
             # inventory
             x, y = 0, 3
-            max_width = dpg.get_item_width(self.target_window)
             for resource in actor['resources']:
                 colour = SimulationView.SIM_COLOURS[world_info['resources'][resource]['colour']]
                 dpg.draw_rectangle(pmin=(x, y), pmax=(x + ActorView.RESOURCE_SIZE, y + ActorView.RESOURCE_SIZE),
