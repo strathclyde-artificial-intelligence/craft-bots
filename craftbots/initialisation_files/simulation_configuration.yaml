@@ -22,15 +22,30 @@
     refresh_tasks: {value: false, description: "Generate new tasks equal to initial task amount if all current tasks are complete."}
     new_task_chance: {value: 0.00, description: "Probability per tick of a new task to be generated."}
     task_deadline_probability: {value: 0.0, description: "Probability that a task has a deadline."}
-    easy_task_weight: {value: 1, description: "Relative chance of generating an easy task."}
-    easy_task_types: {value: [2,3], description: "Min/Max different resource types that compose an easy task."}
-    easy_task_resources: {value: [1,1], description: "Min/Max number of resources of each type that compose an easy task."}
-    medium_task_weight: {value: 0, description: "Relative chance of generating a medium task."}
-    medium_task_types: {value: [3,4], description: "Min/Max different resource types that compose a medium task."}
-    medium_task_resources: {value: [1,2], description: "Min/Max number of resources of each type that compose a medium task."}
-    hard_task_weight: {value: 0, description: "Relative chance of generating a hard task."}
-    hard_task_types: {value: [3,5], description: "Min/Max different resource types that compose a hard task."}
-    hard_task_resources: {value: [2,4], description: "Min/Max number of resources of each type that compose a hard task."}
+
+    "Task Weighting":
+        description: "Relative chance of generating each task type."
+        easy_task_weight: 1
+        medium_task_weight: 0
+        hard_task_weight: 0
+
+    "Task Resource Types":
+        description: "Min/Max number of different resource types that compose a task."
+        easy_task_types: [2,3]
+        medium_task_types: [3,4]
+        hard_task_types: [3,5]
+
+    "Task Resource Amounts":
+        description: "Min/Max number of resources of each type that compose a task."
+        easy_task_resources: [1,1]
+        medium_task_resources: [1,2]
+        hard_task_resources: [2,4]
+
+    "Task Scoring":
+      description: "A task completed before its deadline provides a score of (aN + bN^c) where N is the total required resources for the task."
+      task_score_a: 1
+      task_score_b: 1
+      task_score_c: 2
 
   Actors:
     num_actors: {value: 3, description: ""}
@@ -52,9 +67,9 @@
     cycle_length: {value: 1200, description: "Length in simulation ticks of the day cycle, used in conjunction with Red collection intervals."}
     red_collection_intervals: {value: [0,1200], description: "Start and end of interval within which Red resource can be collected each day."}
     blue_extra_effort: {value: 1, description: "Blue will take longer to mine by this factor."}
-    orange_actors_to_mine: {value: 1, description: "Number of additional actors required to mine Orange resource."}
+    orange_actors_to_mine: {value: 0, description: "Number of additional actors required to mine Orange resource."}
     green_decay_time: {value: 99999, description: "Number of ticks after which Green resource vanishes."}
-    black_heavy: {value: true, description: "If True, an actor carrying one Black resource cannot carry anything else."}
+    black_heavy: {value: false, description: "If True, an actor carrying one Black resource cannot carry anything else."}
 
     "Resources in Nodes":
       description: "Number of resources initially placed in nodes."

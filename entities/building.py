@@ -50,13 +50,14 @@ class Building:
             self.fields = {"node": self.node.id, "building_type": self.building_type, "id": self.id}
 
         # Keep track of the bonuses the building provides in the simulation
-        max_var_name = Building.BUILDING_NAMES[self.building_type] + "_building_maximum"
-        if self.world.building_config[max_var_name] > 0:
-            # Limited positive capacity for this kind of building
-            self.world.building_modifiers[self.building_type] = min(self.world.building_config[max_var_name], self.world.building_modifiers[self.building_type] + 1)
-        elif self.world.building_config[max_var_name] == -1:
-            # Unlimited capacity for this kind of building
-            self.world.building_modifiers[self.building_type] += 1
+        if self.building_type != Building.BUILDING_TASK:
+            max_var_name = Building.BUILDING_NAMES[self.building_type] + "_building_maximum"
+            if self.world.building_config[max_var_name] > 0:
+                # Limited positive capacity for this kind of building
+                self.world.building_modifiers[self.building_type] = min(self.world.building_config[max_var_name], self.world.building_modifiers[self.building_type] + 1)
+            elif self.world.building_config[max_var_name] == -1:
+                # Unlimited capacity for this kind of building
+                self.world.building_modifiers[self.building_type] += 1
 
     def __repr__(self):
         return "Building(" + str(self.id) + ", " + Building.BUILDING_NAMES[self.building_type] + ", " + str(self.node) + ")"

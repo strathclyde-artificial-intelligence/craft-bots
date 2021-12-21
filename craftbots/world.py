@@ -179,7 +179,8 @@ class World:
                 commands_info.__setitem__(command.id, command.fields)
 
         return {"tick": self.tick, "actors": actors_info, "nodes": nodes_info, "edges": edges_info, "resources": resources_info,
-                "mines": mines_info, "sites": sites_info, "buildings": buildings_info, "tasks": tasks_info, "commands": commands_info}
+                "mines": mines_info, "sites": sites_info, "buildings": buildings_info, "tasks": tasks_info, "commands": commands_info,
+                "score": self.total_score}
     
     def get_actor_info(self, actors):
         look_effort = Configuration.get_value(self.config, "look_effort")
@@ -518,7 +519,7 @@ class World:
 
     def generate_tasks(self):
         tasks = []
-        for index in range(self.task_config["initial_tasks"]):
+        for index in range(int(self.task_config["initial_tasks"])):
             tasks.append(Task(self))
         return tasks
 

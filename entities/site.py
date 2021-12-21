@@ -45,7 +45,9 @@ class Site:
         if self.needed_resources:
             self.node.append_site(self)
             self.fields = {"node": self.node.id, "building_type": self.building_type, "deposited_resources": self.deposited_resources,
-                           "needed_resources": self.needed_resources, "progress": self.progress, "id": self.id}
+                           "needed_resources": self.needed_resources, "progress": self.progress, "max_progress": self.max_progress(),
+                           "needed_effort": self.world.building_config["build_effort"] * sum(self.needed_resources),
+                           "id": self.id}
 
     def __repr__(self):
         return "Site(" + str(self.id) + ", " + str(self.node) + ")"

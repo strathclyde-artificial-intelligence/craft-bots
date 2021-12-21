@@ -4,6 +4,7 @@ from craftbots.configuration import Configuration
 from craftbots.simulation import Simulation
 from gui.palletes import palletes
 from gui.simulation_view import SimulationView
+from gui.actor_view import ActorView
 
 class CraftBotsGUI:
 
@@ -22,12 +23,15 @@ class CraftBotsGUI:
 
         # simulation viewport and drawing
         self.simulation_window = None
+        self.actor_window = None
         self.sim_view = None
+        self.actor_view = None
         self.info_text = None
         self.command_count = 0
         self.time_bar = None
         self.time_text = None
         self.rate_slider = None
+        self.score_text = None
 
         # model
         self.simulation = simulation
@@ -42,7 +46,7 @@ class CraftBotsGUI:
 
         # prepare window
         dpg.create_context()
-        dpg.create_viewport(title="CraftBots", resizable=False)
+        dpg.create_viewport(title="CraftBots", resizable=True)
         dpg.set_viewport_small_icon("craftbots_icon.ico")
         dpg.set_viewport_large_icon("craftbots_icon.ico")
 
@@ -55,7 +59,7 @@ class CraftBotsGUI:
         dpg.set_viewport_height(self.WINDOW_HEIGHT)
 
         # create internal panels
-        with dpg.window(label="CraftBots") as primary_window:
+        with dpg.window(label="CraftBots", horizontal_scrollbar=True, no_scrollbar=False) as primary_window:
             self.primary_window = primary_window
             dpg.set_primary_window(self.primary_window, True)
 
@@ -68,6 +72,12 @@ class CraftBotsGUI:
                 self.simulation_window = simulation_window
                 self.sim_view = SimulationView(self.simulation_window)
 
+            with dpg.window(label="Actors", tag="actor_window",
+                            no_scrollbar=False, no_resize=False, no_move=False, no_collapse=False, no_close=True,
+                            pos=[self.SIDEBAR_WIDTH + sim_width + 30, 10], width=self.SIDEBAR_WIDTH, height=sim_height) as actor_window:
+                self.actor_window = actor_window
+                self.actor_view = ActorView(self.actor_window)
+
             # sidebar
             with dpg.child_window(label="sidebar_window", width=self.SIDEBAR_WIDTH, autosize_y=True, pos=[10, 10]):
 
@@ -78,6 +88,7 @@ class CraftBotsGUI:
                 dpg.add_button(label="Reset", width=self.SIDEBAR_WIDTH, callback=self.reset_callback)
                 dpg.add_button(label="Start", width=self.SIDEBAR_WIDTH, callback=self.start_callback)
                 dpg.add_button(label="Pause", width=self.SIDEBAR_WIDTH, callback=self.pause_callback)
+                self.score_text = dpg.add_text("Score: 0")
                 with dpg.group(horizontal=True):
                     self.time_text = dpg.add_text("Simulation Time: 0")
                 self.time_bar = dpg.add_progress_bar(default_value=0)
@@ -140,6 +151,7 @@ class CraftBotsGUI:
 
         dpg.setup_dearpygui()
         dpg.show_viewport()
+        dpg.maximize_viewport()
 
         # main GUI loop
         while dpg.is_dearpygui_running():
@@ -149,10 +161,12 @@ class CraftBotsGUI:
 
                 # update simulation view
                 self.sim_view.update_draw_list(world_info)
+                self.actor_view.update_draw_list(world_info)
 
                 # update sim controls panel
-                dpg.set_value(self.time_text, "Time: " + str(world_info['tick']))
+                dpg.set_value(self.time_text, "Simulation Time: " + str(world_info['tick']))
                 dpg.set_value(self.time_bar, world_info['tick'] / Configuration.get_value(self.simulation.config, 'sim_length'))
+                dpg.set_value(self.score_text, "Score: " + str(world_info['score']))
 
             # update sidebar controls to match configuration
             dpg.set_value(self.rate_slider, float(Configuration.get_value(self.simulation.config,"simulation_rate")))
@@ -203,6 +217,7 @@ class CraftBotsGUI:
         # TODO fix agent threads that currently just die.
         # reset button pressed, reset sim and then fit map to window.
         self.simulation.reset_simulation()
+        self.actor_view.reset()
         world_info = self.simulation.world.get_world_info()
         self.sim_view.init_world(world_info)
         self.sim_view.update_draw_list(world_info)

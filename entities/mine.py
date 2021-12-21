@@ -14,7 +14,7 @@ class Mine:
 
         self.node.append_mine(self)
 
-        self.fields = {"node": self.node.id, "colour": self.colour, "id": self.id, "progress": self.progress}
+        self.fields = {"node": self.node.id, "colour": self.colour, "id": self.id, "progress": self.progress, "max_progress": self.world.resource_config["mine_effort"]}
 
     def __repr__(self):
         return "Mine(" + str(self.id) + ", " + self.world.get_colour_string(self.colour) + ", " + str(
