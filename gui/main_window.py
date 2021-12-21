@@ -1,6 +1,7 @@
 import dearpygui.dearpygui as dpg
 
 from craftbots.config.config_manager import Configuration
+from craftbots.log_manager import Logger
 from craftbots.simulation import Simulation
 from gui.palletes import palletes
 from gui.simulation_view import SimulationView
@@ -41,6 +42,15 @@ class CraftBotsGUI:
         self.reset_callback = self.reset_simulation
         self.pause_callback = simulation.pause_simulation
         self.start_callback = simulation.start_simulation
+
+        # additional info
+        self.log = {
+            "log_node": True,
+            "log_actor": True,
+            "log_mine": True,
+            "log_site": True,
+            "log_building": True
+        }
 
     def start_window(self):
 
@@ -106,9 +116,11 @@ class CraftBotsGUI:
                             dpg.add_checkbox(label=label_name, tag=label_name, default_value=checked, callback=self.sim_view.box_checked)
 
                 # text console
-                with dpg.collapsing_header(label="Info", default_open=False):
+                with dpg.collapsing_header(label="Info", default_open=True):
+                    for name, checked in self.log.items():
+                        dpg.add_checkbox(label=name, tag=name, default_value=checked, callback=self.box_checked)
                     with dpg.child_window(height=int(self.WINDOW_HEIGHT/4), border=True):
-                        self.info_text = dpg.add_text("Interface started", wrap=self.SIDEBAR_WIDTH-5)
+                        self.info_text = dpg.add_text("Interface started", wrap=self.SIDEBAR_WIDTH-5, tracked=True, track_offset=1.0)
 
             # configuration window
             with dpg.window(label="Configuration", tag="config_window", show=False,
@@ -170,6 +182,11 @@ class CraftBotsGUI:
 
             # update sidebar controls to match configuration
             dpg.set_value(self.rate_slider, float(Configuration.get_value(self.simulation.config,"simulation_rate")))
+            info = ""
+            for message in Logger.log:
+                if not any([k[4:] in message[1] and not v for k,v in self.log.items()]):
+                    info = info + "[" + str(message[0]) + "] " + "(" + message[1] + ") " + message[2] + "\n"
+            dpg.set_value(self.info_text, info)
 
             # render
             dpg.render_dearpygui_frame()
@@ -196,6 +213,10 @@ class CraftBotsGUI:
     # ========= #
     # Callbacks #
     # ========= #
+
+    def box_checked(self, sender, data):
+        if sender in self.log:
+            self.log[sender] = data
 
     def slider_callback(self, sender, data):
         # Alter the simulation rate using the slider instead of the config window.

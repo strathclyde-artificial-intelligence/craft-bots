@@ -2,6 +2,7 @@ import time
 import threading
 
 from api.agent_api import AgentAPI
+from craftbots.log_manager import Logger
 from craftbots.world_factory import WorldFactory
 from craftbots.config.config_manager import Configuration
 
@@ -22,12 +23,16 @@ class Simulation:
         # agent references
         self.agents = []
 
+        # logging
+        Logger.setup_logger(self.config, self.world)
+
     # ================== #
     # simulation methods #
     # ================== #
 
     def reset_simulation(self):
         self.world = WorldFactory.generate_world(self.config)
+        Logger.setup_logger(self.config, self.world)
         for agent in self.agents:
             actor_ids = self.world.get_all_actor_ids()
             agent.api = AgentAPI(self.world, actor_ids)

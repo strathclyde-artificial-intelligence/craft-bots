@@ -2,6 +2,7 @@ import random as r
 import numpy.random as nr
 
 from craftbots.entities.building import Building
+from craftbots.log_manager import Logger
 
 
 class Actor:
@@ -89,7 +90,7 @@ class Actor:
                 move_speed = max(1, move_speed)
 
             if self.state == Actor.MOVING and r.random() < self.world.nondeterminism_config["travel_non_deterministic"]:
-                print("Travel failed")
+                Logger.info("actor"+self.id, "Travel failed")
                 self.cancel_action()
                 self.set_state(Actor.RECOVERING)
                 return
@@ -128,17 +129,16 @@ class Actor:
         if self.state == Actor.IDLE and resource.location is self.node:
             # TODO fix resource colour references (and mine) so that they are human readable.
             if self.resources and self.world.resource_config["black_heavy"] and (resource.colour == 3 or self.resources[0].colour == 3):
-                # TODO all PRINT statements swapped to singleton logger linked to API and console.
-                print("Can hold one black and nothing else")
+                Logger.info("actor" + self.id, "Can hold one black and nothing else.")
                 return False
             if len(self.resources) >= self.world.actor_config["inventory_size"] + \
                     self.world.building_config["inventory_size_building_modifier_strength"] * \
                     self.world.building_modifiers[Building.BUILDING_INVENTORY]:
-                print("Inventory full, cannot pick up other resources until something is dropped")
+                Logger.info("actor" + self.id, "Inventory full, cannot pick up other resources until something is dropped.")
                 return False
             if self.world.nondeterminism_config["pick_up_non_deterministic"] \
                     and r.random() < self.world.nondeterminism_config["pick_up_non_deterministic"]:
-                print("Pick up failed")
+                Logger.info("actor" + self.id, "Pick up failed.")
                 return False
             resource.set_location(self)
             self.append_resource(resource)
@@ -157,7 +157,7 @@ class Actor:
         if self.state == Actor.IDLE and self.resources.__contains__(resource):
             if self.world.nondeterminism_config["drop_non_deterministic"] and \
                     r.random() < self.world.nondeterminism_config["drop_non_deterministic"]:
-                print("Drop failed")
+                Logger.info("actor" + self.id, "Drop failed.")
                 return False
             resource.set_location(self.node)
             self.remove_resource(resource)
@@ -203,7 +203,7 @@ class Actor:
         """
         if self.state == Actor.IDLE:
             if r.random() < self.world.nondeterminism_config["site_creation_non_deterministic"]:
-                print("Site Creation failed")
+                Logger.info("actor" + self.id, "Site Creation failed.")
                 return False
             self.world.add_site(self.node, colour)
             return True
@@ -243,7 +243,7 @@ class Actor:
                 and self.state == Actor.IDLE:
             if self.world.nondeterminism_config["deposit_non_deterministic"] \
                     and r.random() < self.world.nondeterminism_config["deposit_non_deterministic"]:
-                print("Deposit failed")
+                Logger.info("actor" + self.id, "Deposit failed.")
                 return False
             return site.deposit_resources(resource)
         return False

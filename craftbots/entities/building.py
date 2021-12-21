@@ -2,6 +2,7 @@ import numpy.random as nr
 import random as r
 import math as m
 
+from craftbots.log_manager import Logger
 
 class Building:
 
@@ -89,8 +90,7 @@ class Building:
         on how many resources have been deposited so far.
         """
         if self.world.nondeterminism_config["construction_non_deterministic"] and r.random() < self.world.nondeterminism_config["construction_non_deterministic"]:
-            # TODO all PRINT statements swapped to singleton logger linked to API and console.
-            print("Constructing failed")
+            Logger.info("building" + self.id, "Constructing failed.")
             self.fail_construction()
             return
 
@@ -117,8 +117,7 @@ class Building:
             if self.progress >= self.world.building_config["build_effort"] * sum(self.needed_resources):
                 if self.world.nondeterminism_config["construction_completion_non_deterministic"] \
                         and r.random() < self.world.nondeterminism_config["construction_completion_non_deterministic"]:
-                    # TODO all PRINT statements swapped to singleton logger linked to API and console.
-                    print("Agent construction completion failed")
+                    Logger.info("building" + self.id, "Agent construction completion failed.")
                     self.fail_construction()
                     return
                 self.world.add_actor(self.node)

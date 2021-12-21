@@ -1,5 +1,8 @@
 import yaml
 
+from craftbots.log_manager import Logger
+
+
 class Configuration:
 
     # ================= #
@@ -13,7 +16,7 @@ class Configuration:
             try:
                 parameters = yaml.safe_load(stream)
             except yaml.YAMLError as exc:
-                print(exc)
+                Logger.error("(config manager)", exc)
         return parameters
 
     # ================== #
@@ -25,7 +28,7 @@ class Configuration:
         for category,config in configuration.items():
             if key in config:
                 return config[key]['value']
-        print("Get config key not found: ",key)
+        Logger.error("(config manager)", "Get config key not found: "+key)
         return None
 
     @classmethod
@@ -47,7 +50,7 @@ class Configuration:
                     if index >= 0: config[key]['value'][index] = value
                     else:  config[key]['value'] = value
                     return
-        print("Set config key not found: ",key)
+        Logger.error("(config manager)", "Set config key not found: "+key)
         return None
 
     @classmethod

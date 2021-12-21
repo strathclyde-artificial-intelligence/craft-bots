@@ -2,6 +2,7 @@ import numpy.random as nr
 import random as r
 
 from craftbots.entities.building import Building
+from craftbots.log_manager import Logger
 
 
 class Mine:
@@ -44,8 +45,7 @@ class Mine:
         """
 
         if self.world.nondeterminism_config["digging_non_deterministic"] and r.random() < self.world.nondeterminism_config["digging_non_deterministic"]:
-            # TODO all PRINT statements swapped to singleton logger linked to API and console.
-            print("Digging failed")
+            Logger.info("mine" + self.id, "Mining failed.")
             self.set_progress(0)
             self.ignore_me()
             return False
@@ -89,8 +89,7 @@ class Mine:
         if self.progress >= self.world.resource_config["mine_effort"]:
             if self.world.nondeterminism_config["digging_completion_non_deterministic"] and \
                     r.random() < self.world.nondeterminism_config["digging_completion_non_deterministic"]:
-                # TODO all PRINT statements swapped to singleton logger linked to API and console.
-                print("Digging completion failed")
+                Logger.info("mine" + self.id, "Mining completion failed.")
                 self.set_progress(0)
                 self.ignore_me()
                 return False
