@@ -2,6 +2,7 @@ from craftbots.world import World
 from api.agent_api import AgentAPI
 from agents.blank_agent import BlankAgent
 import craftbots.view as view
+from gui.main_window import CraftBotsGUI
 import threading
 import random as r
 import math
@@ -9,11 +10,9 @@ import time
 
 from entities.building import Building
 
-PADDING = 25
-NODE_SIZE = 20
-
 simulation_stop = None
 sim_stopped = False
+sim_paused = False
 gui_updating = False
 root = None
 world = World()
@@ -34,7 +33,7 @@ def default_scenario(modifiers, world_gen_modifiers):
             world.add_resource(actor, 3)
         for _ in range(world_gen_modifiers["ACTOR_NUM_OF_GREEN_RESOURCES"]):
             world.add_resource(actor, 4)
-        
+
     for _ in range(world_gen_modifiers["NUM_OF_RED_RESOURCES"]):
         world.add_resource(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 0)
     for _ in range(world_gen_modifiers["NUM_OF_RED_MINES"]):
@@ -44,7 +43,7 @@ def default_scenario(modifiers, world_gen_modifiers):
         world.add_resource(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 1)
     for _ in range(world_gen_modifiers["NUM_OF_BLUE_MINES"]):
         world.add_mine(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 1)
-        
+
     for _ in range(world_gen_modifiers["NUM_OF_ORANGE_RESOURCES"]):
         world.add_resource(world.nodes[r.randint(0, world.nodes.__len__() - 1)], 2)
     for _ in range(world_gen_modifiers["NUM_OF_ORANGE_MINES"]):
@@ -96,6 +95,9 @@ def start_simulation(agent_class=BlankAgent, use_gui=True, scenario=default_scen
         time.sleep(1)
     return world.total_score
 
+def pause_simulation():
+    global sim_paused
+    sim_paused = not sim_paused
 
 def prep_simulation(agent_class, use_gui, scenario, modifier_file, world_modifier_file, rule_file):
     global world
@@ -124,17 +126,20 @@ def prep_simulation(agent_class, use_gui, scenario, modifier_file, world_modifie
         global simulation_stop
         simulation_stop = call_repeatedly(1 / rules["TICK_HZ"], refresh_world, agents)
 
-        if use_gui:
-            gui = init_gui()
-            refresh_gui(gui, rules["TICK_HZ"])
-            gui.mainloop()
+        # if use_gui:
+        #     gui = init_gui()
+        #     refresh_gui(gui, rules["TICK_HZ"])
+        #     gui.mainloop()
 
     else:
         if use_gui:
             gui = init_gui()
-            sim_thread = threading.Thread(target=lock_step_sim, args=(agents, gui.update_model))
-            sim_thread.start()
-            gui.mainloop()
+            # sim_thread = threading.Thread(target=lock_step_sim, args=(agents, None))
+            # sim_thread.start()
+            lock_step_sim(agents,gui)
+            # gui_thread = threading.Thread(target=CraftBotsGUI.update_window)
+            # gui_thread.start()
+
         else:
             sim_thread = threading.Thread(target=lock_step_sim, args=(agents, None))
             sim_thread.start()
@@ -147,9 +152,8 @@ def lock_step_sim(agents, update_model):
             agent.world_info = agent.api.get_world_info()
             agent.get_next_commands()
 
-
         time.sleep(1 / world.rules["LOCK_STEP_RATE"])
-        world.run_tick()
+        if not sim_paused: world.run_tick()
 
         for agent in agents:
             agent.api.num_of_current_commands = 0
@@ -162,7 +166,8 @@ def lock_step_sim(agents, update_model):
                 return on_close()
 
         if update_model is not None:
-            update_model()
+            # TODO list all agent world info to pick from
+            update_model.update_window(agent.api.get_world_info(), sim_length=world.rules["SIM_LENGTH"] * world.rules["TICK_HZ"])
 
 
 def refresh_gui(gui, tick_hz):
@@ -208,15 +213,12 @@ def call_repeatedly(interval, func, *args):
 
 
 def init_gui():
-    global root, world
-    root = view.tk.Tk()
-
-    width = world.world_gen_modifiers["WIDTH"]
-    height = world.world_gen_modifiers["HEIGHT"]
-    root.title("CraftBots")
-    root.protocol("WM_DELETE_WINDOW", on_close)
-    root.geometry(str(width + PADDING * 2) + "x" + str(height + PADDING * 2))
-    return view.GUI(world, width=width, height=height, padding=PADDING, node_size=NODE_SIZE, master=root)
+    gui = CraftBotsGUI(
+        reset_callback=None,
+        pause_callback=pause_simulation)
+    gui_thread = threading.Thread(target=gui.start_window)
+    gui_thread.start()
+    return gui
 
 
 def on_close():

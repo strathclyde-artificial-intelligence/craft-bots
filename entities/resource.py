@@ -32,7 +32,7 @@ class Resource:
         A call to update the resource, which is called by the world every tick. It only effects the green resource that
         will decay after a certain amount of time.
         """
-        if self.colour == 4 and self.world.tick - self.tick_created >= self.world.modifiers["GREEN_DECAY_TIME"]:
+        if self.colour == 4 and self.world.tick - self.tick_created >= self.world.resource_config["green_decay_time"]:
             self.set_used(True)
             self.location.remove_resource(self)
 

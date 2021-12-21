@@ -1,10 +1,21 @@
-from agents import test_agent
-from craftbots import craft_bots
+import threading
+
+from agents.PDDLAgent.PDDLAgent import PDDLAgent
+from agents.PlanningAgent import PlanningAgent
+from agents.blank_agent import BlankAgent
+from agents.bogo import Bogo
+from craftbots.simulation import Simulation
+from gui.main_window import CraftBotsGUI
 
 if __name__ == '__main__':
-    craft_bots.start_simulation(agent_class=test_agent.TestAgent,
-                                use_gui=True,
-                                modifier_file="craftbots/initialisation_files/simple_modifiers",
-                                world_modifier_file="craftbots/initialisation_files/simple_world_gen_modifiers",
-                                rule_file="craftbots/initialisation_files/simple_rules"
-                                )
+
+    # agent
+    agent = Bogo()
+
+    # Simulation
+    sim = Simulation()
+    sim.agents.append(agent)
+
+    # GUI
+    gui = CraftBotsGUI(sim)
+    gui.start_window()

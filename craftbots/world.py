@@ -1,7 +1,7 @@
 import random as r
 import math as m
 
-from api.command import Command
+from craftbots.configuration import Configuration
 from entities.node import Node
 from entities.edge import Edge
 from entities.actor import Actor
@@ -14,53 +14,63 @@ from entities.task import Task
 
 class World:
 
-    def __init__(self, modifiers=None, world_gen_modifiers=None, rules=None):
-        if modifiers is None or world_gen_modifiers is None or rules is None:
-            pass
-        else:
-            self.modifiers = modifiers
-            self.world_gen_modifiers = world_gen_modifiers
-            self.rules = rules
+    def __init__(self, config):
 
-            # Set random seed before any other calls
-            if "RANDOM_SEED" in self.world_gen_modifiers:
-                r.seed(self.world_gen_modifiers["RANDOM_SEED"])
+        # Flatten nested config into dictionary for easy access
+        self.config = config
+        self.task_config = Configuration.flatten(self.config['Tasks'])
+        self.actor_config = Configuration.flatten(self.config['Actors'])
+        self.resource_config = Configuration.flatten(self.config['Resources'])
+        self.building_config = Configuration.flatten(self.config['Buildings'])
+        self.partial_observability_config = Configuration.flatten(self.config["Partial Observability"])
+        self.nondeterminism_config = Configuration.flatten(self.config["Nondeterminism"])
+        self.temporal_config = Configuration.flatten(self.config["Temporal Uncertainty"])
 
-            self.building_modifiers = {
-                Building.BUILDING_SPEED:        0,
-                Building.BUILDING_MINE:         0,
-                Building.BUILDING_INVENTORY:    0,
-                Building.BUILDING_CONSTRUCTION: 0
-            }
+        # Set random seed before any other calls
+        if Configuration.get_value(config, "use_random_seed"):
+            r.seed(Configuration.get_value(config, "random_seed"))
 
-            self.nodes = []
-            self.tick = 0
-            self.last_id = -1
-            self.command_queue = []
-            self.all_commands = []
-            self.total_score = 0
+        self.building_modifiers = {
+            Building.BUILDING_SPEED:        0,
+            Building.BUILDING_MINE:         0,
+            Building.BUILDING_INVENTORY:    0,
+            Building.BUILDING_CONSTRUCTION: 0
+        }
 
-            self.create_nodes_prm()
-            self.tasks = self.generate_tasks()
+        self.nodes = []
+        self.tick = 0
+        self.last_id = -1
+        self.command_queue = []
+        self.all_commands = []
+        self.total_score = 0
+
+        self.create_nodes_prm()
+        self.tasks = self.generate_tasks()
+
+    # ===================== #
+    # Probabilistic Roadmap #
+    # ===================== #
 
     def create_nodes_prm(self):
-        self.nodes = [Node(self, self.world_gen_modifiers["WIDTH"]/2, self.world_gen_modifiers["HEIGHT"]/2)]
+        world_generation_config = Configuration.flatten(self.config['World Setup'])
+
+        self.nodes = [Node(self, int(world_generation_config["width"])/2, int(world_generation_config["height"])/2)]
         attempts = 0
         curr_x = self.nodes[0].x
         curr_y = self.nodes[0].y
-        for i in range(self.world_gen_modifiers["MAX_NODES"] - 1):
+        for i in range(int(world_generation_config["max_nodes"]) - 1):
             ok = False
             while not ok:
                 ok = True
                 rand_angle = r.randint(0, 360)
-                rand_deviation = r.randint(-1 * self.world_gen_modifiers["RANDOM_DEVIATION"],
-                                           self.world_gen_modifiers["RANDOM_DEVIATION"])
-                new_x = m.floor(curr_x + rand_deviation + self.world_gen_modifiers["CAST_DISTANCE"] * m.cos(rand_angle))
-                new_y = m.floor(curr_y + rand_deviation + self.world_gen_modifiers["CAST_DISTANCE"] * m.sin(rand_angle))
+                rand_deviation = r.randint(-1 * world_generation_config["roadmap_random_deviation"],
+                                           world_generation_config["roadmap_random_deviation"])
+                new_x = m.floor(curr_x + rand_deviation + world_generation_config["roadmap_cast_distance"] * m.cos(rand_angle))
+                new_y = m.floor(curr_y + rand_deviation + world_generation_config["roadmap_cast_distance"] * m.sin(rand_angle))
                 for node in self.nodes:
-                    if m.dist((new_x, new_y), (node.x, node.y)) <= self.world_gen_modifiers["MIN_DISTANCE"] or\
-                            new_x < 0 or new_x > self.world_gen_modifiers["WIDTH"] or new_y < 0 \
-                            or new_y > self.world_gen_modifiers["HEIGHT"]:
+                    if m.dist((new_x, new_y), (node.x, node.y)) <= world_generation_config["roadmap_min_distance"] or\
+                            new_x < 0 or new_x > world_generation_config["width"] or new_y < 0 \
+                            or new_y > world_generation_config["height"]:
                         ok = False
                         break
                 no_new_edges = True
@@ -68,7 +78,7 @@ class World:
                     new_node = Node(self, new_x, new_y)
                     new_edges = []
                     for node in self.nodes:
-                        if m.dist((new_x, new_y), (node.x, node.y)) <= self.world_gen_modifiers["CONNECT_DISTANCE"]:
+                        if m.dist((new_x, new_y), (node.x, node.y)) <= float(world_generation_config["roadmap_connect_distance"]):
                             new_edges.append(Edge(self, new_node, node))
                             no_new_edges = False
                     if not no_new_edges:
@@ -76,7 +86,7 @@ class World:
                         curr_x = new_x
                         curr_y = new_y
                 attempts += 1
-                if attempts >= self.world_gen_modifiers["MAX_ATTEMPTS"]:
+                if attempts >= world_generation_config["roadmap_max_attempts"]:
                     break
 
     def get_world_info(self, target_actors=None):
@@ -87,6 +97,8 @@ class World:
             for actor_index in range(target_actors.__len__()):
                 actors.append(self.get_by_id(target_actors[actor_index], entity_type="Actor"))
 
+        look_effort = Configuration.get_value(self.config, "look_effort")
+
         edges_info = self.get_edges_info(actors)
         resources_info = self.get_resources_info(actors)
         mines_info = self.get_mines_info(actors)
@@ -96,7 +108,7 @@ class World:
         actors_info = self.get_actor_info(actors)
 
         nodes_info = {}
-        if self.rules["NODE_PO"]:
+        if self.partial_observability_config["node_po"]:
             for actor in actors:
                 if actor.state != actor.LOOKING and actor.state != actor.MOVING and actor.state != actor.RECOVERING:
                     if nodes_info.__contains__(actor.node.id):
@@ -109,7 +121,7 @@ class World:
                     got_new_nodes = True
                     layer = 0
                     new_nodes = []
-                    while got_new_nodes and layer < actor.progress / self.modifiers["LOOK_EFFORT"]:
+                    while got_new_nodes and layer < actor.progress / look_effort:
                         got_new_nodes = False
                         layer += 1
                         for node_id in node_stack:
@@ -130,32 +142,32 @@ class World:
         else:
             for node in self.nodes:
                 nodes_info.__setitem__(node.id, node.fields)
-                if self.rules["EDGE_PO"]:
+                if self.partial_observability_config["edge_po"]:
                     nodes_info[node.id].__setitem__("edges", [])
                     for edge_id in edges_info:
                         if edges_info[edge_id]["node_a"] == node.id or edges_info[edge_id]["node_b"] == node.id:
                             nodes_info.get(node.id)["edges"].append(edge_id)
-                if self.rules["RESOURCE_PO"]:
+                if self.partial_observability_config["resource_po"]:
                     nodes_info[node.id].__setitem__("resources", [])
                     for resource_id in resources_info:
                         if resources_info[resource_id]["location"] == node.id:
                             nodes_info.get(node.id)["resources"].append(resource_id)
-                if self.rules["MINE_PO"]:
+                if self.partial_observability_config["mine_po"]:
                     nodes_info[node.id].__setitem__("mines", [])
                     for mine_id in mines_info:
                         if mines_info[mine_id]["node"] == node.id:
                             nodes_info.get(node.id)["mines"].append(mine_id)
-                if self.rules["SITE_PO"]:
+                if self.partial_observability_config["site_po"]:
                     nodes_info[node.id].__setitem__("sites", [])
                     for site_id in sites_info:
                         if sites_info[site_id]["node"] == node.id:
                             nodes_info.get(node.id)["sites"].append(site_id)
-                if self.rules["BUILDING_PO"]:
+                if self.partial_observability_config["building_po"]:
                     nodes_info[node.id].__setitem__("buildings", [])
                     for building_id in buildings_info:
                         if buildings_info[building_id]["node"] == node.id:
                             nodes_info.get(node.id)["buildings"].append(building_id)
-                if self.rules["TASK_PO"]:
+                if self.partial_observability_config["task_po"]:
                     nodes_info[node.id].__setitem__("tasks", [])
                     for task_id in tasks_info:
                         if tasks_info[task_id]["node"] == node.id:
@@ -167,11 +179,13 @@ class World:
                 commands_info.__setitem__(command.id, command.fields)
 
         return {"tick": self.tick, "actors": actors_info, "nodes": nodes_info, "edges": edges_info, "resources": resources_info,
-                "mines": mines_info, "sites": sites_info, "buildings": buildings_info, "tasks": tasks_info, "commands": commands_info}
+                "mines": mines_info, "sites": sites_info, "buildings": buildings_info, "tasks": tasks_info, "commands": commands_info,
+                "score": self.total_score}
     
     def get_actor_info(self, actors):
+        look_effort = Configuration.get_value(self.config, "look_effort")
         actor_info = {}
-        if self.rules["ACTOR_PO"]:
+        if self.partial_observability_config["actor_po"]:
             for actor in actors:
                 if actor.state != actor.LOOKING and actor.state != actor.MOVING and actor.state != actor.RECOVERING:
                     for actor_at_node in actor.node.actors:
@@ -185,7 +199,7 @@ class World:
                     got_new_nodes = True
                     layer = 0
                     new_nodes = []
-                    while got_new_nodes and layer < actor.progress / self.modifiers["LOOK_EFFORT"]:
+                    while got_new_nodes and layer < actor.progress / look_effort:
                         got_new_nodes = False
                         layer += 1
                         for node_id in node_stack:
@@ -210,8 +224,9 @@ class World:
         return actor_info
 
     def get_tasks_info(self, actors):
+        look_effort = Configuration.get_value(self.config, "look_effort")
         tasks = {}
-        if self.rules["TASK_PO"]:
+        if self.partial_observability_config["task_po"]:
             for actor in actors:
                 if actor.state != actor.LOOKING and actor.state != actor.MOVING and actor.state != actor.RECOVERING:
                     for task in actor.node.tasks:
@@ -225,7 +240,7 @@ class World:
                     got_new_nodes = True
                     layer = 0
                     new_nodes = []
-                    while got_new_nodes and layer < actor.progress / self.modifiers["LOOK_EFFORT"]:
+                    while got_new_nodes and layer < actor.progress / look_effort:
                         got_new_nodes = False
                         layer += 1
                         for node_id in node_stack:
@@ -250,8 +265,9 @@ class World:
         return tasks
 
     def get_buildings_info(self, actors):
+        look_effort = Configuration.get_value(self.config, "look_effort")
         buildings = {}
-        if self.rules["BUILDING_PO"]:
+        if self.partial_observability_config["building_po"]:
             for actor in actors:
                 if actor.state != actor.LOOKING and actor.state != actor.MOVING and actor.state != actor.RECOVERING:
                     for building in actor.node.buildings:
@@ -265,7 +281,7 @@ class World:
                     got_new_nodes = True
                     layer = 0
                     new_nodes = []
-                    while got_new_nodes and layer < actor.progress / self.modifiers["LOOK_EFFORT"]:
+                    while got_new_nodes and layer < actor.progress / look_effort:
                         got_new_nodes = False
                         layer += 1
                         for node_id in node_stack:
@@ -290,8 +306,9 @@ class World:
         return buildings
 
     def get_sites_info(self, actors):
+        look_effort = Configuration.get_value(self.config, "look_effort")
         sites = {}
-        if self.rules["SITE_PO"]:
+        if self.partial_observability_config["site_po"]:
             for actor in actors:
                 if actor.state != actor.LOOKING and actor.state != actor.MOVING and actor.state != actor.RECOVERING:
                     for site in actor.node.sites:
@@ -305,7 +322,7 @@ class World:
                     got_new_nodes = True
                     layer = 0
                     new_nodes = []
-                    while got_new_nodes and layer < actor.progress / self.modifiers["LOOK_EFFORT"]:
+                    while got_new_nodes and layer < actor.progress / look_effort:
                         got_new_nodes = False
                         layer += 1
                         for node_id in node_stack:
@@ -330,8 +347,9 @@ class World:
         return sites
 
     def get_mines_info(self, actors):
+        look_effort = Configuration.get_value(self.config, "look_effort")
         mines = {}
-        if self.rules["MINE_PO"]:
+        if self.partial_observability_config["mine_po"]:
             for actor in actors:
                 if actor.state != actor.LOOKING and actor.state != actor.MOVING and actor.state != actor.RECOVERING:
                     for mine in actor.node.mines:
@@ -345,7 +363,7 @@ class World:
                     got_new_nodes = True
                     layer = 0
                     new_nodes = []
-                    while got_new_nodes and layer < actor.progress / self.modifiers["LOOK_EFFORT"]:
+                    while got_new_nodes and layer < actor.progress / look_effort:
                         got_new_nodes = False
                         layer += 1
                         for node_id in node_stack:
@@ -370,8 +388,9 @@ class World:
         return mines
 
     def get_resources_info(self, actors):
+        look_effort = Configuration.get_value(self.config, "look_effort")
         resources = {}
-        if self.rules["RESOURCE_PO"]:
+        if self.partial_observability_config["resource_po"]:
             for actor in actors:
                 if actor.state != actor.LOOKING and actor.state != actor.MOVING and actor.state != actor.RECOVERING:
                     for resource in actor.node.resources:
@@ -392,7 +411,7 @@ class World:
                     got_new_nodes = True
                     layer = 0
                     new_nodes = []
-                    while got_new_nodes and layer < actor.progress / self.modifiers["LOOK_EFFORT"]:
+                    while got_new_nodes and layer < actor.progress / look_effort:
                         got_new_nodes = False
                         layer += 1
                         for node_id in node_stack:
@@ -424,8 +443,9 @@ class World:
         return resources
 
     def get_edges_info(self, actors):
+        look_effort = Configuration.get_value(self.config, "look_effort")
         edges = {}
-        if self.rules["EDGE_PO"]:
+        if self.partial_observability_config["edge_po"]:
             for actor in actors:
                 if actor.state != actor.LOOKING and actor.state != actor.MOVING and actor.state != actor.RECOVERING:
                     for edge in actor.node.edges:
@@ -440,7 +460,7 @@ class World:
                     got_new_nodes = True
                     layer = 0
                     new_nodes = []
-                    while got_new_nodes and layer < actor.progress / self.modifiers["LOOK_EFFORT"]:
+                    while got_new_nodes and layer < actor.progress / look_effort:
                         got_new_nodes = False
                         layer += 1
                         for node_id in node_stack:
@@ -469,10 +489,10 @@ class World:
         self.update_all_actors()
         self.update_all_resources()
         self.run_agent_commands()
-        if self.tasks_complete() and self.world_gen_modifiers["REFRESH_TASKS"]:
+        if self.tasks_complete() and self.task_config["refresh_tasks"]:
             self.tasks.extend(self.generate_tasks())
         else:
-            if r.random() < self.modifiers["NEW_TASK_CHANCE"]:
+            if r.random() < self.task_config["new_task_chance"]:
                 self.tasks.append(Task(self))
         self.tick += 1
 
@@ -499,7 +519,7 @@ class World:
 
     def generate_tasks(self):
         tasks = []
-        for index in range(self.world_gen_modifiers["INITIAL_TASKS"]):
+        for index in range(int(self.task_config["initial_tasks"])):
             tasks.append(Task(self))
         return tasks
 
