@@ -47,7 +47,7 @@ class SimulationView:
         self.labels = {
             "all": False,
             "nodes": False,
-            "actors": False,
+            "actors": True,
             "mines": False,
             "sites": False,
             "buildings": False
@@ -184,7 +184,27 @@ class SimulationView:
 
 
     def draw_sites(self, world_info):
-        pass
+        for key, node in world_info['nodes'].items():
+            angle_offset = key
+            for i in range(len(node['sites'])):
+                x = node['x'] + math.cos(2 * math.pi * i / len(node['sites']) + angle_offset) * (SimulationView.NODE_RADIUS + SimulationView.MINE_RADIUS*3)
+                y = node['y'] + math.sin(2 * math.pi * i / len(node['sites']) + angle_offset) * (SimulationView.NODE_RADIUS + SimulationView.MINE_RADIUS*3)
+                dpg.draw_rectangle(
+                    pmin = self.sim_to_view((x - SimulationView.MINE_RADIUS, y - SimulationView.MINE_RADIUS)),
+                    pmax = self.sim_to_view((x + SimulationView.MINE_RADIUS, y + SimulationView.MINE_RADIUS)),
+                    fill=self.pallete["node"],
+                    parent=self.canvas
+                )
+                progress = world_info['sites'][node['sites'][i]]["progress"] / world_info['sites'][node['sites'][i]]["needed_effort"]
+                dpg.draw_rectangle(
+                    pmin=self.sim_to_view((x + 1 - SimulationView.MINE_RADIUS, y - (2*progress - 1)*(SimulationView.MINE_RADIUS-2))),
+                    pmax=self.sim_to_view((x - 1 + SimulationView.MINE_RADIUS, y + SimulationView.MINE_RADIUS - 1)),
+                    fill=self.pallete["background"],
+                    parent=self.canvas
+                )
+                if self.labels['sites'] or self.labels['all']:
+                    anchor = self.sim_to_view((x + self.MINE_RADIUS, y - self.MINE_RADIUS))
+                    self.draw_label("site" + str(world_info['sites'][node['sites'][i]]['id']), anchor)
 
     def draw_resources(self, world_info):
         for key, node in world_info['nodes'].items():
