@@ -22,7 +22,7 @@ class WorldFactory:
 
     @classmethod
     def add_actors(cls, world, actor_config, resource_config):
-        for _ in range(actor_config["num_actors"]):
+        for _ in range(int(actor_config["num_actors"])):
             actor = world.add_actor(world.nodes[r.randint(0, len(world.nodes) - 1)])
             for _ in range(int(resource_config["actor_num_of_red_resources"])):
                 world.add_resource(actor, 0)

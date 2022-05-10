@@ -71,6 +71,11 @@ class ActorView:
             self.init_actors(world_info)
 
         for key, actor in world_info['actors'].items():
+   
+            # avoid GUI desync when resetting simulation
+            if key not in self.state: continue
+
+            # actor's state
             dpg.set_value(self.state[key], value="State: " + self.get_state_name(actor['state']))
 
             # progress bar
