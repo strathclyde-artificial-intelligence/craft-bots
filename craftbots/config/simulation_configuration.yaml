@@ -8,11 +8,11 @@
     log_file_path: {value: "log.txt", description: "Log file path."}
 
   World Setup:
-    use_random_seed: {value: false, description: "Use random seed for a fixed setup."}
+    use_random_seed: {value: true, description: "Use random seed for a fixed setup."}
     random_seed: {value: 789, description: "Random seed used if use_random_seed is checked."}
     width: {value: 600, description: "Width of map."}
     height: {value: 600, description: "Height of map."}
-    max_nodes: {value: 5, description: "Maximum number of nodes."}
+    max_nodes: {value: 3, description: "Maximum number of nodes."}
     roadmap_cast_distance: {value: 80, description: "Cast distance in probabilistic roadmap, increase to spread nodes more widely."}
     roadmap_min_distance: {value: 50, description: "Minimum distance allowed between nodes in probabilistic roadmap."}
     roadmap_connect_distance: {value: 100, description: "Threshold distance to connect nodes with an edge. Increase to create a more densely connected map."}
@@ -20,7 +20,7 @@
     roadmap_random_deviation: {value: 10, description: "Increase for less uniform distances between nodes."}
 
   Tasks:
-    initial_tasks: {value: 6, description: ""}
+    initial_tasks: {value: 6, description: " "}
     refresh_tasks: {value: false, description: "Generate new tasks equal to initial task amount if all current tasks are complete."}
     new_task_chance: {value: 0.00, description: "Probability per tick of a new task to be generated."}
     task_deadline_probability: {value: 0.0, description: "Probability that a task has a deadline."}
@@ -50,19 +50,19 @@
       task_score_c: 2
 
   Actors:
-    num_actors: {value: 3, description: ""}
-    inventory_size: {value: 7, description: ""}
-    move_speed: {value: 1, description: ""}
-    dig_speed: {value: 3, description: ""}
-    build_speed: {value: 3, description: ""}
-    look_effort: {value: 20, description: ""}
+    num_actors: {value: 2, description: " "}
+    inventory_size: {value: 7, description: " "}
+    move_speed: {value: 1, description: " "}
+    dig_speed: {value: 3, description: " "}
+    build_speed: {value: 3, description: " "}
+    look_effort: {value: 20, description: " "}
 
   Mines:
-    num_of_red_mines: {value: 3, description: ""}
-    num_of_blue_mines: {value: 3, description: ""}
-    num_of_orange_mines: {value: 3, description: ""}
-    num_of_black_mines: {value: 3, description: ""}
-    num_of_green_mines: {value: 3, description: ""}
+    num_of_red_mines: {value: 1, description: " "}
+    num_of_blue_mines: {value: 1, description: " "}
+    num_of_orange_mines: {value: 1, description: " "}
+    num_of_black_mines: {value: 1, description: " "}
+    num_of_green_mines: {value: 1, description: " "}
 
   Resources:
     mine_effort: {value: 100, description: "Number of ticks required for one actor to mine a resource."}
@@ -148,12 +148,12 @@
 
   "Partial Observability":
     description: "If true, only what is seen by the actors is observable."
-    actor_po: {value: false, description: ""}
-    node_po: {value: false, description: ""}
-    edge_po: {value: false, description: ""}
-    resource_po: {value: false, description: ""}
-    mine_po: {value: false, description: ""}
-    site_po: {value: false, description: ""}
-    building_po: {value: false, description: ""}
-    task_po: {value: false, description: ""}
+    actor_po: {value: false, description: " "}
+    node_po: {value: false, description: " "}
+    edge_po: {value: false, description: " "}
+    resource_po: {value: false, description: " "}
+    mine_po: {value: false, description: " "}
+    site_po: {value: false, description: " "}
+    building_po: {value: false, description: " "}
+    task_po: {value: false, description: " "}
     limited_communications: {value: false, description: "If true, each actor observes only fully observable entities and any partially observable entities it can see. Each actor is assigned a unique agent."}
