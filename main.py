@@ -1,7 +1,4 @@
-import threading
-
-from agents.blank_agent import BlankAgent
-from agents.bogo import Bogo
+from agents.test_agent import TestAgent
 from craftbots.simulation import Simulation
 from gui.main_window import CraftBotsGUI
 
@@ -11,7 +8,7 @@ if __name__ == '__main__':
     sim = Simulation()
 
     # agent
-    agent = Bogo()
+    agent = TestAgent()
     sim.agents.append(agent)
 
     # GUI
