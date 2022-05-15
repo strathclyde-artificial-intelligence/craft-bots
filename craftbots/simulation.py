@@ -17,12 +17,14 @@ class Simulation:
         self.simulation_paused = False
         self.simulation_running = False
         self.simulation_finished = False
+        self.sim_thread = None
 
         # world model
         self.world = None
 
         # agent references
         self.agents = []
+        self.agent_threads = {}
 
         # logging
         Logger.setup_logger(self.config, self.world)
@@ -32,8 +34,16 @@ class Simulation:
     # ================== #
 
     def reset_simulation(self):
+
+        # finish the running simulation
+        self.simulation_finished = True
+        if self.sim_thread is not None:
+            Logger.info("Simulation", "Waiting for simulation to close.")
+            self.sim_thread.join()
+
         self.world = WorldFactory.generate_world(self.config)
         Logger.setup_logger(self.config, self.world)
+
         for agent in self.agents:
             actor_ids = self.world.get_all_actor_ids()
             agent.api = AgentAPI(self.world, actor_ids)
@@ -55,11 +65,12 @@ class Simulation:
         # start new simulation run
         if not self.simulation_running and not self.simulation_finished:
             self.simulation_running = True
-            sim_thread = threading.Thread(target=self.run_simulation)
-            sim_thread.start()
+            self.simulation_paused = False
             for agent in self.agents:
                 agent.simulation_complete = False
                 agent.simulation_paused = False
+            self.sim_thread = threading.Thread(target=self.run_simulation)
+            self.sim_thread.start()
 
         # restart paused simulation
         elif self.simulation_running and self.simulation_paused:
@@ -70,7 +81,6 @@ class Simulation:
 
     def run_simulation(self):
 
-        agent_threads = {}
         while not self.simulation_finished:
 
             loop_start = time.time()
@@ -86,8 +96,8 @@ class Simulation:
                     # non-blocking request
                     elif not agent.thinking:
                         agent.thinking = True
-                        agent_threads[index] = threading.Thread(target=agent.get_next_commands)
-                        agent_threads[index].start()
+                        self.agent_threads[index] = threading.Thread(target=agent.get_next_commands)
+                        self.agent_threads[index].start()
 
                 # update world
                 self.simulation_finished = self.world.run_tick()
@@ -101,16 +111,15 @@ class Simulation:
                     self.simulation_finished = True
 
             # simulation rate
-            period = 1 / Configuration.get_value(self.config, "simulation_rate")
+            period = 1.0 / Configuration.get_value(self.config, "simulation_rate")
             wait = period - (time.time() - loop_start)
-            if wait > 0.01:
-                time.sleep(wait)
+            if wait > 0.001: time.sleep(wait)
 
         # wait for agents to finish
+        Logger.info("Simulation", "Waiting for agents to complete.")
         for index, agent in enumerate(self.agents):
             agent.simulation_complete = True
-            print("Waiting for agents to complete.")
-            agent_threads[index].join()
+            self.agent_threads[index].join()
             agent.thinking = False
 
         # simulation complete
