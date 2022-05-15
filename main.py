@@ -7,11 +7,11 @@ from gui.main_window import CraftBotsGUI
 
 if __name__ == '__main__':
 
-    # agent
-    agent = Bogo()
-
     # Simulation
     sim = Simulation()
+
+    # agent
+    agent = Bogo()
     sim.agents.append(agent)
 
     # GUI
