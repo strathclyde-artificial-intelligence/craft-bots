@@ -8,7 +8,7 @@ class Logger:
     @staticmethod
     def setup_logger(config, world):
         Logger.world = world
-        Logger.log.clear()
+        # Logger.log.clear()
         if config['Run Configuration']['log_to_file']['value']:
             Logger.log_to_file = True
             Logger.log_file = config['Run Configuration']['log_file_path']['value']

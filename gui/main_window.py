@@ -127,7 +127,7 @@ class CraftBotsGUI:
                     for name, checked in self.log.items():
                         dpg.add_checkbox(label=name, tag=name, default_value=checked, callback=self.box_checked)
                     with dpg.child_window(height=int(self.WINDOW_HEIGHT/4), border=True):
-                        self.info_text = dpg.add_text("Interface started", wrap=self.SIDEBAR_WIDTH-5, tracked=True, track_offset=1.0)
+                        self.info_text = dpg.add_text("Interface started", wrap=-1, tracked=False, track_offset=1.0)
 
             # configuration window
             with dpg.window(label="Configuration", tag="config_window", show=False,
@@ -173,6 +173,7 @@ class CraftBotsGUI:
         # dpg.maximize_viewport()
 
         # main GUI loop
+        log_length = 0
         while dpg.is_dearpygui_running():
 
             if self.simulation.world:
@@ -190,12 +191,15 @@ class CraftBotsGUI:
 
             # update sidebar controls to match configuration
             dpg.set_value(self.rate_slider, float(Configuration.get_value(self.simulation.config,"simulation_rate")))
-            info = ""
-            for message in Logger.log:
-                if not any([k[4:] in message[1] and not v for k,v in self.log.items()]):
-                    info = info + "[" + str(message[0]) + "] " + "(" + message[1] + ") " + message[2] + "\n"
-            dpg.set_value(self.info_text, info)
 
+            # update info panel with logger text
+            info = ""
+            if log_length != len(Logger.log):
+                log_length = len(Logger.log)
+                for message in Logger.log:
+                    info = info + "[" + str(message[0]) + "] " + "(" + message[1] + ") " + message[2] + "\n"
+                dpg.set_value(self.info_text, info)
+                
             # render
             dpg.render_dearpygui_frame()
 
@@ -229,6 +233,7 @@ class CraftBotsGUI:
     def slider_callback(self, sender, data):
         # Alter the simulation rate using the slider instead of the config window.
         if sender=="simulation_speed":
+            print(data)
             Configuration.set_value(self.simulation.config, "simulation_rate", data)
 
     def config_callback(self, sender, data):
