@@ -17,6 +17,7 @@ class Logger:
 
     @staticmethod
     def info(sender: str, message: str):
+        if Logger.world == None: return
         time = Logger.world.tick
         Logger.log.append((time, sender, message))
         msg = "[" + str(time) + "] " + "(" + sender + ") " + message
@@ -27,6 +28,7 @@ class Logger:
 
     @staticmethod
     def error(sender: str, message: str):
+        if Logger.world == None: return
         time = Logger.world.tick
         Logger.log.append((time, sender, message))
         msg = "[" + str(time) + "] " + "(" + sender + ") " + message

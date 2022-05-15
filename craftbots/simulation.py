@@ -91,7 +91,9 @@ class Simulation:
             # simulation rate
             period = 1 / Configuration.get_value(self.config, "simulation_rate")
             wait = period - (time.time() - loop_start)
-            if wait > 0: time.sleep(wait)
+            if wait > 0.01:
+                print(wait)
+                time.sleep(wait)
 
         # simulation complete
         self.simulation_running = False
