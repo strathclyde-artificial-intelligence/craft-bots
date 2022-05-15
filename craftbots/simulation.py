@@ -1,5 +1,6 @@
 import time
 import threading
+from agents.test_agent import Agent
 
 from api.agent_api import AgentAPI
 from craftbots.log_manager import Logger
@@ -37,11 +38,14 @@ class Simulation:
             actor_ids = self.world.get_all_actor_ids()
             agent.api = AgentAPI(self.world, actor_ids)
             agent.world_info = agent.api.get_world_info()
+            agent.simulation_complete = False
 
         self.simulation_finished = False
 
     def pause_simulation(self):
         self.simulation_paused = not self.simulation_paused
+        for agent in self.agents:
+            agent.simulation_paused = self.simulation_paused
 
     def start_simulation(self):
 
@@ -53,14 +57,20 @@ class Simulation:
             self.simulation_running = True
             sim_thread = threading.Thread(target=self.run_simulation)
             sim_thread.start()
+            for agent in self.agents:
+                agent.simulation_complete = False
+                agent.simulation_paused = False
 
         # restart paused simulation
         elif self.simulation_running and self.simulation_paused:
             # unpause existing simulation
             self.simulation_paused = False
+            for agent in self.agents:
+                self.simulation_paused = False
 
     def run_simulation(self):
 
+        agent_threads = {}
         while not self.simulation_finished:
 
             loop_start = time.time()
@@ -68,7 +78,7 @@ class Simulation:
             if not self.simulation_paused:
 
                 # poll agents
-                for agent in self.agents:
+                for index, agent in enumerate(self.agents):
                     agent.world_info = agent.api.get_world_info()
                     # blocking request for agent commands
                     if Configuration.get_value(self.config, "lockstep"):
@@ -76,7 +86,8 @@ class Simulation:
                     # non-blocking request
                     elif not agent.thinking:
                         agent.thinking = True
-                        threading.Thread(target=agent.get_next_commands).start()
+                        agent_threads[index] = threading.Thread(target=agent.get_next_commands)
+                        agent_threads[index].start()
 
                 # update world
                 self.simulation_finished = self.world.run_tick()
@@ -94,6 +105,13 @@ class Simulation:
             wait = period - (time.time() - loop_start)
             if wait > 0.01:
                 time.sleep(wait)
+
+        # wait for agents to finish
+        for index, agent in enumerate(self.agents):
+            agent.simulation_complete = True
+            print("Waiting for agents to complete.")
+            agent_threads[index].join()
+            agent.thinking = False
 
         # simulation complete
         self.simulation_running = False

@@ -1,4 +1,4 @@
-from agents.test_agent import TestAgent
+from agents.test_agent import Agent
 from craftbots.simulation import Simulation
 from gui.main_window import CraftBotsGUI
 
@@ -8,7 +8,7 @@ if __name__ == '__main__':
     sim = Simulation()
 
     # agent
-    agent = TestAgent()
+    agent = Agent()
     sim.agents.append(agent)
 
     # GUI
