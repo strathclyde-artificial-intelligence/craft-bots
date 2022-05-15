@@ -75,6 +75,7 @@ class Simulation:
                         agent.get_next_commands()
                     # non-blocking request
                     elif not agent.thinking:
+                        agent.thinking = True
                         threading.Thread(target=agent.get_next_commands).start()
 
                 # update world
@@ -92,7 +93,6 @@ class Simulation:
             period = 1 / Configuration.get_value(self.config, "simulation_rate")
             wait = period - (time.time() - loop_start)
             if wait > 0.01:
-                print(wait)
                 time.sleep(wait)
 
         # simulation complete
