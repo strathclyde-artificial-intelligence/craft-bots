@@ -15,7 +15,7 @@ if __name__ == '__main__':
     # parse command line arguments
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("-n", help="set number of simulation runs (default 1)", type=int, default=1)
-    arg_parser.add_argument("-c", help="configuration file", type=str)
+    arg_parser.add_argument("-f", help="configuration file", type=str)
     args = arg_parser.parse_args()
     
     # Simulation
