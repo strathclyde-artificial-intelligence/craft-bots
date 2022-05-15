@@ -20,13 +20,15 @@ class Task:
         self.id = self.world.get_new_id()
         self.difficulty = self.__decide_difficulty()
         self.needed_resources = self.__generate_task()
-        self.deadline = self.__set_dead_line()
+        self.score = self.__set_score()
+        self.deadline = self.__set_deadline()
         self.project = None
 
         self.node.append_task(self)
 
         self.fields = {"node": self.node.id, "id": self.id, "completed": self.completed, "difficulty": self.difficulty,
-                       "needed_resources": self.needed_resources, "project": self.project, "deadline": self.deadline}
+                       "needed_resources": self.needed_resources, "project": self.project, "deadline": self.deadline,
+                       "score": self.score}
 
     def __repr__(self):
         return "Task(" + str(self.node) + ", " + str(self.needed_resources) + ")"
@@ -51,9 +53,14 @@ class Task:
         score provided by the task and added to a total score variable in the simulation
         """
 
-        self.world.total_score += (sum(self.needed_resources) * self.world.task_config["task_score_a"]) + \
-                                  (self.world.task_config["task_score_b"] *
-                                   (sum(self.needed_resources) ** self.world.task_config["task_score_c"]))
+        self.world.total_score += self.score
+
+    def __set_score(self):
+        a = self.world.task_config["task_score_a"]
+        b = self.world.task_config["task_score_b"]
+        c = self.world.task_config["task_score_c"]
+        n = len(self.needed_resources)
+        return (a * n) + (b * (n ** c))
 
     def __generate_task(self):
         """
@@ -72,15 +79,13 @@ class Task:
 
         :return: The difficulty of the Task
         """
-        result = r.randint(1, self.world.task_config["easy_task_weight"] + self.world.task_config["medium_task_weight"] +
-                           self.world.task_config["hard_task_weight"])
-        if result - self.world.task_config["easy_task_weight"] <= 0:
-            return Task.EASY
-        elif result - self.world.task_config["easy_task_weight"] - self.world.task_config["medium_task_weight"] <= 0:
-            return Task.MEDIUM
-        else:
-            return Task.HARD
-        
+        difficulty = r.choices([Task.EASY, Task.MEDIUM, Task.HARD,], k=1, weights=[
+                self.world.task_config["easy_task_weight"],
+                self.world.task_config["medium_task_weight"],
+                self.world.task_config["hard_task_weight"]
+            ])
+        return difficulty[0]
+
     def __get_num_of_types(self):
         """
         Returns the number of different resource types to be used in the Task based on the difficulty of the task. This
@@ -103,26 +108,19 @@ class Task:
         :param num_of_types: The number of different resource types to be used in the Task
         :return: A list of needed resources for a Site entity to use
         """
-        available = [0, 1, 2, 3, 4]
-        chosen = []
-        for _ in range(min(num_of_types,len(available))):
-            index = r.randint(0, len(available) - 1)
-            chosen.append(available[index])
-            available.remove(available[index])
-            
-        needed_resources = [0, 0, 0, 0, 0]
-        for index in range(len(needed_resources)):
-            if chosen.__contains__(index):
-                if self.difficulty == Task.EASY:
-                    min_res = self.world.task_config["easy_task_resources"][0]
-                    max_res = self.world.task_config["easy_task_resources"][1]
-                elif self.difficulty == Task.MEDIUM:
-                    min_res = self.world.task_config["medium_task_resources"][0]
-                    max_res = self.world.task_config["medium_task_resources"][1]
-                else:
-                    min_res = self.world.task_config["hard_task_resources"][0]
-                    max_res = self.world.task_config["hard_task_resources"][1]
-                needed_resources[index] = r.randint(min_res, max_res)
+        resource_types = r.sample(range(5),num_of_types)
+
+        if self.difficulty == Task.EASY:
+            min_res = self.world.task_config["easy_task_resources"][0]
+            max_res = self.world.task_config["easy_task_resources"][1]
+        elif self.difficulty == Task.MEDIUM:
+            min_res = self.world.task_config["medium_task_resources"][0]
+            max_res = self.world.task_config["medium_task_resources"][1]
+        else:
+            min_res = self.world.task_config["hard_task_resources"][0]
+            max_res = self.world.task_config["hard_task_resources"][1]
+        resource_amount = max(r.randint(min_res, max_res), num_of_types)
+        needed_resources = r.choices(resource_types, k=resource_amount)
         return needed_resources
 
     def set_project(self, project):
@@ -135,7 +133,7 @@ class Task:
         self.project = project
         self.fields.__setitem__("project", project.id)
 
-    def __set_dead_line(self):
+    def __set_deadline(self):
         if r.random() < self.world.task_config["task_deadline_probability"]:
             sum_of_res = sum(self.needed_resources) * self.world.task_config["RESOURCE_COMP_MODIFIER"]
             mining_compensation = sum_of_res * self.world.task_config["MINE_EFFORT"]

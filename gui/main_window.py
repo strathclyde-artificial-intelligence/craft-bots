@@ -6,6 +6,7 @@ from craftbots.simulation import Simulation
 from gui.palletes import palletes
 from gui.simulation_view import SimulationView
 from gui.actor_view import ActorView
+from gui.task_view import TaskView
 
 class CraftBotsGUI:
 
@@ -19,14 +20,14 @@ class CraftBotsGUI:
         # panels/windows
         self.primary_window = None
         self.config_window = None
-        self.controls_panel = None
-        self.actor_panel = None
-
-        # simulation viewport and drawing
         self.simulation_window = None
         self.actor_window = None
+        self.task_window = None
+
+        # simulation viewport and drawing
         self.sim_view = None
         self.actor_view = None
+        self.task_view = None
         self.info_text = None
         self.command_count = 0
         self.time_bar = None
@@ -84,9 +85,15 @@ class CraftBotsGUI:
 
             with dpg.window(label="Actors", tag="actor_window",
                             no_scrollbar=False, no_resize=False, no_move=False, no_collapse=False, no_close=True,
-                            pos=[self.SIDEBAR_WIDTH + sim_width + 30, 10], width=self.SIDEBAR_WIDTH, height=sim_height) as actor_window:
+                            pos=[self.SIDEBAR_WIDTH + sim_width + 30, 10], width=self.SIDEBAR_WIDTH, height=(sim_height-10)/2) as actor_window:
                 self.actor_window = actor_window
                 self.actor_view = ActorView(self.actor_window)
+
+            with dpg.window(label="Tasks", tag="task_window",
+                            no_scrollbar=False, no_resize=False, no_move=False, no_collapse=False, no_close=True,
+                            pos=[self.SIDEBAR_WIDTH + sim_width + 30, 20 + (sim_height-10)/2], width=self.SIDEBAR_WIDTH, height=(sim_height-10)/2) as task_window:
+                self.task_window = task_window
+                self.task_view = TaskView(self.task_window)
 
             # sidebar
             with dpg.child_window(label="sidebar_window", width=self.SIDEBAR_WIDTH, autosize_y=True, pos=[10, 10]):
@@ -163,7 +170,7 @@ class CraftBotsGUI:
 
         dpg.setup_dearpygui()
         dpg.show_viewport()
-        dpg.maximize_viewport()
+        # dpg.maximize_viewport()
 
         # main GUI loop
         while dpg.is_dearpygui_running():
@@ -174,6 +181,7 @@ class CraftBotsGUI:
                 # update simulation view
                 self.sim_view.update_draw_list(world_info)
                 self.actor_view.update_draw_list(world_info)
+                self.task_view.update_draw_list(world_info)
 
                 # update sim controls panel
                 dpg.set_value(self.time_text, "Simulation Time: " + str(world_info['tick']))

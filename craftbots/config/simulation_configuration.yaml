@@ -8,7 +8,7 @@
     log_file_path: {value: "log.txt", description: "Log file path."}
 
   World Setup:
-    use_random_seed: {value: true, description: "Use random seed for a fixed setup."}
+    use_random_seed: {value: false, description: "Use random seed for a fixed setup."}
     random_seed: {value: 789, description: "Random seed used if use_random_seed is checked."}
     width: {value: 600, description: "Width of map."}
     height: {value: 600, description: "Height of map."}
@@ -20,28 +20,28 @@
     roadmap_random_deviation: {value: 10, description: "Increase for less uniform distances between nodes."}
 
   Tasks:
-    initial_tasks: {value: 6, description: " "}
+    initial_tasks: {value: 3, description: " "}
     refresh_tasks: {value: false, description: "Generate new tasks equal to initial task amount if all current tasks are complete."}
     new_task_chance: {value: 0.00, description: "Probability per tick of a new task to be generated."}
     task_deadline_probability: {value: 0.0, description: "Probability that a task has a deadline."}
 
     "Task Weighting":
-        description: "Relative chance of generating each task type."
-        easy_task_weight: 1
-        medium_task_weight: 0
-        hard_task_weight: 0
+        description: "Relative chance of generating each task type (int)."
+        easy_task_weight: 3
+        medium_task_weight: 2
+        hard_task_weight: 1
 
     "Task Resource Types":
-        description: "Min/Max number of different resource types that compose a task."
-        easy_task_types: [2,3]
+        description: "Min/Max number of different resource types that compose a task. Max range: [1,5]."
+        easy_task_types: [1,2]
         medium_task_types: [3,4]
-        hard_task_types: [3,5]
+        hard_task_types: [4,5]
 
     "Task Resource Amounts":
         description: "Min/Max number of resources of each type that compose a task."
-        easy_task_resources: [1,1]
-        medium_task_resources: [1,2]
-        hard_task_resources: [2,4]
+        easy_task_resources: [1,2]
+        medium_task_resources: [3,4]
+        hard_task_resources: [5,6]
 
     "Task Scoring":
       description: "A task completed before its deadline provides a score of (aN + bN^c) where N is the total required resources for the task."
