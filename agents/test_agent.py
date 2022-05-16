@@ -24,6 +24,7 @@ class Agent:
         self.world_info : dict
 
         Logger.info("Agent", "Starting random moves.")
+
         while not self.simulation_complete:
             for actor_id in self.api.actors:
                 if self.api.get_field(actor_id, "state") == Actor.IDLE:

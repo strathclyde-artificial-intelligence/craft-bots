@@ -23,6 +23,17 @@ class Configuration:
             sys.exit(-1)
         return parameters
 
+    @classmethod
+    def save_ini_file(cls, config, path):
+        try:
+            with open(path, "w") as file:
+                try:
+                    print("writing to file not yet implemented.")
+                except yaml.YAMLError as exc:
+                    Logger.error("(config manager)", exc)
+        except IOError as exc:
+            print(exc)
+
     # ================== #
     # easy config access #
     # ================== #

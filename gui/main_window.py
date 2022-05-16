@@ -23,7 +23,9 @@ class CraftBotsGUI:
         self.simulation_window = None
         self.actor_window = None
         self.task_window = None
-
+        self.load_dialog = None
+        self.save_dialog = None
+        
         # simulation viewport and drawing
         self.sim_view = None
         self.actor_view = None
@@ -140,7 +142,7 @@ class CraftBotsGUI:
                         dpg.add_menu_item(label="Save Config", tag="save_world", callback=self.save_configuration)
                         dpg.add_menu_item(label="Load Config", tag="load_world", callback=self.load_configuration)
 
-                dpg.add_text("Changes will not take effect until the simulation is reset.")
+                dpg.add_text("Most changes will take effect when the simulation is reset.")
                 with dpg.tab_bar(label="config_tabs"):
                     for category, params in self.simulation.config.items():
                         with dpg.tab(label=category):
@@ -163,10 +165,6 @@ class CraftBotsGUI:
                                         for sub_key, sub_value in value.items():
                                             if sub_key != "description": self.add_config_element(sub_key, sub_value, None)
                                         dpg.add_separator()
-
-        # dpg.show_metrics()
-        # dpg.show_about()
-        # dpg.show_style_editor()
 
         dpg.setup_dearpygui()
         dpg.show_viewport()
@@ -203,6 +201,17 @@ class CraftBotsGUI:
             # render
             dpg.render_dearpygui_frame()
 
+    # ============================= #
+    # Updating Configuration window #
+    # ============================= #
+
+    def update_config_element(self,key,value):
+        if type(value) in [bool, int, float, str]:
+            dpg.configure_item(key, default_value=value)
+        elif type(value) == list or type(value) == tuple:
+            for i in range(len(value)):
+                dpg.configure_item(key+"@"+str(i), default_value=value[i])
+
     def add_config_element(self,key,value,description):
         with dpg.group(horizontal=True):
             if type(value) == bool:
@@ -233,8 +242,8 @@ class CraftBotsGUI:
     def slider_callback(self, sender, data):
         # Alter the simulation rate using the slider instead of the config window.
         if sender=="simulation_speed":
-            print(data)
             Configuration.set_value(self.simulation.config, "simulation_rate", data)
+            self.update_config_element("simulation_rate", data)
 
     def config_callback(self, sender, data):
         # Configure button is pressed - display the window.
@@ -258,7 +267,58 @@ class CraftBotsGUI:
         self.sim_view.fit_sim_to_view()
 
     def save_configuration(self, sender, data):
-        pass
+        if self.save_dialog == None:
+            with dpg.file_dialog(label='save_dialog',
+                    callback=self.save_config_callback,
+                    directory_selector=False,
+                    width=CraftBotsGUI.WINDOW_WIDTH*0.7,
+                    height=CraftBotsGUI.WINDOW_HEIGHT*0.7,
+                    show=True,
+                    default_path='./craftbots/config/',
+                    default_filename='simulation_configuration.yaml',
+                    modal=True,
+                    id="save_dialog") as dialog:
+                dpg.add_file_extension(".*")
+                dpg.add_file_extension(".yaml", color=(150, 255, 150, 255), custom_text="[config]")
+                self.save_dialog = dialog
+        dpg.show_item("save_dialog")
 
+    def save_config_callback(self, sender, data):
+        file_path = data['file_path_name']
+        if file_path[-2:]==".*":
+            file_path = file_path[:-2] + '.yaml'
+        print(file_path)
+        Configuration.save_ini_file(self.simulation.config, file_path)
+        
     def load_configuration(self, sender, data):
-        pass
+        if self.load_dialog == None:
+            with dpg.file_dialog(label='load_dialog',
+                    callback=self.load_config_callback,
+                    directory_selector=False,
+                    width=CraftBotsGUI.WINDOW_WIDTH*0.7,
+                    height=CraftBotsGUI.WINDOW_HEIGHT*0.7,
+                    show=True,
+                    default_path='./craftbots/config/',
+                    default_filename='simulation_configuration.yaml',
+                    modal=True,
+                    id="load_dialog") as dialog:
+                dpg.add_file_extension(".*")
+                dpg.add_file_extension(".yaml", color=(150, 255, 150, 255), custom_text="[config]")
+                self.load_dialog = dialog
+        dpg.show_item("load_dialog")
+
+    def load_config_callback(self, sender, data):
+        file_paths = list(data['selections'].values())
+        if len(file_paths) > 0:
+            self.simulation.config = Configuration.read_ini_file(file_paths[0])
+            for category, params in self.simulation.config.items():
+                for key, value in params.items():
+                    if key=="description":
+                        continue
+                    if "value" in value:
+                        # normal element
+                        self.update_config_element(key, value['value'])
+                    else:
+                        # nested element
+                        for sub_key, sub_value in value.items():
+                            if sub_key != "description": self.update_config_element(sub_key, sub_value)
