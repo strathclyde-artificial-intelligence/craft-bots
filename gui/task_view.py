@@ -14,6 +14,7 @@ class TaskView:
 
         self.target_window = target_window
         self.task_count = 0
+        self.headers = {}
         self.resources = {}
         self.node = {}
         self.score = {}
@@ -32,16 +33,26 @@ class TaskView:
 
         dpg.delete_item("task_window", children_only=True)
         for key, task in world_info['tasks'].items():
+
             header = dpg.add_collapsing_header(label="Task"+str(key), default_open=True, parent=self.target_window, closable=False)
+            self.headers[key] = header
+
             group = dpg.add_group(horizontal=True, parent=header)
             self.difficulty[key] = dpg.add_text(default_value="Difficulty: ",label="Task"+str(key)+"Difficulty", parent=header)
+            
             group = dpg.add_group(horizontal=True, parent=header)
             self.node[key] = dpg.add_text(default_value="Target Node: ",label="Task"+str(key)+"Node", parent=header)
+            
             group = dpg.add_group(horizontal=True, parent=header)
             dpg.add_text("Required Resources:", parent=group)
             self.resources[key] = dpg.add_drawlist(width=width, height=TaskView.RESOURCE_SIZE+3, parent=group)
+            
             group = dpg.add_group(horizontal=True, parent=header)
             self.score[key] = dpg.add_text(default_value="Score: ",label="Task"+str(key)+"Score", parent=header)
+
+            if task['deadline'] > 0: 
+                group = dpg.add_group(horizontal=True, parent=header)
+                self.score[key] = dpg.add_text(default_value="Deadline: ",label="Task"+str(key)+"Deadline", parent=header)
 
         self.task_count = len(world_info['tasks'])
 
@@ -82,6 +93,10 @@ class TaskView:
                 self.init_tasks(world_info)
                 return
 
+            if task['completed']():
+                dpg.configure_item(self.headers[key], show=False)
+                continue
+
             # difficulty
             dpg.set_value(self.difficulty[key], value="Difficulty: " + str(TaskView.get_difficulty_name(task['difficulty'])))
 
@@ -90,15 +105,19 @@ class TaskView:
 
             # needed resources
             x, y = 0, 3
-            for resource_type in task['needed_resources']:
-                colour = SimulationView.SIM_COLOURS[resource_type]
-                dpg.draw_rectangle(pmin=(x, y), pmax=(x + TaskView.RESOURCE_SIZE, y + TaskView.RESOURCE_SIZE),
-                                   fill=self.pallete["actor_inner"], parent=self.resources[key])
-                dpg.draw_rectangle(pmin=(x + TaskView.EDGE_THICKNESS,y + TaskView.EDGE_THICKNESS),
-                                   pmax=(x + TaskView.RESOURCE_SIZE - TaskView.EDGE_THICKNESS,
-                                         y + TaskView.RESOURCE_SIZE - TaskView.EDGE_THICKNESS),
-                                   fill=self.pallete[colour],parent=self.resources[key])
-                x = x + TaskView.RESOURCE_SIZE*1.5
+            for resource_type, resource_amnt in enumerate(task['needed_resources']):
+                for i in range(resource_amnt):
+                    colour = SimulationView.SIM_COLOURS[resource_type]
+                    dpg.draw_rectangle(pmin=(x, y), pmax=(x + TaskView.RESOURCE_SIZE, y + TaskView.RESOURCE_SIZE),
+                                    fill=self.pallete["actor_inner"], parent=self.resources[key])
+                    dpg.draw_rectangle(pmin=(x + TaskView.EDGE_THICKNESS,y + TaskView.EDGE_THICKNESS),
+                                    pmax=(x + TaskView.RESOURCE_SIZE - TaskView.EDGE_THICKNESS,
+                                            y + TaskView.RESOURCE_SIZE - TaskView.EDGE_THICKNESS),
+                                    fill=self.pallete[colour],parent=self.resources[key])
+                    x = x + TaskView.RESOURCE_SIZE*1.5
 
             # Score
             dpg.set_value(self.score[key], value="Score: " + str(task['score']))
+            
+            # Deadline
+            if task['deadline'] > 0: dpg.set_value(self.score[key], value="Deadline: " + str(task['deadline']))
