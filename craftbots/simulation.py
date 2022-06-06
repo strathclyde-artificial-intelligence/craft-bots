@@ -121,6 +121,7 @@ class Simulation:
             agent.simulation_complete = True
             self.agent_threads[index].join()
             agent.thinking = False
+        Logger.info("Simulation", "All agent threads are joined.")
 
         # simulation complete
         self.simulation_running = False
