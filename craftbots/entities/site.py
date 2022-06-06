@@ -1,13 +1,12 @@
 import numpy.random as nr
 import random as r
-
 from craftbots.entities.building import Building
 from craftbots.log_manager import Logger
 
 
 class Site:
 
-    def __init__(self, world, node, building_type, target_task=None):
+    def __init__(self, world, node, task_id=None):
         """
         A site in the craftbots simulation. It allows actors to deposit resources and construct at it to create
         buildings. These buildings provide bonuses to the actors
@@ -19,13 +18,13 @@ class Site:
         """
         self.world = world
         self.node = node
-        self.building_type = building_type
+        self.building_type = Building.BUILDING_TASK
         self.deposited_resources = [0, 0, 0, 0, 0]
         self.progress = 0
         self.id = self.world.get_new_id()
         self.needed_resources = []
         if self.building_type == Building.BUILDING_TASK:
-            if target_task is None:
+            if task_id is None:
                 for task in self.world.tasks:
                     if task.node == self.node and task.project is None:
                         task.set_project(self)
@@ -33,7 +32,8 @@ class Site:
                         self.needed_resources = task.needed_resources
                         break
             else:
-                if target_task.project is None and target_task.node == self.node:
+                target_task = self.world.get_by_id(task_id, target_node=self.node)
+                if target_task.linked_site is None and target_task.node == self.node:
                     target_task.set_project(self)
                     self.task = target_task
                     self.needed_resources = target_task.needed_resources
@@ -44,8 +44,9 @@ class Site:
         # If needed resources cannot be found, then do not inform anything that this Site exists
         if self.needed_resources:
             self.node.append_site(self)
-            self.fields = {"node": self.node.id, "building_type": self.building_type, "deposited_resources": self.deposited_resources,
-                           "needed_resources": self.needed_resources, "progress": self.progress, "max_progress": self.max_progress(),
+            self.fields = {"node": self.node.id, "building_type": self.building_type,
+                           "deposited_resources": self.deposited_resources, "needed_resources": self.needed_resources,
+                           "progress": self.progress, "max_progress": self.max_progress(),
                            "needed_effort": self.world.building_config["build_effort"] * sum(self.needed_resources),
                            "id": self.id}
 

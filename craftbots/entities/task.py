@@ -1,7 +1,6 @@
 import random as r
 from craftbots.entities.building import Building
 
-
 class Task:
 
     EASY    = 0
@@ -21,13 +20,15 @@ class Task:
         self.difficulty = self.__decide_difficulty()
         self.needed_resources = self.__generate_task()
         self.score = self.__set_score()
+        self.start_time = world.tick
         self.deadline = self.__set_deadline()
-        self.project = None
+        self.linked_site = None
 
         self.node.append_task(self)
 
         self.fields = {"node": self.node.id, "id": self.id, "completed": self.completed, "difficulty": self.difficulty,
-                       "needed_resources": self.needed_resources, "project": self.project, "deadline": self.deadline,
+                       "needed_resources": self.needed_resources, "site": self.linked_site, 
+                       "start_time": self.start_time, "deadline": self.deadline,
                        "score": self.score}
 
     def __repr__(self):
@@ -45,7 +46,7 @@ class Task:
         :return: True if the task is completed, and False if not
         """
 
-        return isinstance(self.project, Building) if self.deadline >= self.world.tick or self.deadline == -1 else True
+        return isinstance(self.linked_site, Building) if self.deadline >= self.world.tick or self.deadline == -1 else True
 
     def complete_task(self):
         """
@@ -59,7 +60,7 @@ class Task:
         a = self.world.task_config["task_score_a"]
         b = self.world.task_config["task_score_b"]
         c = self.world.task_config["task_score_c"]
-        n = len(self.needed_resources)
+        n = sum(self.needed_resources)
         return (a * n) + (b * (n ** c))
 
     def __generate_task(self):
@@ -108,7 +109,7 @@ class Task:
         :param num_of_types: The number of different resource types to be used in the Task
         :return: A list of needed resources for a Site entity to use
         """
-        resource_types = r.sample(range(5),num_of_types)
+        resource_types = r.sample(range(5),k=num_of_types)
 
         if self.difficulty == Task.EASY:
             min_res = self.world.task_config["easy_task_resources"][0]
@@ -120,7 +121,8 @@ class Task:
             min_res = self.world.task_config["hard_task_resources"][0]
             max_res = self.world.task_config["hard_task_resources"][1]
         resource_amount = max(r.randint(min_res, max_res), num_of_types)
-        needed_resources = r.choices(resource_types, k=resource_amount)
+        choices = r.choices(resource_types, k=resource_amount)
+        needed_resources = [ choices.count(i) for i in range(5) ]
         return needed_resources
 
     def set_project(self, project):
@@ -130,15 +132,15 @@ class Task:
 
         :param project: The Site / Buildings to be set as the tasks project
         """
-        self.project = project
-        self.fields.__setitem__("project", project.id)
+        self.linked_site = project
+        self.fields.__setitem__("site", self.linked_site.id)
 
     def __set_deadline(self):
         if r.random() < self.world.task_config["task_deadline_probability"]:
-            sum_of_res = sum(self.needed_resources) * self.world.task_config["RESOURCE_COMP_MODIFIER"]
-            mining_compensation = sum_of_res * self.world.task_config["MINE_EFFORT"]
-            travel_compensation = sum_of_res * self.world.world_gen_modifiers["CAST_DISTANCE"] * \
-                                  self.world.get_all_edges().__len__() * 0.2 / self.world.task_config["ACTOR_MOVE_SPEED"]
+
+            mining = self.world.config['roadmap_cast_distance'] / self.world.actor_config['dig_speed']
+            travel = self.world.resource_config['mine_effort'] / self.world.actor_config['move_speed']
+
             construction_compensation = sum_of_res * self.world.task_config["BUILD_EFFORT"]
 
             mining_compensation *= self.world.task_config["MINING_COMP_MODIFIER"]
