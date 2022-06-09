@@ -1,3 +1,3 @@
-theme: jekyll-theme-minimal
+theme: jekyll-theme-slate
 title: CraftBots
 description: A lightweight multi-agent simulator to evaluate integrated task planning and execution.
