@@ -1,27 +1,19 @@
 from os import system
 import time
 import numpy as np
+from agents.agent import Agent
 from api import agent_api
 from craftbots.entities.actor import Actor
 from craftbots.log_manager import Logger
 import sys
 
-class RBAgent:
+class RBAgent(Agent):
 
     def __init__(self):
 
-        # simulation status flags
-        self.simulation_complete = False
-        self.simulation_paused = False
+        super().__init__()
 
-        # simulation interface
-        self.api = None
-        self.world_info = None
-
-        # agent status flag
-        self.thinking = False                
-
-        # task to actor assignment
+        # task to actor assignment and list of unassigned actors
         self.task_actors : dict = {}
         self.free_actors = []
 
@@ -31,15 +23,20 @@ class RBAgent:
         self.paths = {}
 
     def get_next_commands(self):
-        
+        """
+        Sends commands to the agent API until the simulation is completed. Does not work with lockstep.
+        """
+
         self.api: agent_api.AgentAPI
         self.world_info : dict
 
+        # prepare free actors
         self.task_actors.clear()
         self.free_actors.clear()
         for actor_id in self.world_info["actors"]:
             self.free_actors.append(actor_id)
 
+        # find all shortest paths
         self.prepare_graph()
 
         Logger.info("Agent", "Starting control.")
@@ -70,7 +67,7 @@ class RBAgent:
                 if self.api.get_field(actor_id, "state") == Actor.IDLE:
                     self.take_action(task_id, actor_id)
 
-            time.sleep(0.2)                    
+            time.sleep(0.02)                    
 
         Logger.info("Agent", "Finished.")
 
@@ -81,21 +78,24 @@ class RBAgent:
         actor_node = self.api.get_field(actor_id, "node")
 
         # if the site is not started and the agent is at the node, start the site.
+        if site_id == None and actor_node == target_node:
+            self.api.start_site(actor_id, task_id)
+            return
+
+        # if the site is not started, move to the target node.
         if site_id == None and actor_node != target_node:
             next_node = self.paths[actor_node][target_node]
             self.api.move_to(actor_id, next_node)
-            return
-        
-        # if the site is not started, move to the target node.
-        if site_id == None and actor_node == target_node:
-            self.api.start_site(actor_id, task_id)
             return
 
         # if the site has all resources deposited, construct.
         site_resources = self.api.get_field(site_id, 'deposited_resources')
         task_resources = self.api.get_field(site_id, 'needed_resources')
-        if site_resources==None: print("site_resource",site_resources)
-        if task_resources==None: print("task_resources",site_resources)
+
+        # check if site is completed (race condition)
+        if site_resources==None or task_resources==None:
+            return
+
         remaining_resources = [a - b for a,b in zip(task_resources,site_resources)]
         if sum(remaining_resources)<=0 and actor_node == target_node:
             self.api.construct_at(actor_id, site_id)

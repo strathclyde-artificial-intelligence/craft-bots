@@ -1,5 +1,4 @@
 from agents.rule_based_agent import RBAgent
-from agents.test_agent import Agent
 from craftbots.simulation import Simulation
 from gui.main_window import CraftBotsGUI
 

@@ -1,7 +1,5 @@
 import time
 import threading
-from agents.test_agent import Agent
-
 from api.agent_api import AgentAPI
 from craftbots.log_manager import Logger
 from craftbots.world_factory import WorldFactory
