@@ -1,4 +1,4 @@
-![Screenshot of Craftbots simulation](screenshot.png)
+![Screenshot of Craftbots simulation](/screenshot.png)
 
 ## Quickstart
 
