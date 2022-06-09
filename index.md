@@ -8,13 +8,13 @@ CraftBots is a multi-agent simulator to evaluate/benchmark integrated planning a
 
 Install the dependencies, clone the repository, and run `main.py`
 ```
-pip install -r requirements.txt
 git clone https://github.com/strathclyde-artificial-intelligence/craft-bots
 cd ./craft-bots
+pip install -r requirements.txt
 python main.py
 ```
 
-Press "reset" to generate a new simulation, and "start" to begin the simulation. The default agent acts randomly.
+Press "reset" to generate a new simulation, and "start" to begin the simulation.
 
 ### Quick connect with your own agent
 
@@ -24,6 +24,6 @@ Once you have created your own agent (see [here](Creating-an-Agent) on how to ma
     agent = TestAgent()
     sim.agents.append(agent)
 ```
-  
+
 ## CraftBots Wiki
 Further information is available on the [CraftBots Wiki here](https://github.com/strathclyde-artificial-intelligence/craft-bots/wiki).
