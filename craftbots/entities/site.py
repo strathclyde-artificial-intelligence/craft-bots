@@ -110,6 +110,7 @@ class Site:
             for actor in self.node.actors:
                 if actor.target == self:
                     actor.go_idle()
+                    
         if self.progress >= self.world.building_config["build_effort"] * sum(self.needed_resources):
             if self.world.nondeterminism_config["construction_completion_non_deterministic"] \
                     and r.random() < self.world.nondeterminism_config["construction_completion_non_deterministic"]:

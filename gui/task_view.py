@@ -94,7 +94,8 @@ class TaskView:
                 return
 
             if task['completed']():
-                dpg.configure_item(self.headers[key], show=False)
+                if dpg.does_item_exist(self.headers[key]):
+                    dpg.delete_item(self.headers[key])
                 continue
 
             # difficulty
