@@ -1,7 +1,3 @@
-# CraftBots
-
-CraftBots is a multi-agent simulator to evaluate/benchmark integrated planning and execution in complex tasks.
-
 ![Screenshot of Craftbots simulation](screenshot.png)
 
 ## Quickstart
