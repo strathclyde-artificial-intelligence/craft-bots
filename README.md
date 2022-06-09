@@ -8,9 +8,9 @@ CraftBots is a multi-agent simulator to evaluate/benchmark integrated planning a
 
 Install the dependencies, clone the repository, and run `main.py`
 ```
-pip install -r requirements.txt
 git clone https://github.com/strathclyde-artificial-intelligence/craft-bots
 cd ./craft-bots
+pip install -r requirements.txt
 python main.py
 ```
 
