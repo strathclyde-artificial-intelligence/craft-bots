@@ -23,6 +23,7 @@ class Task:
         self.start_time = world.tick
         self.deadline = self.__set_deadline()
         self.linked_site = None
+        self.completed = False
 
         self.node.append_task(self)
 
@@ -37,23 +38,13 @@ class Task:
     def __str__(self):
         return "Task to build at " + str(self.node) + " with the resource requirements of " + str(self.needed_resources)
 
-    def completed(self):
-        """
-        Checks if the deadline had passed, and then checks if the tasks project is a Building entity. If it is then it
-        implies that the building is complete and as such the task is complete. If the project is None or a Site entity,
-        then it implies that there is still work to do before the task is complete. If the deadline has passed then the
-        task is considered completed, but the agent will not have received any rewards for it.
-        :return: True if the task is completed, and False if not
-        """
-
-        return isinstance(self.linked_site, Building) if self.deadline >= self.world.tick or self.deadline == -1 else True
-
     def complete_task(self):
         """
         This function is called when the task is complete (usually by creating the building). It will calculate the
         score provided by the task and added to a total score variable in the simulation
         """
-
+        self.completed = True
+        self.fields["completed"] = True
         self.world.total_score += self.score
 
     def __set_score(self):

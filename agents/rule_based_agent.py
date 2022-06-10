@@ -1,3 +1,5 @@
+import pprint
+
 from os import system
 import time
 import numpy as np
@@ -46,7 +48,7 @@ class RBAgent(Agent):
             for task_id, task in self.world_info['tasks'].items(): 
                 
                 # task complete, free actor
-                if task["completed"]():
+                if task["completed"]:
                     if task_id in self.task_actors:
                         Logger.info("Agent", "Task "+str(task_id)+" completed.")
                         self.free_actors.append(self.task_actors[task_id])

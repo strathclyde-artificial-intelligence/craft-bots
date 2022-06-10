@@ -1,4 +1,11 @@
 class Resource:
+
+    RED    = 0 # can only be collected within time windows
+    BLUE   = 1 # takes longer to collect
+    ORANGE = 2 # requires multiple actors to mine
+    BLACK  = 3 # cannot be carried with any other resource
+    GREEN  = 4 # decays over time
+
     def __init__(self, world, location, colour=0):
         """
         A resource in the craftbots simulation. Resources are produced from mines and used to build buildings. Each
@@ -32,7 +39,7 @@ class Resource:
         A call to update the resource, which is called by the world every tick. It only effects the green resource that
         will decay after a certain amount of time.
         """
-        if self.colour == 4 and self.world.tick - self.tick_created >= self.world.resource_config["green_decay_time"]:
+        if self.colour == Resource.GREEN and self.world.tick - self.tick_created >= self.world.resource_config["green_decay_time"]:
             self.set_used(True)
             self.location.remove_resource(self)
 

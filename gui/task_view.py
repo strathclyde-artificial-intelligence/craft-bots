@@ -93,7 +93,7 @@ class TaskView:
                 self.init_tasks(world_info)
                 return
 
-            if task['completed']():
+            if task['completed']:
                 if dpg.does_item_exist(self.headers[key]):
                     dpg.delete_item(self.headers[key])
                 continue

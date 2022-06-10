@@ -521,7 +521,7 @@ class World:
 
     def tasks_complete(self):
         for task in self.tasks:
-            if not task.completed():
+            if not task.completed:
                 return False
         return True
 
