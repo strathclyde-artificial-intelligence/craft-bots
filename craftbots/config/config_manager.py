@@ -1,5 +1,5 @@
 import yaml
-
+import sys
 from craftbots.log_manager import Logger
 
 
@@ -12,12 +12,27 @@ class Configuration:
     @classmethod
     def read_ini_file(cls, path):
         parameters = {}
-        with open(path, "r") as stream:
-            try:
-                parameters = yaml.safe_load(stream)
-            except yaml.YAMLError as exc:
-                Logger.error("(config manager)", exc)
+        try:
+            with open(path, "r") as stream:
+                try:
+                    parameters = yaml.safe_load(stream)
+                except yaml.YAMLError as exc:
+                    Logger.error("(config manager)", exc)
+        except FileNotFoundError as exc:
+            print(exc)
+            sys.exit(-1)
         return parameters
+
+    @classmethod
+    def save_ini_file(cls, config, path):
+        try:
+            with open(path, "w") as file:
+                try:
+                    print("writing to file not yet implemented.")
+                except yaml.YAMLError as exc:
+                    Logger.error("(config manager)", exc)
+        except IOError as exc:
+            print(exc)
 
     # ================== #
     # easy config access #

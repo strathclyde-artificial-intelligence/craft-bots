@@ -6,6 +6,7 @@ from craftbots.simulation import Simulation
 from gui.palletes import palletes
 from gui.simulation_view import SimulationView
 from gui.actor_view import ActorView
+from gui.task_view import TaskView
 
 class CraftBotsGUI:
 
@@ -19,14 +20,16 @@ class CraftBotsGUI:
         # panels/windows
         self.primary_window = None
         self.config_window = None
-        self.controls_panel = None
-        self.actor_panel = None
-
-        # simulation viewport and drawing
         self.simulation_window = None
         self.actor_window = None
+        self.task_window = None
+        self.load_dialog = None
+        self.save_dialog = None
+        
+        # simulation viewport and drawing
         self.sim_view = None
         self.actor_view = None
+        self.task_view = None
         self.info_text = None
         self.command_count = 0
         self.time_bar = None
@@ -84,9 +87,15 @@ class CraftBotsGUI:
 
             with dpg.window(label="Actors", tag="actor_window",
                             no_scrollbar=False, no_resize=False, no_move=False, no_collapse=False, no_close=True,
-                            pos=[self.SIDEBAR_WIDTH + sim_width + 30, 10], width=self.SIDEBAR_WIDTH, height=sim_height) as actor_window:
+                            pos=[self.SIDEBAR_WIDTH + sim_width + 30, 10], width=self.SIDEBAR_WIDTH, height=(sim_height-10)/2) as actor_window:
                 self.actor_window = actor_window
                 self.actor_view = ActorView(self.actor_window)
+
+            with dpg.window(label="Tasks", tag="task_window",
+                            no_scrollbar=False, no_resize=False, no_move=False, no_collapse=False, no_close=True,
+                            pos=[self.SIDEBAR_WIDTH + sim_width + 30, 20 + (sim_height-10)/2], width=self.SIDEBAR_WIDTH, height=(sim_height-10)/2) as task_window:
+                self.task_window = task_window
+                self.task_view = TaskView(self.task_window)
 
             # sidebar
             with dpg.child_window(label="sidebar_window", width=self.SIDEBAR_WIDTH, autosize_y=True, pos=[10, 10]):
@@ -120,7 +129,7 @@ class CraftBotsGUI:
                     for name, checked in self.log.items():
                         dpg.add_checkbox(label=name, tag=name, default_value=checked, callback=self.box_checked)
                     with dpg.child_window(height=int(self.WINDOW_HEIGHT/4), border=True):
-                        self.info_text = dpg.add_text("Interface started", wrap=self.SIDEBAR_WIDTH-5, tracked=True, track_offset=1.0)
+                        self.info_text = dpg.add_text("Interface started", wrap=-1, tracked=False, track_offset=1.0)
 
             # configuration window
             with dpg.window(label="Configuration", tag="config_window", show=False,
@@ -133,7 +142,7 @@ class CraftBotsGUI:
                         dpg.add_menu_item(label="Save Config", tag="save_world", callback=self.save_configuration)
                         dpg.add_menu_item(label="Load Config", tag="load_world", callback=self.load_configuration)
 
-                dpg.add_text("Changes will not take effect until the simulation is reset.")
+                dpg.add_text("Most changes will take effect when the simulation is reset.")
                 with dpg.tab_bar(label="config_tabs"):
                     for category, params in self.simulation.config.items():
                         with dpg.tab(label=category):
@@ -157,15 +166,12 @@ class CraftBotsGUI:
                                             if sub_key != "description": self.add_config_element(sub_key, sub_value, None)
                                         dpg.add_separator()
 
-        # dpg.show_metrics()
-        # dpg.show_about()
-        # dpg.show_style_editor()
-
         dpg.setup_dearpygui()
         dpg.show_viewport()
-        dpg.maximize_viewport()
+        # dpg.maximize_viewport()
 
         # main GUI loop
+        log_length = 0
         while dpg.is_dearpygui_running():
 
             if self.simulation.world:
@@ -174,6 +180,7 @@ class CraftBotsGUI:
                 # update simulation view
                 self.sim_view.update_draw_list(world_info)
                 self.actor_view.update_draw_list(world_info)
+                self.task_view.update_draw_list(world_info)
 
                 # update sim controls panel
                 dpg.set_value(self.time_text, "Simulation Time: " + str(world_info['tick']))
@@ -182,14 +189,28 @@ class CraftBotsGUI:
 
             # update sidebar controls to match configuration
             dpg.set_value(self.rate_slider, float(Configuration.get_value(self.simulation.config,"simulation_rate")))
-            info = ""
-            for message in Logger.log:
-                if not any([k[4:] in message[1] and not v for k,v in self.log.items()]):
-                    info = info + "[" + str(message[0]) + "] " + "(" + message[1] + ") " + message[2] + "\n"
-            dpg.set_value(self.info_text, info)
 
+            # update info panel with logger text
+            info = ""
+            if log_length != len(Logger.log):
+                log_length = len(Logger.log)
+                for message in Logger.log:
+                    info = info + "[" + str(message[0]) + "] " + "(" + message[1] + ") " + message[2] + "\n"
+                dpg.set_value(self.info_text, info)
+                
             # render
             dpg.render_dearpygui_frame()
+
+    # ============================= #
+    # Updating Configuration window #
+    # ============================= #
+
+    def update_config_element(self,key,value):
+        if type(value) in [bool, int, float, str]:
+            dpg.configure_item(key, default_value=value)
+        elif type(value) == list or type(value) == tuple:
+            for i in range(len(value)):
+                dpg.configure_item(key+"@"+str(i), default_value=value[i])
 
     def add_config_element(self,key,value,description):
         with dpg.group(horizontal=True):
@@ -222,6 +243,7 @@ class CraftBotsGUI:
         # Alter the simulation rate using the slider instead of the config window.
         if sender=="simulation_speed":
             Configuration.set_value(self.simulation.config, "simulation_rate", data)
+            self.update_config_element("simulation_rate", data)
 
     def config_callback(self, sender, data):
         # Configure button is pressed - display the window.
@@ -245,7 +267,58 @@ class CraftBotsGUI:
         self.sim_view.fit_sim_to_view()
 
     def save_configuration(self, sender, data):
-        pass
+        if self.save_dialog == None:
+            with dpg.file_dialog(label='save_dialog',
+                    callback=self.save_config_callback,
+                    directory_selector=False,
+                    width=CraftBotsGUI.WINDOW_WIDTH*0.7,
+                    height=CraftBotsGUI.WINDOW_HEIGHT*0.7,
+                    show=True,
+                    default_path='./craftbots/config/',
+                    default_filename='simulation_configuration.yaml',
+                    modal=True,
+                    id="save_dialog") as dialog:
+                dpg.add_file_extension(".*")
+                dpg.add_file_extension(".yaml", color=(150, 255, 150, 255), custom_text="[config]")
+                self.save_dialog = dialog
+        dpg.show_item("save_dialog")
 
+    def save_config_callback(self, sender, data):
+        file_path = data['file_path_name']
+        if file_path[-2:]==".*":
+            file_path = file_path[:-2] + '.yaml'
+        print(file_path)
+        Configuration.save_ini_file(self.simulation.config, file_path)
+        
     def load_configuration(self, sender, data):
-        pass
+        if self.load_dialog == None:
+            with dpg.file_dialog(label='load_dialog',
+                    callback=self.load_config_callback,
+                    directory_selector=False,
+                    width=CraftBotsGUI.WINDOW_WIDTH*0.7,
+                    height=CraftBotsGUI.WINDOW_HEIGHT*0.7,
+                    show=True,
+                    default_path='./craftbots/config/',
+                    default_filename='simulation_configuration.yaml',
+                    modal=True,
+                    id="load_dialog") as dialog:
+                dpg.add_file_extension(".*")
+                dpg.add_file_extension(".yaml", color=(150, 255, 150, 255), custom_text="[config]")
+                self.load_dialog = dialog
+        dpg.show_item("load_dialog")
+
+    def load_config_callback(self, sender, data):
+        file_paths = list(data['selections'].values())
+        if len(file_paths) > 0:
+            self.simulation.config = Configuration.read_ini_file(file_paths[0])
+            for category, params in self.simulation.config.items():
+                for key, value in params.items():
+                    if key=="description":
+                        continue
+                    if "value" in value:
+                        # normal element
+                        self.update_config_element(key, value['value'])
+                    else:
+                        # nested element
+                        for sub_key, sub_value in value.items():
+                            if sub_key != "description": self.update_config_element(sub_key, sub_value)

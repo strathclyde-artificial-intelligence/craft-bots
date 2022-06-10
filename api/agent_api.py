@@ -117,7 +117,7 @@ class AgentAPI:
         """
         return self.__send_command(Command.DIG_AT, actor_id, mine_id)
 
-    def start_site(self, actor_id, site_type):
+    def start_site(self, actor_id, task_id=None):
         """
         Tell an actor to start a site of the specified type. A site will be placed on the node that the actor is at.
 
@@ -128,7 +128,7 @@ class AgentAPI:
         :param site_type: The type of site to be built (see Building.BUILDING_[TYPE])
         :return: The ID of the command or -1 if the max command limit has been reached or API does not have access to the actor
         """
-        return self.__send_command(Command.START_SITE, actor_id, site_type)
+        return self.__send_command(Command.START_SITE, actor_id, task_id)
 
     def construct_at(self, actor_id, site_id):
         """
@@ -221,12 +221,7 @@ class AgentAPI:
 
     def get_world_info(self):
         """
-        This gets an up to date version of the world_info dictionary instantly. This is to be used if your agent takes a
-        long time to deliberate actions or is waiting for something to change, and the agent needs up to date
-        information immediately.
-
-        This does not need to be called at the start of get_next_commands because the world info is updated each time
-        before the function is called.
+        Returns nested dictionary containing full (observable) world information.
 
         :return: The world_info dictionary
         """
@@ -234,16 +229,14 @@ class AgentAPI:
 
     def get_by_id(self, entity_id, entity_type=None, target_node=None):
         """
-        This command instantly returns the fields of an entity. The fields are stored in a dictionary and are updated
-        every tick.
+        Returns all fields of an entity as a dictionary.
 
         Optionally, the type of the entity can be passed in as a string to stop the function from searching other types
         of entities and the ID of the node that should be searched can also be chosen to only search one node for the
         specified entity.
 
         :param entity_id: The ID of the entity that should be found
-        :param entity_type: (optional) The type of entity to be found
-        (Node, Edge, Actor, Resource, Mine, Site, Building)
+        :param entity_type: (optional) The type of entity to be found (Node, Edge, Actor, Resource, Mine, Site, Building)
         :param target_node: (optional) the ID of the node that should be checked
         :return: A dictionary of the fields the entity has, or None if the entity is not found
         """
@@ -252,8 +245,7 @@ class AgentAPI:
 
     def get_field(self, entity_id, field, entity_type=None, target_node=None):
         """
-        This command instantly returns the specified field of an entity. The field should be stored in the fields of the
-        entity.
+        Returns the specified field of an entity.
 
         Optionally, the type of the entity can be passed in as a string to stop the function from searching other types
         of entities and the ID of the node that should be searched can also be chosen to only search one node for the
@@ -261,8 +253,7 @@ class AgentAPI:
 
         :param entity_id: The ID of the entity that should be found
         :param field: The field of the entity that should be returned
-        :param entity_type: (optional) The type of entity to be found
-        (Node, Edge, Actor, Resource, Mine, Site, Building)
+        :param entity_type: (optional) The type of entity to be found (Node, Edge, Actor, Resource, Mine, Site, Building)
         :param target_node: (optional) the ID of the node that should be checked
         :return: The field from the entity, or None if the entity is not found or the entity does not have the field.
         """

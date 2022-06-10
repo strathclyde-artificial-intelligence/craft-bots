@@ -8,7 +8,7 @@ class Logger:
     @staticmethod
     def setup_logger(config, world):
         Logger.world = world
-        Logger.log.clear()
+        # Logger.log.clear()
         if config['Run Configuration']['log_to_file']['value']:
             Logger.log_to_file = True
             Logger.log_file = config['Run Configuration']['log_file_path']['value']
@@ -17,6 +17,7 @@ class Logger:
 
     @staticmethod
     def info(sender: str, message: str):
+        if Logger.world == None: return
         time = Logger.world.tick
         Logger.log.append((time, sender, message))
         msg = "[" + str(time) + "] " + "(" + sender + ") " + message
@@ -27,6 +28,7 @@ class Logger:
 
     @staticmethod
     def error(sender: str, message: str):
+        if Logger.world == None: return
         time = Logger.world.tick
         Logger.log.append((time, sender, message))
         msg = "[" + str(time) + "] " + "(" + sender + ") " + message

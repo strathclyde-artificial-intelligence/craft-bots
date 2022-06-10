@@ -84,6 +84,7 @@ class ActorView:
 
             # inventory
             x, y = 0, 3
+            dpg.delete_item(self.resources[key], children_only=True)
             for resource in actor['resources']:
                 colour = SimulationView.SIM_COLOURS[world_info['resources'][resource]['colour']]
                 dpg.draw_rectangle(pmin=(x, y), pmax=(x + ActorView.RESOURCE_SIZE, y + ActorView.RESOURCE_SIZE),

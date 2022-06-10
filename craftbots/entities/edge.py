@@ -17,8 +17,7 @@ class Edge:
         self.node_a.append_edge(self)
         self.node_b.append_edge(self)
 
-        self.fields = {"node_a": self.node_a.id, "node_b": self.node_b.id, "id": self.id, "length": self.length(),
-                       "get_other_node": self.get_other_node_id}
+        self.fields = {"node_a": self.node_a.id, "node_b": self.node_b.id, "id": self.id, "length": self.length()}
 
     def __eq__(self, other):
         if isinstance(other, Edge):

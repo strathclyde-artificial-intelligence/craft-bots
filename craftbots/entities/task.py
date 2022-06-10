@@ -1,7 +1,6 @@
 import random as r
 from craftbots.entities.building import Building
 
-
 class Task:
 
     EASY    = 0
@@ -20,13 +19,18 @@ class Task:
         self.id = self.world.get_new_id()
         self.difficulty = self.__decide_difficulty()
         self.needed_resources = self.__generate_task()
-        self.deadline = self.__set_dead_line()
-        self.project = None
+        self.score = self.__set_score()
+        self.start_time = world.tick
+        self.deadline = self.__set_deadline()
+        self.linked_site = None
+        self.completed = False
 
         self.node.append_task(self)
 
         self.fields = {"node": self.node.id, "id": self.id, "completed": self.completed, "difficulty": self.difficulty,
-                       "needed_resources": self.needed_resources, "project": self.project, "deadline": self.deadline}
+                       "needed_resources": self.needed_resources, "site": self.linked_site, 
+                       "start_time": self.start_time, "deadline": self.deadline,
+                       "score": self.score}
 
     def __repr__(self):
         return "Task(" + str(self.node) + ", " + str(self.needed_resources) + ")"
@@ -34,26 +38,21 @@ class Task:
     def __str__(self):
         return "Task to build at " + str(self.node) + " with the resource requirements of " + str(self.needed_resources)
 
-    def completed(self):
-        """
-        Checks if the deadline had passed, and then checks if the tasks project is a Building entity. If it is then it
-        implies that the building is complete and as such the task is complete. If the project is None or a Site entity,
-        then it implies that there is still work to do before the task is complete. If the deadline has passed then the
-        task is considered completed, but the agent will not have received any rewards for it.
-        :return: True if the task is completed, and False if not
-        """
-
-        return isinstance(self.project, Building) if self.deadline >= self.world.tick or self.deadline == -1 else True
-
     def complete_task(self):
         """
         This function is called when the task is complete (usually by creating the building). It will calculate the
         score provided by the task and added to a total score variable in the simulation
         """
+        self.completed = True
+        self.fields["completed"] = True
+        self.world.total_score += self.score
 
-        self.world.total_score += (sum(self.needed_resources) * self.world.task_config["task_score_a"]) + \
-                                  (self.world.task_config["task_score_b"] *
-                                   (sum(self.needed_resources) ** self.world.task_config["task_score_c"]))
+    def __set_score(self):
+        a = self.world.task_config["task_score_a"]
+        b = self.world.task_config["task_score_b"]
+        c = self.world.task_config["task_score_c"]
+        n = sum(self.needed_resources)
+        return (a * n) + (b * (n ** c))
 
     def __generate_task(self):
         """
@@ -72,15 +71,13 @@ class Task:
 
         :return: The difficulty of the Task
         """
-        result = r.randint(1, self.world.task_config["easy_task_weight"] + self.world.task_config["medium_task_weight"] +
-                           self.world.task_config["hard_task_weight"])
-        if result - self.world.task_config["easy_task_weight"] <= 0:
-            return Task.EASY
-        elif result - self.world.task_config["easy_task_weight"] - self.world.task_config["medium_task_weight"] <= 0:
-            return Task.MEDIUM
-        else:
-            return Task.HARD
-        
+        difficulty = r.choices([Task.EASY, Task.MEDIUM, Task.HARD,], k=1, weights=[
+                self.world.task_config["easy_task_weight"],
+                self.world.task_config["medium_task_weight"],
+                self.world.task_config["hard_task_weight"]
+            ])
+        return difficulty[0]
+
     def __get_num_of_types(self):
         """
         Returns the number of different resource types to be used in the Task based on the difficulty of the task. This
@@ -103,26 +100,20 @@ class Task:
         :param num_of_types: The number of different resource types to be used in the Task
         :return: A list of needed resources for a Site entity to use
         """
-        available = [0, 1, 2, 3, 4]
-        chosen = []
-        for _ in range(min(num_of_types,len(available))):
-            index = r.randint(0, len(available) - 1)
-            chosen.append(available[index])
-            available.remove(available[index])
-            
-        needed_resources = [0, 0, 0, 0, 0]
-        for index in range(len(needed_resources)):
-            if chosen.__contains__(index):
-                if self.difficulty == Task.EASY:
-                    min_res = self.world.task_config["easy_task_resources"][0]
-                    max_res = self.world.task_config["easy_task_resources"][1]
-                elif self.difficulty == Task.MEDIUM:
-                    min_res = self.world.task_config["medium_task_resources"][0]
-                    max_res = self.world.task_config["medium_task_resources"][1]
-                else:
-                    min_res = self.world.task_config["hard_task_resources"][0]
-                    max_res = self.world.task_config["hard_task_resources"][1]
-                needed_resources[index] = r.randint(min_res, max_res)
+        resource_types = r.sample(range(5),k=num_of_types)
+
+        if self.difficulty == Task.EASY:
+            min_res = self.world.task_config["easy_task_resources"][0]
+            max_res = self.world.task_config["easy_task_resources"][1]
+        elif self.difficulty == Task.MEDIUM:
+            min_res = self.world.task_config["medium_task_resources"][0]
+            max_res = self.world.task_config["medium_task_resources"][1]
+        else:
+            min_res = self.world.task_config["hard_task_resources"][0]
+            max_res = self.world.task_config["hard_task_resources"][1]
+        resource_amount = max(r.randint(min_res, max_res), num_of_types)
+        choices = r.choices(resource_types, k=resource_amount)
+        needed_resources = [ choices.count(i) for i in range(5) ]
         return needed_resources
 
     def set_project(self, project):
@@ -132,15 +123,15 @@ class Task:
 
         :param project: The Site / Buildings to be set as the tasks project
         """
-        self.project = project
-        self.fields.__setitem__("project", project.id)
+        self.linked_site = project
+        self.fields.__setitem__("site", self.linked_site.id)
 
-    def __set_dead_line(self):
+    def __set_deadline(self):
         if r.random() < self.world.task_config["task_deadline_probability"]:
-            sum_of_res = sum(self.needed_resources) * self.world.task_config["RESOURCE_COMP_MODIFIER"]
-            mining_compensation = sum_of_res * self.world.task_config["MINE_EFFORT"]
-            travel_compensation = sum_of_res * self.world.world_gen_modifiers["CAST_DISTANCE"] * \
-                                  self.world.get_all_edges().__len__() * 0.2 / self.world.task_config["ACTOR_MOVE_SPEED"]
+
+            mining = self.world.config['roadmap_cast_distance'] / self.world.actor_config['dig_speed']
+            travel = self.world.resource_config['mine_effort'] / self.world.actor_config['move_speed']
+
             construction_compensation = sum_of_res * self.world.task_config["BUILD_EFFORT"]
 
             mining_compensation *= self.world.task_config["MINING_COMP_MODIFIER"]

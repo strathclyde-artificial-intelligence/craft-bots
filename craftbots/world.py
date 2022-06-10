@@ -521,7 +521,7 @@ class World:
 
     def tasks_complete(self):
         for task in self.tasks:
-            if not task.completed():
+            if not task.completed:
                 return False
         return True
 
@@ -540,8 +540,8 @@ class World:
     def add_mine(self, node, colour):
         return Mine(self, node, colour)
 
-    def add_site(self, node, building_type):
-        return Site(self, node, building_type)
+    def add_site(self, node, task_id):
+        return Site(self, node, task_id)
 
     def add_building(self, node, building_type):
         return Building(self, node, building_type)

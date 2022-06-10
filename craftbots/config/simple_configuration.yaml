@@ -2,17 +2,17 @@
 
   Run Configuration:
     lockstep: {value: false, description: "If true, the simulation will block while the agent makes a decision. If false, the agent and simulation will run in separate threads."}
-    simulation_rate: {value: 30.0, description: "The maximum number of simulation ticks per second."}
-    sim_length: {value: 1000, description: "Maximum number of ticks."}
-    log_to_file: {value: true, description: "If true the simulation log will be written to a file."}
-    log_file_path: {value: "log.txt", description: "Log file path."}
+    simulation_rate: {value: 60.0, description: "The maximum number of simulation ticks per second."}
+    sim_length: {value: 6000, description: "Maximum number of ticks."}
+    log_to_file: {value: false, description: "If true the simulation log will be written to a file."}
+    log_file_path: {value: "simple_log.txt", description: "Log file path."}
 
   World Setup:
     use_random_seed: {value: false, description: "Use random seed for a fixed setup."}
     random_seed: {value: 789, description: "Random seed used if use_random_seed is checked."}
     width: {value: 600, description: "Width of map."}
     height: {value: 600, description: "Height of map."}
-    max_nodes: {value: 3, description: "Maximum number of nodes."}
+    max_nodes: {value: 10, description: "Maximum number of nodes."}
     roadmap_cast_distance: {value: 80, description: "Cast distance in probabilistic roadmap, increase to spread nodes more widely."}
     roadmap_min_distance: {value: 50, description: "Minimum distance allowed between nodes in probabilistic roadmap."}
     roadmap_connect_distance: {value: 100, description: "Threshold distance to connect nodes with an edge. Increase to create a more densely connected map."}
@@ -20,16 +20,16 @@
     roadmap_random_deviation: {value: 10, description: "Increase for less uniform distances between nodes."}
 
   Tasks:
-    initial_tasks: {value: 3, description: " "}
-    refresh_tasks: {value: false, description: "Generate new tasks equal to initial task amount if all current tasks are complete."}
+    initial_tasks: {value: 3, description: "Number of initial tasks."}
+    refresh_tasks: {value: false, description: "Generate new tasks equal to initial tasks if all current tasks are complete."}
     new_task_chance: {value: 0.00, description: "Probability per tick of a new task to be generated."}
     task_deadline_probability: {value: 0.0, description: "Probability that a task has a deadline."}
 
     "Task Weighting":
         description: "Relative chance of generating each task type (int)."
         easy_task_weight: 3
-        medium_task_weight: 2
-        hard_task_weight: 1
+        medium_task_weight: 1
+        hard_task_weight: 0
 
     "Task Resource Types":
         description: "Min/Max number of different resource types that compose a task. Max range: [1,5]."
@@ -50,12 +50,12 @@
       task_score_c: 2
 
   Actors:
-    num_actors: {value: 2, description: " "}
-    inventory_size: {value: 7, description: " "}
-    move_speed: {value: 1, description: " "}
-    dig_speed: {value: 3, description: " "}
-    build_speed: {value: 3, description: " "}
-    look_effort: {value: 20, description: " "}
+    num_actors: {value: 2, description: "Number of actors initially placed in nodes."}
+    inventory_size: {value: 7, description: "Maximum number of resources that can be carried by an actor. Pickup will fail if there is no space."}
+    move_speed: {value: 1, description: "Movement speed of agents in edge length per tick."}
+    dig_speed: {value: 3, description: "Mining speed of agents in mine effort per tick (see resources config)."}
+    build_speed: {value: 3, description: "Build speed of agents in build effort per tick (see buildings config)."}
+    look_effort: {value: 20, description: "  "}
 
   Mines:
     num_of_red_mines: {value: 1, description: " "}
@@ -65,7 +65,7 @@
     num_of_green_mines: {value: 1, description: " "}
 
   Resources:
-    mine_effort: {value: 100, description: "Number of ticks required for one actor to mine a resource."}
+    mine_effort: {value: 100, description: "Number of ticks required for one actor to mine a resource at a dig speed of one."}
     cycle_length: {value: 1200, description: "Length in simulation ticks of the day cycle, used in conjunction with Red collection intervals."}
     red_collection_intervals: {value: [0,1200], description: "Start and end of interval within which Red resource can be collected each day."}
     blue_extra_effort: {value: 1, description: "Blue will take longer to mine by this factor."}

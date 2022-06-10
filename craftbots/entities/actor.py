@@ -193,7 +193,7 @@ class Actor:
             return True
         return False
 
-    def start_site(self, colour):
+    def start_site(self, task_id):
         """
         Has the actor create a new "construction" site to create a building. Site is created in the same node as the
         actor. Actor must be idle to do this.
@@ -205,7 +205,7 @@ class Actor:
             if r.random() < self.world.nondeterminism_config["site_creation_non_deterministic"]:
                 Logger.info("actor" + str(self.id), "Site Creation failed.")
                 return False
-            self.world.add_site(self.node, colour)
+            self.world.add_site(self.node, task_id)
             return True
         return False
 

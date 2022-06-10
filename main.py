@@ -1,17 +1,14 @@
-import threading
-
-from agents.blank_agent import BlankAgent
-from agents.bogo import Bogo
+from agents.rule_based_agent import RBAgent
 from craftbots.simulation import Simulation
 from gui.main_window import CraftBotsGUI
 
 if __name__ == '__main__':
 
-    # agent
-    agent = Bogo()
-
     # Simulation
-    sim = Simulation()
+    sim = Simulation(configuration_file='craftbots/config/simple_configuration.yaml')
+
+    # agent
+    agent = RBAgent()
     sim.agents.append(agent)
 
     # GUI
