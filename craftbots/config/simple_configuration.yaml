@@ -2,7 +2,7 @@
 
   Run Configuration:
     lockstep: {value: false, description: "If true, the simulation will block while the agent makes a decision. If false, the agent and simulation will run in separate threads."}
-    simulation_rate: {value: 60.0, description: "The maximum number of simulation ticks per second."}
+    simulation_rate: {value: 10.0, description: "The maximum number of simulation ticks per second."}
     sim_length: {value: 6000, description: "Maximum number of ticks."}
     log_to_file: {value: false, description: "If true the simulation log will be written to a file."}
     log_file_path: {value: "simple_log.txt", description: "Log file path."}
@@ -22,14 +22,14 @@
   Tasks:
     initial_tasks: {value: 3, description: "Number of initial tasks."}
     refresh_tasks: {value: false, description: "Generate new tasks equal to initial tasks if all current tasks are complete."}
-    new_task_chance: {value: 0.00, description: "Probability per tick of a new task to be generated."}
-    task_deadline_probability: {value: 0.0, description: "Probability that a task has a deadline."}
+    new_task_chance: {value: 0.003, description: "Probability per tick of a new task to be generated."}
+    task_deadline_probability: {value: 1.0, description: "Probability that a task has a deadline."}
 
     "Task Weighting":
         description: "Relative chance of generating each task type (int)."
         easy_task_weight: 3
-        medium_task_weight: 1
-        hard_task_weight: 0
+        medium_task_weight: 2
+        hard_task_weight: 1
 
     "Task Resource Types":
         description: "Min/Max number of different resource types that compose a task. Max range: [1,5]."
@@ -50,7 +50,7 @@
       task_score_c: 2
 
   Actors:
-    num_actors: {value: 2, description: "Number of actors initially placed in nodes."}
+    num_actors: {value: 3, description: "Number of actors initially placed in nodes."}
     inventory_size: {value: 7, description: "Maximum number of resources that can be carried by an actor. Pickup will fail if there is no space."}
     move_speed: {value: 1, description: "Movement speed of agents in edge length per tick."}
     dig_speed: {value: 3, description: "Mining speed of agents in mine effort per tick (see resources config)."}
