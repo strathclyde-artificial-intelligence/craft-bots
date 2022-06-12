@@ -10,6 +10,7 @@ from craftbots.entities.site import Site
 from craftbots.entities.building import Building
 from craftbots.entities.mine import Mine
 from craftbots.entities.task import Task
+from craftbots.log_manager import Logger
 
 
 class World:
@@ -18,6 +19,7 @@ class World:
 
         # Flatten nested config into dictionaries for easy access
         self.config = config
+        self.world_generation_config = Configuration.flatten(self.config['World Setup'])
         self.task_config = Configuration.flatten(self.config['Tasks'])
         self.actor_config = Configuration.flatten(self.config['Actors'])
         self.resource_config = Configuration.flatten(self.config['Resources'])
@@ -43,34 +45,34 @@ class World:
         self.command_queue = []
         self.all_commands = []
         self.total_score = 0
+        self.max_possible_score = 0
 
         self.create_nodes_prm()
-        self.tasks = self.generate_tasks()
+        self.tasks = self.generate_tasks(int(self.task_config["initial_tasks"]))
 
     # ===================== #
     # Probabilistic Roadmap #
     # ===================== #
 
     def create_nodes_prm(self):
-        world_generation_config = Configuration.flatten(self.config['World Setup'])
 
-        self.nodes = [Node(self, int(world_generation_config["width"])/2, int(world_generation_config["height"])/2)]
+        self.nodes = [Node(self, int(self.world_generation_config["width"])/2, int(self.world_generation_config["height"])/2)]
         attempts = 0
         curr_x = self.nodes[0].x
         curr_y = self.nodes[0].y
-        for i in range(int(world_generation_config["max_nodes"]) - 1):
+        for i in range(int(self.world_generation_config["max_nodes"]) - 1):
             ok = False
             while not ok:
                 ok = True
                 rand_angle = r.randint(0, 360)
-                rand_deviation = r.randint(-1 * world_generation_config["roadmap_random_deviation"],
-                                           world_generation_config["roadmap_random_deviation"])
-                new_x = m.floor(curr_x + rand_deviation + world_generation_config["roadmap_cast_distance"] * m.cos(rand_angle))
-                new_y = m.floor(curr_y + rand_deviation + world_generation_config["roadmap_cast_distance"] * m.sin(rand_angle))
+                rand_deviation = r.randint(-1 * self.world_generation_config["roadmap_random_deviation"],
+                                           self.world_generation_config["roadmap_random_deviation"])
+                new_x = m.floor(curr_x + rand_deviation + self.world_generation_config["roadmap_cast_distance"] * m.cos(rand_angle))
+                new_y = m.floor(curr_y + rand_deviation + self.world_generation_config["roadmap_cast_distance"] * m.sin(rand_angle))
                 for node in self.nodes:
-                    if m.dist((new_x, new_y), (node.x, node.y)) <= world_generation_config["roadmap_min_distance"] or\
-                            new_x < 0 or new_x > world_generation_config["width"] or new_y < 0 \
-                            or new_y > world_generation_config["height"]:
+                    if m.dist((new_x, new_y), (node.x, node.y)) <= self.world_generation_config["roadmap_min_distance"] or\
+                            new_x < 0 or new_x > self.world_generation_config["width"] or new_y < 0 \
+                            or new_y > self.world_generation_config["height"]:
                         ok = False
                         break
                 no_new_edges = True
@@ -78,7 +80,7 @@ class World:
                     new_node = Node(self, new_x, new_y)
                     new_edges = []
                     for node in self.nodes:
-                        if m.dist((new_x, new_y), (node.x, node.y)) <= float(world_generation_config["roadmap_connect_distance"]):
+                        if m.dist((new_x, new_y), (node.x, node.y)) <= float(self.world_generation_config["roadmap_connect_distance"]):
                             new_edges.append(Edge(self, new_node, node))
                             no_new_edges = False
                     if not no_new_edges:
@@ -86,7 +88,7 @@ class World:
                         curr_x = new_x
                         curr_y = new_y
                 attempts += 1
-                if attempts >= world_generation_config["roadmap_max_attempts"]:
+                if attempts >= self.world_generation_config["roadmap_max_attempts"]:
                     break
 
     # ===================== #
@@ -494,42 +496,55 @@ class World:
     # ====== #
 
     def run_tick(self):
-        self.update_all_actors()
-        self.update_all_resources()
-        self.run_agent_commands()
-        if self.tasks_complete() and self.task_config["refresh_tasks"]:
-            self.tasks.extend(self.generate_tasks())
-        else:
-            if r.random() < self.task_config["new_task_chance"]:
-                self.tasks.append(Task(self))
-        self.tick += 1
 
-    def run_agent_commands(self):
+        # update all actors
+        for actor in self.get_all_actors():
+            actor.update()
+
+        # decay green resource
+        for resource in self.get_all_resources():
+            if resource.colour == Resource.GREEN:
+                resource.update()
+        
+        # process new commands
         if self.command_queue:
             self.all_commands.extend(self.command_queue)
             for command in self.command_queue:
                 command.perform()
             self.command_queue = []
-
-    def update_all_actors(self):
-        for actor in self.get_all_actors():
-            actor.update()
             
-    def update_all_resources(self):
-        for resource in self.get_all_resources():
-            resource.update()
+        # check task deadlines
+        for task in self.tasks:
+            if task.deadline > 0 and task.deadline < self.tick:
+                task.complete_task()
 
-    def tasks_complete(self):
+        # generate new tasks
+        if self.all_tasks_complete() and self.task_config["refresh_tasks"]:
+            self.tasks.extend(self.generate_tasks(int(self.task_config["initial_tasks"])))
+        if r.random() < self.task_config["new_task_chance"]:
+            Logger.info("world","New task generated")
+            self.tasks.extend(self.generate_tasks())
+
+        # update tick
+        self.tick += 1
+
+    def all_tasks_complete(self):
         for task in self.tasks:
             if not task.completed:
                 return False
         return True
 
-    def generate_tasks(self):
+    def generate_tasks(self, amount=1):
         tasks = []
-        for index in range(int(self.task_config["initial_tasks"])):
-            tasks.append(Task(self))
+        for index in range(amount):
+            new_task = Task(self)
+            self.max_possible_score += new_task.score
+            tasks.append(new_task)
         return tasks
+
+    # =============== # 
+    # adding entities #
+    # =============== # 
 
     def add_actor(self, node):
         return Actor(self, node)
@@ -546,19 +561,9 @@ class World:
     def add_building(self, node, building_type):
         return Building(self, node, building_type)
 
-    def get_colour_string(self, colour):
-        if colour == 0:
-            return "red"
-        elif colour == 1:
-            return "blue"
-        elif colour == 2:
-            return "orange"
-        elif colour == 3:
-            return "black"
-        elif colour == 4:
-            return "green"
-        elif colour == 5:
-            return "purple"
+    # =============== # 
+    # setters/getters #
+    # =============== # 
 
     def get_all_mines(self):
         mines = []
