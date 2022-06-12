@@ -195,7 +195,12 @@ class SimulationView:
                     fill=self.pallete["node"],
                     parent=self.canvas
                 )
-                progress = world_info['sites'][node['sites'][i]]["progress"] / world_info['sites'][node['sites'][i]]["needed_effort"]
+                if node['sites'][i] in world_info['sites']:
+                    progress = world_info['sites'][node['sites'][i]]["progress"] / world_info['sites'][node['sites'][i]]["needed_effort"]
+                else: 
+                    # catch site completion during draw
+                    progress = 1
+
                 dpg.draw_rectangle(
                     pmin=self.sim_to_view((x + 1 - SimulationView.MINE_RADIUS, y - (2*progress - 1)*(SimulationView.MINE_RADIUS-2))),
                     pmax=self.sim_to_view((x - 1 + SimulationView.MINE_RADIUS, y + SimulationView.MINE_RADIUS - 1)),

@@ -19,6 +19,7 @@ class TaskView:
         self.node = {}
         self.score = {}
         self.difficulty = {}
+        self.deadline = {}
         self.pallete = palletes['default']
 
 
@@ -52,7 +53,7 @@ class TaskView:
 
             if task['deadline'] > 0: 
                 group = dpg.add_group(horizontal=True, parent=header)
-                self.score[key] = dpg.add_text(default_value="Deadline: ",label="Task"+str(key)+"Deadline", parent=header)
+                self.deadline[key] = dpg.add_text(default_value="Deadline: ",label="Task"+str(key)+"Deadline", parent=header)
 
         self.task_count = len(world_info['tasks'])
 
@@ -73,6 +74,7 @@ class TaskView:
         self.node.clear()
         self.score.clear()
         self.difficulty.clear()
+        self.deadline.clear()
         self.task_count = 0
 
     # =============== #
@@ -121,4 +123,4 @@ class TaskView:
             dpg.set_value(self.score[key], value="Score: " + str(task['score']))
             
             # Deadline
-            if task['deadline'] > 0: dpg.set_value(self.score[key], value="Deadline: " + str(task['deadline']))
+            if task['deadline'] > 0: dpg.set_value(self.deadline[key], value="Deadline: " + str(task['deadline']))
