@@ -45,7 +45,8 @@ class Task:
         """
         self.completed = True
         self.fields["completed"] = True
-        self.world.total_score += self.score
+        if self.deadline == -1 or self.world.tick < self.deadline:
+            self.world.total_score += self.score
 
     def __set_score(self):
         a = self.world.task_config["task_score_a"]
@@ -128,17 +129,10 @@ class Task:
 
     def __set_deadline(self):
         if r.random() < self.world.task_config["task_deadline_probability"]:
-
-            mining = self.world.config['roadmap_cast_distance'] / self.world.actor_config['dig_speed']
-            travel = self.world.resource_config['mine_effort'] / self.world.actor_config['move_speed']
-
-            construction_compensation = sum_of_res * self.world.task_config["BUILD_EFFORT"]
-
-            mining_compensation *= self.world.task_config["MINING_COMP_MODIFIER"]
-            travel_compensation *= self.world.task_config["TRAVEL_COMP_MODIFIER"]
-            construction_compensation *= self.world.task_config["CONSTRUCT_COMP_MODIFIER"]
-
-            compensation = (mining_compensation + travel_compensation + construction_compensation) \
-                           * self.world.task_config["COMP_MODIFIER"]
-            return self.world.tick + compensation
+            mining = self.world.resource_config['mine_effort'] / self.world.actor_config['dig_speed']
+            travel = 2 * self.world.world_generation_config['roadmap_cast_distance'] / self.world.actor_config['move_speed']
+            travel = travel * self.world.world_generation_config['max_nodes'] / 3
+            construction = self.world.building_config['build_effort'] / self.world.actor_config['build_speed']
+            deadline = sum(self.needed_resources) * (mining + travel + construction)
+            return self.world.tick + round(deadline)
         return -1
