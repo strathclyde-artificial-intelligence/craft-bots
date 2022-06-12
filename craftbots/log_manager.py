@@ -1,6 +1,7 @@
 class Logger:
 
     world = None
+    log_to_screen = True
     log_to_file = False
     log_file = None
     log = []
@@ -24,7 +25,8 @@ class Logger:
         if Logger.log_to_file:
             with open(Logger.log_file, 'a') as log:
                 log.write(msg + "\n")
-        print(msg)
+        if Logger.log_to_screen:
+            print(msg)
 
     @staticmethod
     def error(sender: str, message: str):
@@ -35,4 +37,5 @@ class Logger:
         if Logger.log_to_file:
             with open(Logger.log_file, 'a') as log:
                 log.write(msg + "\n")
-        print(msg)
+        if Logger.log_to_screen:
+            print(msg)
