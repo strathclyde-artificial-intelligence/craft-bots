@@ -14,10 +14,13 @@ class Command:
     START_SENDING = 11
     START_RECEIVING = 12
 
-    PENDING = 0
-    ACTIVE = 1
-    REJECTED = 2
-    COMPLETED = 3
+    PENDING    = 0
+    ACTIVE     = 1
+    REJECTED   = 2
+    PREEMPTING = 3
+    ABORTED    = 4
+    SUCCEEDED  = 5
+    PREEMPTED  = 6
 
     def __init__(self, world, function_id, *args):
         self.world = world
@@ -38,7 +41,7 @@ class Command:
             target_node = self.world.get_by_id(self.args[1], entity_type="Node")
             if actor is not None and target_node is not None:
                 self.set_result(actor.travel_to(target_node))
-                self.set_state(Command.COMPLETED)
+                self.set_state(Command.SUCCEEDED)
                 return self.result
             self.set_state(Command.REJECTED)
             return False
@@ -47,7 +50,7 @@ class Command:
             actor = self.world.get_by_id(self.args[0], entity_type="Actor")
             if actor is not None:
                 self.set_result(actor.travel_rand())
-                self.set_state(Command.COMPLETED)
+                self.set_state(Command.SUCCEEDED)
                 return self.result
             self.set_state(Command.REJECTED)
             return False
@@ -57,7 +60,7 @@ class Command:
             resource = self.world.get_by_id(self.args[1], entity_type="Resource")
             if actor is not None and resource is not None:
                 self.set_result(actor.pick_up_resource(resource))
-                self.set_state(Command.COMPLETED)
+                self.set_state(Command.SUCCEEDED)
                 return self.result
             self.set_state(Command.REJECTED)
             return False
@@ -67,7 +70,7 @@ class Command:
             resource = self.world.get_by_id(self.args[1], entity_type="Resource")
             if actor is not None and resource is not None:
                 self.set_result(actor.drop_resource(resource))
-                self.set_state(Command.COMPLETED)
+                self.set_state(Command.SUCCEEDED)
                 return self.result
             self.set_state(Command.REJECTED)
             return False
@@ -76,7 +79,7 @@ class Command:
             actor = self.world.get_by_id(self.args[0], entity_type="Actor")
             if actor is not None:
                 self.set_result(actor.drop_everything())
-                self.set_state(Command.COMPLETED)
+                self.set_state(Command.SUCCEEDED)
                 return self.result
             self.set_state(Command.REJECTED)
             return False
@@ -86,7 +89,7 @@ class Command:
             mine = self.world.get_by_id(self.args[1], entity_type="Mine")
             if actor is not None and mine is not None:
                 self.set_result(actor.dig_at(mine))
-                self.set_state(Command.COMPLETED)
+                self.set_state(Command.SUCCEEDED)
                 return self.result
             self.set_state(Command.REJECTED)
             return False
@@ -95,7 +98,7 @@ class Command:
             actor = self.world.get_by_id(self.args[0], entity_type="Actor")
             if actor is not None:
                 self.set_result(actor.start_site(self.args[1]))
-                self.set_state(Command.COMPLETED)
+                self.set_state(Command.SUCCEEDED)
                 return self.result
             self.set_state(Command.REJECTED)
             return False
@@ -107,7 +110,7 @@ class Command:
                 site = self.world.get_by_id(self.args[1], entity_type="Building")
             if actor is not None and site is not None:
                 self.set_result(actor.construct_at(site))
-                self.set_state(Command.COMPLETED)
+                self.set_state(Command.SUCCEEDED)
                 return self.result
             self.set_state(Command.REJECTED)
             return False
@@ -120,7 +123,7 @@ class Command:
             resource = self.world.get_by_id(self.args[2], entity_type="Resource")
             if actor is not None and site is not None and resource is not None:
                 self.set_result(actor.deposit(site, resource))
-                self.set_state(Command.COMPLETED)
+                self.set_state(Command.SUCCEEDED)
                 return self.result
             self.set_state(Command.REJECTED)
             return False
@@ -129,7 +132,7 @@ class Command:
             actor = self.world.get_by_id(self.args[0], entity_type="Actor")
             if actor is not None:
                 self.set_result(actor.cancel_action())
-                self.set_state(Command.COMPLETED)
+                self.set_state(Command.SUCCEEDED)
                 return self.result
             self.set_state(Command.REJECTED)
             return False
@@ -138,7 +141,7 @@ class Command:
             actor = self.world.get_by_id(self.args[0], entity_type="Actor")
             if actor is not None:
                 self.set_result(actor.look())
-                self.set_state(Command.COMPLETED)
+                self.set_state(Command.SUCCEEDED)
                 return self.result
             self.set_state(Command.REJECTED)
             return False
@@ -147,7 +150,7 @@ class Command:
             actor = self.world.get_by_id(self.args[0], entity_type="Actor")
             if actor is not None:
                 self.set_result(actor.start_sending(self.args[1]))
-                self.set_state(Command.COMPLETED)
+                self.set_state(Command.SUCCEEDED)
                 return self.result
             self.set_state(Command.REJECTED)
             return False
@@ -156,7 +159,7 @@ class Command:
             actor = self.world.get_by_id(self.args[0], entity_type="Actor")
             if actor is not None:
                 self.set_result(actor.start_receiving())
-                self.set_state(Command.COMPLETED)
+                self.set_state(Command.SUCCEEDED)
                 return self.result
             self.set_state(Command.REJECTED)
             return False
