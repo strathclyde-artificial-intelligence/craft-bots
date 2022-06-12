@@ -62,4 +62,3 @@ if __name__ == '__main__':
         with open(args.o,'a') as ofile:
             ofile.write(str(Configuration.get_value(sim.config, "random_seed"))+","+str(sim.world.total_score)+","+str(sim.world.max_possible_score)+"\n")
     bar.finish()
-    
