@@ -148,22 +148,22 @@ class CraftBotsGUI:
                         with dpg.tab(label=category):
                             with dpg.child_window(border=True, horizontal_scrollbar=True):
                                 for key, value in params.items():
-                                    if key=="description":
+                                    if key=="_description":
                                         # header description
                                         dpg.add_text(value, wrap=3*self.CONFIG_WIDTH)
                                         dpg.add_separator()
                                     elif "value" in value:
                                         # normal element
-                                        self.add_config_element(key, value['value'], value['description'])
+                                        self.add_config_element(key, value['value'], value['_description'])
                                     else:
                                         # nested element
                                         dpg.add_separator()
                                         with dpg.group(horizontal=True):
                                             dpg.add_text(key, indent=self.CONFIG_WIDTH+5)
                                             t = dpg.add_text("(?)")
-                                            with dpg.tooltip(t): dpg.add_text(value['description'], wrap=2 * self.CONFIG_WIDTH)
+                                            with dpg.tooltip(t): dpg.add_text(value['_description'], wrap=2 * self.CONFIG_WIDTH)
                                         for sub_key, sub_value in value.items():
-                                            if sub_key != "description": self.add_config_element(sub_key, sub_value, None)
+                                            if sub_key != "_description": self.add_config_element(sub_key, sub_value, None)
                                         dpg.add_separator()
 
         dpg.setup_dearpygui()
@@ -313,7 +313,7 @@ class CraftBotsGUI:
             self.simulation.config = Configuration.read_ini_file(file_paths[0])
             for category, params in self.simulation.config.items():
                 for key, value in params.items():
-                    if key=="description":
+                    if key=="_description":
                         continue
                     if "value" in value:
                         # normal element
@@ -321,4 +321,4 @@ class CraftBotsGUI:
                     else:
                         # nested element
                         for sub_key, sub_value in value.items():
-                            if sub_key != "description": self.update_config_element(sub_key, sub_value)
+                            if sub_key != "_description": self.update_config_element(sub_key, sub_value)

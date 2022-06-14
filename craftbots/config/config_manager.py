@@ -28,7 +28,7 @@ class Configuration:
         try:
             with open(path, "w") as file:
                 try:
-                    print("writing to file not yet implemented.")
+                    yaml.safe_dump(config,file)
                 except yaml.YAMLError as exc:
                     Logger.error("(config manager)", exc)
         except IOError as exc:
