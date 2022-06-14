@@ -86,8 +86,8 @@ class Simulation:
             else:
 
                 # control simulation rate
-                if self.world.tick % 10 == 0:
-                    loop_start = time.time()
+                # if self.world.tick % 10 == 0:
+                loop_start = time.time()
 
                 # poll agents
                 for index, agent in enumerate(self.agents):
@@ -113,11 +113,11 @@ class Simulation:
                     self.simulation_finished = True
 
                 # control simulation rate
-                if (self.world.tick + 1) % 10 == 0:
-                    period = 10.0 / Configuration.get_value(self.config, "simulation_rate")
-                    loop_end = time.time()
-                    wait = period - (loop_end - loop_start)
-                    if wait > 0.01: time.sleep(wait)
+                # if (self.world.tick + 1) % 10 == 0:
+                period = 1.0 / Configuration.get_value(self.config, "simulation_rate")
+                loop_end = time.time()
+                wait = period - (loop_end - loop_start)
+                if wait > 0.01: time.sleep(wait)
 
         # wait for agents to finish
         Logger.info("Simulation", "Waiting for agents to complete.")
