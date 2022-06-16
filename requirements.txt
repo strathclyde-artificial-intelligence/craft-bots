@@ -1,3 +1,4 @@
 dearpygui
 numpy
 pyyaml
+progress
