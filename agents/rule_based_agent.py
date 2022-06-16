@@ -105,7 +105,7 @@ class RBAgent(Agent):
 
         # if the agent is carrying a required resource at the site, deposit.
         actor_resources = self.api.get_field(actor_id, 'resources')
-        matching_resources = [ resource_id for resource_id in actor_resources if remaining_resources [self.api.get_field(resource_id,'colour')]>0 ]
+        matching_resources = [ resource_id for resource_id in actor_resources if self.api.get_field(resource_id,'colour') is not None and remaining_resources [self.api.get_field(resource_id,'colour')]>0 ]
         if actor_node == target_node and len(matching_resources)>0:
             self.api.deposit_resources(actor_id,site_id,matching_resources[0])
             return
