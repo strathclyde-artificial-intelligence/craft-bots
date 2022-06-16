@@ -117,7 +117,7 @@ class Simulation:
                 period = 1.0 / Configuration.get_value(self.config, "simulation_rate")
                 loop_end = time.time()
                 wait = period - (loop_end - loop_start)
-                if wait > 0.01: time.sleep(wait)
+                if wait > 0.001: time.sleep(wait)
 
         # wait for agents to finish
         Logger.info("Simulation", "Waiting for agents to complete.")
