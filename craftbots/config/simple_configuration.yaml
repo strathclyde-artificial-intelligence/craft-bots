@@ -192,7 +192,7 @@ Run Configuration:
     value: simple_log.txt
   log_to_file:
     _description: If true the simulation log will be written to a file.
-    value: false
+    value: true
   sim_length:
     _description: Maximum number of ticks.
     value: 6000
@@ -275,7 +275,7 @@ Temporal Uncertainty:
     _description: The standard deviation (in ticks) from the total mining deviation per tick.
     value: 0.3
   move_deviation_bounds:
-    _description: Min/Max speed of the actor.
+    _description: Min/Max speed deviation of the actor.
     value:
     - 0
     - 2
