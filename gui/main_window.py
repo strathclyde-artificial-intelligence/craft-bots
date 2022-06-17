@@ -253,7 +253,11 @@ class CraftBotsGUI:
         # Item set in configuration window.
         if "decimal" in dpg.get_item_configuration(sender):
             if data=='': data=0
-            data = float(data)
+            try:
+                data = float(data)
+            except ValueError:
+                # user may have typed "-"
+                data=0
         Configuration.set_value(self.simulation.config, sender, data)
 
     def reset_simulation(self, sender, data):
