@@ -147,6 +147,8 @@ class SimulationView:
 
         # edges behind
         for key, edge in world_info['edges'].items():
+            if edge['node_a'] not in world_info['nodes'] or edge['node_b'] not in world_info['nodes']:
+                continue
             node_a = world_info['nodes'][edge['node_a']]
             node_b = world_info['nodes'][edge['node_b']]
             dpg.draw_line(
