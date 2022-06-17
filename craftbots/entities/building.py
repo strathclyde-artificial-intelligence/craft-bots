@@ -124,7 +124,6 @@ class Building:
                 self.ignore_me()
 
     def fail_construction(self):
-        self.ignore_me()
 
         penalty = r.uniform(self.world.nondeterminism_config["construction_failure_penalty"][0],
                             self.world.nondeterminism_config["construction_failure_penalty"][1])
@@ -135,6 +134,7 @@ class Building:
             self.deposited_resources[self.deposited_resources.index(max(self.deposited_resources))] -= 1
             self.set_progress(max(self.progress - self.world.building_config["build_effort"], 0))
 
+        self.ignore_me()
 
     def max_progress(self):
         """

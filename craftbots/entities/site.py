@@ -96,9 +96,9 @@ class Site:
         build_speed = self.world.actor_config["build_speed"]
         if self.world.temporal_config["build_duration_uncertain"]:
             deviation = nr.normal(deviation, self.world.temporal_config["build_per_tick_stddev"])
-            build_speed = build_speed + deviation
-            build_speed = max(self.world.temporal_config["build_deviation_bounds"][0], build_speed)
-            build_speed = min(self.world.temporal_config["build_deviation_bounds"][1], build_speed)
+            deviation = max(self.world.temporal_config["build_deviation_bounds"][0] + build_speed, deviation)
+            deviation = min(self.world.temporal_config["build_deviation_bounds"][1] + build_speed, deviation)
+            build_speed = deviation
 
         building_progress = build_speed * ((1 + self.world.building_config["constructing_speed_building_modifier_strength"]) **
                                            self.world.building_modifiers[Building.BUILDING_CONSTRUCTION])
@@ -126,7 +126,7 @@ class Site:
             del self
 
     def fail_construction(self):
-        self.ignore_me()
+
         penalty = r.uniform(self.world.nondeterminism_config["construction_failure_penalty"][0],
                             self.world.nondeterminism_config["construction_failure_penalty"][1])
         resources_lost = int(len(self.deposited_resources) * penalty)
@@ -135,6 +135,8 @@ class Site:
         for _ in range(resources_lost):
             self.deposited_resources[self.deposited_resources.index(max(self.deposited_resources))] -= 1
             self.set_progress(max(self.progress - self.world.building_config["build_effort"], 0))
+
+        self.ignore_me()
 
     def max_progress(self):
         """
