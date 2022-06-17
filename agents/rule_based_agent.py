@@ -81,12 +81,14 @@ class RBAgent(Agent):
 
         # if the site is not started and the agent is at the node, start the site.
         if site_id == None and actor_node == target_node:
+            Logger.info("Agent", "Start site: actor{id} node{node} task{task}.".format(id=actor_id, node=target_node, task=task_id))
             self.api.start_site(actor_id, task_id)
             return
 
         # if the site is not started, move to the target node.
         if site_id == None and actor_node != target_node:
             next_node = self.paths[actor_node][target_node]
+            Logger.info("Agent", "Move: actor{id} node{node}.".format(id=actor_id, node=next_node))
             self.api.move_to(actor_id, next_node)
             return
 
@@ -100,6 +102,7 @@ class RBAgent(Agent):
 
         remaining_resources = [a - b for a,b in zip(task_resources,site_resources)]
         if sum(remaining_resources)<=0 and actor_node == target_node:
+            Logger.info("Agent", "Construct: actor{id} site{site}.".format(id=actor_id, site=site_id))
             self.api.construct_at(actor_id, site_id)
             return
 
@@ -107,12 +110,14 @@ class RBAgent(Agent):
         actor_resources = self.api.get_field(actor_id, 'resources')
         matching_resources = [ resource_id for resource_id in actor_resources if self.api.get_field(resource_id,'colour') is not None and remaining_resources [self.api.get_field(resource_id,'colour')]>0 ]
         if actor_node == target_node and len(matching_resources)>0:
+            Logger.info("Agent", "Deposit: actor{id} site{site} resource{resource}.".format(id=actor_id, site=site_id, resource=matching_resources[0]))
             self.api.deposit_resources(actor_id,site_id,matching_resources[0])
             return
 
         # if the agent is carrying a required resource, move to the site.
         if actor_node != target_node and len(matching_resources)>0:
             next_node = self.paths[actor_node][target_node]
+            Logger.info("Agent", "Move: actor{id} node{node}.".format(id=actor_id, node=next_node))
             self.api.move_to(actor_id, next_node)
             return
 
@@ -120,6 +125,7 @@ class RBAgent(Agent):
         node_resources = self.api.get_field(actor_node,'resources')
         matching_node_resources = [ resource_id for resource_id in node_resources if remaining_resources [self.api.get_field(resource_id,'colour')]>0 ]
         if len(matching_node_resources) > 0:
+            Logger.info("Agent", "Pickup: actor{id} resource{resource}.".format(id=actor_id, resource=matching_node_resources[0]))
             self.api.pick_up_resource(actor_id, matching_node_resources[0])
             return
 
@@ -127,6 +133,7 @@ class RBAgent(Agent):
         node_mines = self.api.get_field(actor_node,'mines')
         matching_mines = [ mine_id for mine_id in node_mines if remaining_resources [self.api.get_field(mine_id,'colour')]>0 ]
         if len(matching_mines) > 0:
+            Logger.info("Agent", "Mine: actor{id} mine{mine}.".format(id=actor_id, mine=matching_mines[0]))
             self.api.dig_at(actor_id, matching_mines[0])
             return
 
@@ -141,6 +148,7 @@ class RBAgent(Agent):
                 best_node = node
         if best_node != None:
             next_node = self.paths[actor_node][best_node]
+            Logger.info("Agent", "Move: actor{id} node{node}.".format(id=actor_id, node=next_node))
             self.api.move_to(actor_id, next_node)
             return
         
