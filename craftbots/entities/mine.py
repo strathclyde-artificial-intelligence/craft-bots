@@ -45,7 +45,7 @@ class Mine:
         """
 
         if self.world.nondeterminism_config["digging_non_deterministic"] and r.random() < self.world.nondeterminism_config["digging_non_deterministic"]:
-            Logger.info("mine" + self.id, "Mining failed.")
+            Logger.info("mine" + str(self.id), "Mining failed.")
             self.set_progress(0)
             self.ignore_me()
             return False
@@ -53,9 +53,9 @@ class Mine:
         dig_speed = self.world.actor_config["dig_speed"]
         if self.world.temporal_config["mine_duration_uncertain"]:
             deviation = nr.normal(deviation, self.world.temporal_config["mine_per_tick_stddev"])
+            deviation = max(self.world.temporal_config["mine_deviation_bounds"][0], deviation)
+            deviation = min(self.world.temporal_config["mine_deviation_bounds"][1], deviation)
             dig_speed = dig_speed + deviation
-            dig_speed = max(self.world.temporal_config["mine_deviation_bounds"][0], dig_speed)
-            dig_speed = min(self.world.temporal_config["mine_deviation_bounds"][1], dig_speed)
 
         digging_progress = dig_speed * ((1 + self.world.building_config["mining_speed_building_modifier_strength"]) **
                                         self.world.building_modifiers[Building.BUILDING_MINE])
@@ -89,7 +89,7 @@ class Mine:
         if self.progress >= self.world.resource_config["mine_effort"]:
             if self.world.nondeterminism_config["digging_completion_non_deterministic"] and \
                     r.random() < self.world.nondeterminism_config["digging_completion_non_deterministic"]:
-                Logger.info("mine" + self.id, "Mining completion failed.")
+                Logger.info("mine" + str(self.id), "Mining completion failed.")
                 self.set_progress(0)
                 self.ignore_me()
                 return False

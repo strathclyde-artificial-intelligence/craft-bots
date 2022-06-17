@@ -87,10 +87,10 @@ class Actor:
             move_speed = self.world.actor_config["move_speed"]
             if self.world.temporal_config["move_duration_uncertain"]:
                 move_speed = nr.normal(self.deviation, self.world.temporal_config["move_per_tick_stddev"])
-                move_speed = max(1, move_speed)
-
+                move_speed = max(self.world.actor_config["move_speed"] + self.world.temporal_config["move_deviation_bounds"][0], move_speed)
+                move_speed = min(self.world.actor_config["move_speed"] + self.world.temporal_config["move_deviation_bounds"][1], move_speed)
             if self.state == Actor.MOVING and r.random() < self.world.nondeterminism_config["travel_non_deterministic"]:
-                Logger.info("actor"+self.id, "Travel failed")
+                Logger.info("actor" + str(self.id), "Travel failed")
                 self.cancel_action()
                 self.set_state(Actor.RECOVERING)
                 return
@@ -188,6 +188,9 @@ class Actor:
         :return: True if successful and otherwise False
         """
         if self.state == Actor.IDLE and mine.node == self.node:
+            self.deviation = 0
+            if self.world.temporal_config["mine_duration_uncertain"]:
+                self.deviation = nr.normal(self.world.actor_config["dig_speed"], self.world.temporal_config["mine_overall_stddev"])
             self.set_state(Actor.DIGGING)
             self.set_target(mine)
             return True
@@ -222,7 +225,7 @@ class Actor:
         if self.state == Actor.IDLE and self.node == site.node:
             self.deviation = 0
             if self.world.temporal_config["build_duration_uncertain"]:
-                self.deviation = nr.normal(self.world.actor_config["build_speed"], self.world.building_config["build_overall_stddev"])
+                self.deviation = nr.normal(self.world.actor_config["build_speed"], self.world.temporal_config["build_overall_stddev"])
             self.set_state(Actor.CONSTRUCTING)
             self.set_target(site)
             return True

@@ -89,7 +89,7 @@ class Site:
 
         if self.world.nondeterminism_config["construction_non_deterministic"] \
                 and r.random() < self.world.nondeterminism_config["construction_non_deterministic"]:
-            Logger.info("site" + self.id, "Constructing failed.")
+            Logger.info("site" + str(self.id), "Constructing failed.")
             self.fail_construction()
             return
 
@@ -114,7 +114,7 @@ class Site:
         if self.progress >= self.world.building_config["build_effort"] * sum(self.needed_resources):
             if self.world.nondeterminism_config["construction_completion_non_deterministic"] \
                     and r.random() < self.world.nondeterminism_config["construction_completion_non_deterministic"]:
-                Logger.info("site" + self.id, "Construction completion failed.")
+                Logger.info("site" + str(self.id), "Construction completion failed.")
                 self.fail_construction()
                 return
             new_building = self.world.add_building(self.node, self.building_type)

@@ -90,7 +90,7 @@ class Building:
         on how many resources have been deposited so far.
         """
         if self.world.nondeterminism_config["construction_non_deterministic"] and r.random() < self.world.nondeterminism_config["construction_non_deterministic"]:
-            Logger.info("building" + self.id, "Constructing failed.")
+            Logger.info("building" + str(self.id), "Constructing failed.")
             self.fail_construction()
             return
 
@@ -99,9 +99,9 @@ class Building:
             build_speed = self.world.actor_config["build_speed"]
             if self.world.temporal_config["build_duration_uncertain"]:
                 deviation = nr.normal(deviation, self.world.temporal_config["build_per_tick_stddev"])
+                deviation = max(self.world.temporal_config["build_deviation_bounds"][0], deviation)
+                deviation = min(self.world.temporal_config["build_deviation_bounds"][1], deviation)
                 build_speed = build_speed + deviation
-                build_speed = max(self.world.temporal_config["build_deviation_bounds"][0], build_speed)
-                build_speed = min(self.world.temporal_config["build_deviation_bounds"][1], build_speed)
 
             building_progress = build_speed * (
                         (1 + self.world.building_config["constructing_speed_building_modifier_strength"]) **
@@ -117,7 +117,7 @@ class Building:
             if self.progress >= self.world.building_config["build_effort"] * sum(self.needed_resources):
                 if self.world.nondeterminism_config["construction_completion_non_deterministic"] \
                         and r.random() < self.world.nondeterminism_config["construction_completion_non_deterministic"]:
-                    Logger.info("building" + self.id, "Agent construction completion failed.")
+                    Logger.info("building" + str(self.id), "Agent construction completion failed.")
                     self.fail_construction()
                     return
                 self.world.add_actor(self.node)
