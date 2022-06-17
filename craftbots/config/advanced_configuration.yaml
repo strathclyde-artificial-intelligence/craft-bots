@@ -281,7 +281,7 @@ Temporal Uncertainty:
   build_deviation_bounds:
     _description: Min/Max build deviation of the actor.
     value:
-    - -2.0
+    - -1.0
     - 0.0
   build_duration_uncertain:
     _description: If true, building takes an uncertain duration as configured below.
