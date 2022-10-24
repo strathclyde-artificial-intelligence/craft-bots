@@ -26,7 +26,7 @@ class Site:
         if self.building_type == Building.BUILDING_TASK:
             if task_id is None:
                 for task in self.world.tasks:
-                    if task.node == self.node and task.project is None:
+                    if task.node == self.node and task.linked_site is None:
                         task.set_project(self)
                         self.task = task
                         self.needed_resources = task.needed_resources
