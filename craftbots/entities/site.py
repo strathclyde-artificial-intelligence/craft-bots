@@ -144,7 +144,7 @@ class Site:
 
         :return: The maximum progress
         """
-        return self.world.building_config["build_effort"] * sum(self.needed_resources) * sum(self.deposited_resources) / sum(self.needed_resources)
+        return self.world.building_config["build_effort"] * sum(self.deposited_resources)
 
     def ignore_me(self):
         """
