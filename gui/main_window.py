@@ -169,6 +169,7 @@ class CraftBotsGUI:
         dpg.setup_dearpygui()
         dpg.show_viewport()
         # dpg.maximize_viewport()
+        self.reset_simulation(None, None)
 
         # main GUI loop
         log_length = 0
