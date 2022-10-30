@@ -2,3 +2,4 @@ dearpygui
 numpy
 pyyaml
 progress
+requests
